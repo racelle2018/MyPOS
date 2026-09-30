@@ -1,0 +1,28 @@
+<Window x:Class="MyPos.Desktop.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MyPos — Log in" Height="360" Width="380"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <StackPanel Margin="32" VerticalAlignment="Center">
+        <TextBlock Text="MyPos" FontSize="30" FontWeight="Bold"
+                   HorizontalAlignment="Center" Margin="0,0,0,4"/>
+        <TextBlock Text="Point of Sale" Foreground="Gray"
+                   HorizontalAlignment="Center" Margin="0,0,0,28"/>
+
+        <TextBlock Text="Username"/>
+        <TextBox x:Name="UsernameBox" Height="28" Margin="0,4,0,14"/>
+
+        <TextBlock Text="Password"/>
+        <PasswordBox x:Name="PasswordBox" Height="28" Margin="0,4,0,20"/>
+
+        <Button x:Name="LoginButton" Content="Log in" Height="38"
+                IsDefault="True" Click="LoginButton_Click"/>
+
+        <TextBlock x:Name="ErrorText" Foreground="#DC2626"
+                   Margin="0,14,0,0" TextWrapping="Wrap"/>
+
+        <!-- TODO: remove this hint before shipping to customers -->
+        <TextBlock Text="Default: admin / admin123" Foreground="Gray" FontSize="11"
+                   Margin="0,20,0,0" HorizontalAlignment="Center"/>
+    </StackPanel>
+</Window>

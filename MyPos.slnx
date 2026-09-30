@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MyPos.Core/MyPos.Core.csproj" />
+    <Project Path="src/MyPos.Desktop/MyPos.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MyPos.Tests/MyPos.Tests.csproj" />
+  </Folder>
+</Solution>

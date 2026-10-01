@@ -1,7 +1,7 @@
 ﻿<Window x:Class="MyPos.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MyPos" Height="620" Width="960" WindowStartupLocation="CenterScreen">
+        Title="MyPos" Height="640" Width="1024" WindowStartupLocation="CenterScreen">
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="#1E293B" Padding="16,10">
             <DockPanel>
@@ -10,12 +10,21 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="MyPos" Foreground="White" FontWeight="Bold" FontSize="18"/>
                     <TextBlock x:Name="WelcomeText" Foreground="#CBD5E1"
-                               Margin="16,2,0,0" VerticalAlignment="Center"/>
+                               Margin="16,4,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <TextBlock Text="Product catalog screen coming next…"
-                   Foreground="Gray" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Border DockPanel.Dock="Left" Width="180" Background="#F1F5F9" Padding="8">
+            <StackPanel>
+                <TextBlock Text="MENU" Foreground="#64748B" FontSize="11" Margin="8,8,0,8"/>
+                <Button Content="Products" Height="36" Margin="0,2" Click="NavProducts_Click"/>
+                <Button Content="POS  (next)" Height="36" Margin="0,2" IsEnabled="False"/>
+                <Button Content="Reports" Height="36" Margin="0,2" IsEnabled="False"/>
+                <Button Content="Settings" Height="36" Margin="0,2" IsEnabled="False"/>
+            </StackPanel>
+        </Border>
+
+        <ContentControl x:Name="ScreenHost"/>
     </DockPanel>
 </Window>

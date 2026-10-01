@@ -1,0 +1,27 @@
+<Window x:Class="MyPos.Desktop.Dialogs.ReceiveStockDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Receive Stock" Height="400" Width="380"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <StackPanel Margin="24">
+        <TextBlock Text="Receive Stock" FontSize="18" FontWeight="Bold" Margin="0,0,0,4"/>
+        <TextBlock x:Name="ProductNameText" Foreground="Gray" Margin="0,0,0,20"/>
+
+        <TextBlock Text="Quantity received *"/>
+        <TextBox x:Name="QtyBox" Height="28" Margin="0,4,0,12"/>
+
+        <TextBlock Text="Unit cost (₱) *"/>
+        <TextBox x:Name="CostBox" Height="28" Margin="0,4,0,12"/>
+
+        <TextBlock Text="Notes (supplier, invoice no.…)"/>
+        <TextBox x:Name="NotesBox" Height="28" Margin="0,4,0,12"/>
+
+        <TextBlock x:Name="ErrorText" Foreground="#DC2626" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Width="90" Height="34" Margin="0,0,8,0" IsCancel="True"/>
+            <Button Content="Receive" Width="90" Height="34" Background="#0F172A"
+                    Foreground="White" IsDefault="True" Click="SaveButton_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

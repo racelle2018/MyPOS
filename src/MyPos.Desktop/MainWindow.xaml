@@ -1,25 +1,60 @@
-﻿<Window x:Class="MyPos.Desktop.MainWindow"
+<Window x:Class="MyPos.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MyPos" Height="640" Width="1024" WindowStartupLocation="CenterScreen">
+        Title="MyPos" Height="680" Width="1120" WindowStartupLocation="CenterScreen">
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="#1E293B">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,6,16,6">
-                    <Button Content="New Sale" Width="95" Height="32" Style="{StaticResource HeaderButton}" Margin="3,0" Click="NavPos_Click"/>
-                    <Button Content="Products" Width="90" Height="32" Style="{StaticResource HeaderButton}" Margin="3,0" Click="NavProducts_Click"/>
-                    <Button Content="Reports" Width="85" Height="32" Style="{StaticResource HeaderButton}" Margin="3,0" Click="NavReports_Click"/>
-                    <Button x:Name="SettingsButton" Content="Settings" Width="85" Height="32" Style="{StaticResource HeaderButton}" Margin="3,0" Click="NavSettings_Click"/>
-                    <Button x:Name="LogoutButton" Content="Log out" Width="85" Height="32" Style="{StaticResource HeaderButton}" Margin="10,0,0,0" Click="LogoutButton_Click"/>
-                </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="16,8,0,8">
-                    <TextBlock Text="MyPos" Foreground="White" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="WelcomeText" Foreground="#CBD5E1"
-                               FontSize="13" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                    <Border Width="30" Height="30" CornerRadius="7" Background="#0078D7">
+                        <TextBlock Text="M" Foreground="White" FontWeight="Bold" FontSize="16"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="MyPos" Foreground="White" FontWeight="Bold" FontSize="17"
+                               Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="WelcomeText" Foreground="#94A3B8" FontSize="12"
+                               Margin="14,2,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                            HorizontalAlignment="Right" Margin="0,6,12,6" VerticalAlignment="Center">
+                    <Button x:Name="NavPosButton" Height="34" Padding="14,0" Margin="3,0"
+                            Style="{StaticResource HeaderButton}" Click="NavPos_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE7BF;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="New Sale" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="NavProductsButton" Height="34" Padding="14,0" Margin="3,0"
+                            Style="{StaticResource HeaderButton}" Click="NavProducts_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8FD;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="Products" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="NavReportsButton" Height="34" Padding="14,0" Margin="3,0"
+                            Style="{StaticResource HeaderButton}" Click="NavReports_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE787;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="Reports" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="SettingsButton" Height="34" Padding="14,0" Margin="3,0"
+                            Style="{StaticResource HeaderButton}" Click="NavSettings_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="Settings" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="LogoutButton" Content="Log out" Height="34" Padding="14,0"
+                            Margin="10,0,0,0" Style="{StaticResource HeaderButton}" Click="LogoutButton_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>
-
         <ContentControl x:Name="ScreenHost"/>
     </DockPanel>
 </Window>

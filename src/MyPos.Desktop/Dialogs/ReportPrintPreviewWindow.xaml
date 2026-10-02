@@ -1,0 +1,18 @@
+<Window x:Class="MyPos.Desktop.Dialogs.ReportPrintPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Print Preview — Daily Sales" Height="720" Width="1180"
+        WindowStartupLocation="CenterOwner">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Close" Width="90" Height="34" Margin="0,0,8,0" IsCancel="True"/>
+            <Button Content="Print" Width="110" Height="34" Background="#0F172A"
+                    Foreground="White" FontWeight="SemiBold" Click="PrintButton_Click"/>
+        </StackPanel>
+        <Border BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6"
+                Background="#CBD5E1" Padding="8">
+            <FlowDocumentScrollViewer x:Name="DocViewer"/>
+        </Border>
+    </DockPanel>
+</Window>

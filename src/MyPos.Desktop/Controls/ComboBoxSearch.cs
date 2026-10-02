@@ -30,6 +30,8 @@ public static class ComboBoxSearch
         box.ApplyTemplate();
         if (box.Template.FindName("PART_EditableTextBox", box) is not TextBox tb) return;
 
+        tb.CharacterCasing = CharacterCasing.Upper;
+
         // No blue selection block inside the box
         tb.SelectionBrush = new SolidColorBrush(Color.FromRgb(0xCB, 0xD5, 0xE1));
         tb.GotKeyboardFocus += (_, _) => tb.Dispatcher.BeginInvoke(() =>

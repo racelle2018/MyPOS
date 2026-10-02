@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Input;
 using MyPos.Core.Entities;
 
 namespace MyPos.Desktop;
@@ -8,7 +9,14 @@ public partial class LoginWindow : Window
     public LoginWindow()
     {
         InitializeComponent();
+        CompanyLabel.Text = AppSettings.Get("CompanyName", "MY STORE");
         UsernameBox.Focus();
+    }
+
+    private void PasswordBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        var capsOn = (Keyboard.GetKeyStates(Key.CapsLock) & KeyStates.Toggled) == KeyStates.Toggled;
+        CapsLockHint.Visibility = capsOn ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void LoginButton_Click(object sender, RoutedEventArgs e)
@@ -30,6 +38,15 @@ public partial class LoginWindow : Window
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
+            App.Db.AuditLogs.Add(new AuditLog
+            {
+                Date = DateTime.Now,
+                Action = "LoginFailed",
+                EntityName = "User",
+                Details = $"Attempted username: {username.ToUpperInvariant()}"
+            });
+            App.Db.SaveChanges();
+
             ErrorText.Text = "Invalid username or password.";
             PasswordBox.Clear();
             PasswordBox.Focus();

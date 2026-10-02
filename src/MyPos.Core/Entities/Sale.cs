@@ -20,6 +20,11 @@ public class Sale : EntityBase
     // Receipt linkage — decoupled from SaleNumber
     public ReceiptType ReceiptType { get; set; }
     public string? ReceiptNumber { get; set; }        // manual OR no. or system-printed no.
+    public OrderType OrderType { get; set; } = OrderType.WalkIn;
+
+    public Guid? CustomerId { get; set; }
+    public string? CustomerName { get; set; }
+    public string? CustomerAddress { get; set; }
 
     // Voids — sales are never edited or deleted
     public bool IsVoided { get; set; }
@@ -32,6 +37,8 @@ public class Sale : EntityBase
 }
 
 public enum ReceiptType { None = 0, Manual = 1, System = 2 }
+
+public enum OrderType { WalkIn = 1, PickUp = 2, Delivery = 3 }
 
 public class SaleItem
 {

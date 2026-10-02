@@ -30,6 +30,7 @@ public class SaleService
     {
         if (qty <= 0) throw new ArgumentException("Quantity must be positive.", nameof(qty));
         if (unitCost < 0) throw new ArgumentException("Unit cost cannot be negative.", nameof(unitCost));
+        notes = notes?.Trim().ToUpperInvariant() ?? "";
 
         using var tx = _db.Database.BeginTransaction();
 
@@ -66,9 +67,14 @@ public class SaleService
 
     public Sale PostSale(Guid branchId, Guid cashierId, IList<CartLine> lines, decimal discount = 0,
         decimal tendered = 0, PaymentMethod method = PaymentMethod.Cash, string? reference = null,
-        ReceiptType receiptType = ReceiptType.None, string? manualReceiptNumber = null)
+        ReceiptType receiptType = ReceiptType.None, string? manualReceiptNumber = null,
+        string? customerName = null, string? customerAddress = null,
+        OrderType orderType = OrderType.WalkIn)
     {
         if (lines is not { Count: > 0 }) throw new InvalidOperationException("Cart is empty.");
+        customerName = string.IsNullOrWhiteSpace(customerName) ? null : customerName.Trim().ToUpperInvariant();
+        customerAddress = string.IsNullOrWhiteSpace(customerAddress) ? null : customerAddress.Trim().ToUpperInvariant();
+        manualReceiptNumber = string.IsNullOrWhiteSpace(manualReceiptNumber) ? null : manualReceiptNumber.Trim().ToUpperInvariant();
         if (discount < 0) throw new InvalidOperationException("Discount cannot be negative.");
 
         using var tx = _db.Database.BeginTransaction();
@@ -87,13 +93,10 @@ public class SaleService
                 throw new InvalidOperationException("Product not found or inactive.");
             if (p.StockQty < line.Qty)
                 throw new InvalidOperationException($"Insufficient stock for '{p.Name}' (on hand: {p.StockQty}).");
-            prepared.Add(new PreparedLine { Product = p, Qty = line.Qty, LineGross = Round2(p.Price * line.Qty) });
+            prepared.Add(new PreparedLine { Product = p, Qty = line.Qty });
         }
 
-        var gross = prepared.Sum(x => x.LineGross);
-        if (discount > gross) throw new InvalidOperationException("Discount exceeds sale amount.");
-        var total = gross - discount;
-        if (tendered < total) throw new InvalidOperationException("Tendered amount is less than the total.");
+        var gross = prepared.Sum(x => Round2(x.Product.Price * x.Qty));
 
         // 2) Allocate discount proportionally; last line absorbs rounding
         if (gross > 0)
@@ -113,14 +116,14 @@ public class SaleService
             _db.Settings.First(s => s.Key == "VatRate").Value,
             System.Globalization.CultureInfo.InvariantCulture);
 
-        decimal netSum = 0;
-        foreach (var line in prepared)
-        {
-            var lineTotal = line.LineGross - line.DiscountShare;
-            line.LineNet = line.Product.IsVatExempt ? lineTotal : Round2(lineTotal / (1m + vatRate));
-            netSum += line.LineNet;
-        }
-        var net = netSum;
+        var calc = SaleCalculator.Compute(
+            prepared.Select(x => new SaleCalculator.Line(x.Product.Price, x.Qty, x.Product.CostPrice, x.Product.IsVatExempt)).ToList(),
+            discount, vatRate);
+        if (discount > calc.Gross) throw new InvalidOperationException("Discount exceeds sale amount.");
+        if (tendered < calc.Total) throw new InvalidOperationException("Tendered amount is less than the total.");
+        var total = calc.Total;
+
+        var net = calc.Net;
         var vat = total - net;   // derived — can never drift from the total
 
         // 4) Build the sale; gapless numbers assigned inside the transaction
@@ -137,11 +140,42 @@ public class SaleService
         {
             BranchId = branchId, CashierId = cashierId, SaleDate = now,
             SaleNumber = branch.NextSaleNumber++,
-            GrossAmount = gross, DiscountAmount = discount, TotalAmount = total,
-            NetAmount = net, VatAmount = vat, VatRate = vatRate,
-            TenderedAmount = tendered, ChangeAmount = tendered - total,
+            OrderType = orderType,
+            GrossAmount = calc.Gross, DiscountAmount = calc.Discount, TotalAmount = calc.Total,
+            NetAmount = calc.Net, VatAmount = calc.Vat, VatRate = vatRate,
+            TenderedAmount = tendered, ChangeAmount = tendered - calc.Total,
             ReceiptType = receiptType, ReceiptNumber = receiptNo
         };
+
+        if (!string.IsNullOrWhiteSpace(customerName))
+        {
+            var name = customerName.Trim();
+            var customer = _db.Customers.ToList()
+                .FirstOrDefault(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
+            if (customer == null)
+            {
+                customer = new Customer { Name = name, Address = customerAddress?.Trim() ?? "" };
+                _db.Customers.Add(customer);
+            }
+            else if (customer.Address.Length == 0 && !string.IsNullOrWhiteSpace(customerAddress))
+                customer.Address = customerAddress.Trim();
+
+            sale.CustomerId = customer.Id;
+            sale.CustomerName = name;
+            sale.CustomerAddress = string.IsNullOrWhiteSpace(customerAddress) ? null : customerAddress.Trim();
+        }
+
+        if (receiptType == ReceiptType.Manual && manualReceiptNumber != null)
+        {
+            var duplicate = _db.Sales.ToList().Any(s =>
+                s.BranchId == branchId &&
+                s.ReceiptNumber == manualReceiptNumber &&
+                !s.IsVoided);
+
+            if (duplicate)
+                throw new InvalidOperationException(
+                    $"Invoice/OR number '{manualReceiptNumber}' was already used.");
+        }
 
         // 5) Items, payment, stock movements + cache update
         foreach (var line in prepared)
@@ -150,7 +184,7 @@ public class SaleService
             sale.Items.Add(new SaleItem
             {
                 ProductId = p.Id, ProductName = p.Name, Barcode = p.Barcode,
-                Qty = line.Qty, UnitPrice = p.Price, LineGross = line.LineGross, UnitCost = p.CostPrice
+                Qty = line.Qty, UnitPrice = p.Price, LineGross = calc.LineGrosses[prepared.IndexOf(line)], UnitCost = p.CostPrice
             });
             _db.InventoryMovements.Add(new InventoryMovement
             {
@@ -159,13 +193,13 @@ public class SaleService
             });
             p.StockQty -= line.Qty;
         }
-        sale.Payments.Add(new Payment { Method = method, Amount = total, Reference = reference });
+        sale.Payments.Add(new Payment { Method = method, Amount = calc.Total, Reference = reference });
         _db.Sales.Add(sale);
 
         // 6) The double entry — balanced by construction:
         //    debits  = total + cogs
         //    credits = net + vat + cogs, and total = net + vat by rule 3
-        var cogs = prepared.Sum(x => Round2(x.Product.CostPrice * x.Qty));
+        var cogs = calc.Cogs;
         var debitAccount = method == PaymentMethod.Cash ? AccountCodes.CashOnHand : AccountCodes.CashInBank;
 
         PostJournal(now, branchId, "Sale", sale.Id, $"Sale #{sale.SaleNumber}",

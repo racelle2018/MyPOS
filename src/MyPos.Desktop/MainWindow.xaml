@@ -3,26 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MyPos" Height="640" Width="1024" WindowStartupLocation="CenterScreen">
     <DockPanel>
-        <Border DockPanel.Dock="Top" Background="#1E293B" Padding="16,10">
+        <Border DockPanel.Dock="Top" Background="#1E293B">
             <DockPanel>
-                <Button x:Name="LogoutButton" DockPanel.Dock="Right" Content="Log out"
-                        Click="LogoutButton_Click" MinWidth="80"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="MyPos" Foreground="White" FontWeight="Bold" FontSize="18"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,6,16,6">
+                    <Button Content="New Sale" Width="95" Height="32" Style="{StaticResource HeaderButton}" Margin="3,0" Click="NavPos_Click"/>
+                    <Button Content="Products" Width="90" Height="32" Style="{StaticResource HeaderButton}" Margin="3,0" Click="NavProducts_Click"/>
+                    <Button Content="Reports" Width="85" Height="32" Style="{StaticResource HeaderButton}" Margin="3,0" Click="NavReports_Click"/>
+                    <Button x:Name="SettingsButton" Content="Settings" Width="85" Height="32" Style="{StaticResource HeaderButton}" Margin="3,0" Click="NavSettings_Click"/>
+                    <Button x:Name="LogoutButton" Content="Log out" Width="85" Height="32" Style="{StaticResource HeaderButton}" Margin="10,0,0,0" Click="LogoutButton_Click"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="16,8,0,8">
+                    <TextBlock Text="MyPos" Foreground="White" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"/>
                     <TextBlock x:Name="WelcomeText" Foreground="#CBD5E1"
-                               Margin="16,4,0,0" VerticalAlignment="Center"/>
+                               FontSize="13" Margin="16,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </DockPanel>
-        </Border>
-
-        <Border DockPanel.Dock="Left" Width="180" Background="#F1F5F9" Padding="8">
-            <StackPanel>
-                <TextBlock Text="MENU" Foreground="#64748B" FontSize="11" Margin="8,8,0,8"/>
-                <Button Content="Products" Height="36" Margin="0,2" Click="NavProducts_Click"/>
-                <Button Content="POS  (next)" Height="36" Margin="0,2" IsEnabled="False"/>
-                <Button Content="Reports" Height="36" Margin="0,2" IsEnabled="False"/>
-                <Button Content="Settings" Height="36" Margin="0,2" IsEnabled="False"/>
-            </StackPanel>
         </Border>
 
         <ContentControl x:Name="ScreenHost"/>

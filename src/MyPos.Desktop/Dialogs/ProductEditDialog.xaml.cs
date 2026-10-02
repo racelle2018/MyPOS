@@ -36,7 +36,7 @@ public partial class ProductEditDialog : Window
         {
             Title = "Add product";
             TitleText.Text = "Add product";
-            UnitBox.Text = "pc";   // most common default
+            UnitBox.Text = "PC";   // most common default
         }
 
         NameBox.Focus();
@@ -50,8 +50,8 @@ public partial class ProductEditDialog : Window
 
         var seeds = new[]
         {
-            "Beverages", "Snacks", "Canned Goods", "Dairy",
-            "Condiments", "Cleaning Supplies", "Personal Care"
+            "BEVERAGES", "SNACKS", "CANNED GOODS", "DAIRY",
+            "CONDIMENTS", "CLEANING SUPPLIES", "PERSONAL CARE"
         };
 
         ComboBoxSearch.Attach(CategoryBox, existing.Concat(seeds)
@@ -67,8 +67,8 @@ public partial class ProductEditDialog : Window
 
         var common = new[]
         {
-            "pc", "pack", "box", "sachet", "kg", "g",
-            "L", "mL", "dozen", "pair", "set", "roll", "tray"
+            "PC", "PACK", "BOX", "SACHET", "KG", "G",
+            "L", "ML", "DOZEN", "PAIR", "SET", "ROLL", "TRAY"
         };
 
         ComboBoxSearch.Attach(UnitBox, existing.Concat(common)
@@ -81,11 +81,11 @@ public partial class ProductEditDialog : Window
     {
         ErrorText.Text = "";
 
-        var name = NameBox.Text.Trim();
-        var barcode = BarcodeBox.Text.Trim();
-        var category = CategoryBox.Text.Trim();
-        var unit = UnitBox.Text.Trim();
-        if (unit.Length == 0) unit = "pc";   // never save an empty unit
+        var name = NameBox.Text.Trim().ToUpperInvariant();
+        var barcode = BarcodeBox.Text.Trim().ToUpperInvariant();
+        var category = CategoryBox.Text.Trim().ToUpperInvariant();
+        var unit = UnitBox.Text.Trim().ToUpperInvariant();
+        if (unit.Length == 0) unit = "PC";   // never save an empty unit
 
         if (name.Length == 0) { Fail("Product name is required."); return; }
         if (!decimal.TryParse(CostBox.Text.Trim(), out var cost) || cost < 0)

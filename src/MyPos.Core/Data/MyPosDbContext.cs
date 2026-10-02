@@ -19,6 +19,7 @@ public class MyPosDbContext : DbContext
     public DbSet<JournalLine> JournalLines => Set<JournalLine>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Setting> Settings => Set<Setting>();
+    public DbSet<Customer> Customers => Set<Customer>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -29,6 +30,9 @@ public class MyPosDbContext : DbContext
         mb.Entity<Sale>(e =>
         {
             e.HasIndex(x => new { x.BranchId, x.SaleNumber }).IsUnique(); // enforces gapless, no duplicates
+            e.HasIndex(x => new { x.BranchId, x.ReceiptNumber })
+                .IsUnique()
+                .HasFilter("\"ReceiptNumber\" IS NOT NULL");
             e.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.SaleId);
             e.HasMany(x => x.Payments).WithOne().HasForeignKey(x => x.SaleId);
         });

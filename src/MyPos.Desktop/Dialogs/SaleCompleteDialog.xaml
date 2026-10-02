@@ -1,0 +1,11 @@
+<Window x:Class="MyPos.Desktop.Dialogs.SaleCompleteDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sale Complete" Height="220" Width="340">
+    <StackPanel Margin="24">
+        <TextBlock Text="SALE COMPLETE" Foreground="Green"/>
+        <TextBlock x:Name="SaleNumberText" Margin="0,12"/>
+        <TextBlock x:Name="ChangeText" FontSize="28"/>
+        <Button Content="New Sale (Enter)" IsDefault="True" Click="Done_Click"/>
+    </StackPanel>
+</Window>

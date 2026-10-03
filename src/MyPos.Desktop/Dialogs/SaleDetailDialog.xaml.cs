@@ -21,6 +21,8 @@ public partial class SaleDetailDialog : Window
         ItemsGrid.ItemsSource = sale.Items.ToList();
         GrossText.Text = $"Gross: ₱{sale.GrossAmount:N2}";
         DiscountText.Text = $"Discount: ₱{sale.DiscountAmount:N2}";
+        if (sale.DiscountKind == DiscountKind.SeniorPwd)
+            DiscountText.Text += $" (SENIOR/PWD: {sale.SeniorIdNumber})";
         VatText.Text = $"VAT: ₱{sale.VatAmount:N2}";
         NetText.Text = $"Net: ₱{sale.NetAmount:N2}";
         TotalText.Text = $"TOTAL: ₱{sale.TotalAmount:N2}";

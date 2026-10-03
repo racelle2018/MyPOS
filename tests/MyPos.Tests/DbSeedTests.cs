@@ -23,7 +23,7 @@ public class DbSeedTests
         using var db = CreateDb();
         DbInitializer.Initialize(db);
 
-        Assert.Equal(9, db.Accounts.Count());
+        Assert.Equal(10, db.Accounts.Count());
         Assert.Contains(db.Users, u => u.Username == "admin" && u.Role == UserRole.Admin);
         Assert.Equal("false", db.Settings.First(s => s.Key == "ReceiptIssuanceEnabled").Value);
     }
@@ -35,7 +35,7 @@ public class DbSeedTests
         DbInitializer.Initialize(db);
         DbInitializer.Initialize(db);   // second run must not duplicate
 
-        Assert.Equal(9, db.Accounts.Count());
+        Assert.Equal(10, db.Accounts.Count());
         Assert.Single(db.Users, u => u.Username == "admin");
     }
 }

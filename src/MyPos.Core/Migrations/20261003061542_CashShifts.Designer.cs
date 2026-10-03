@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyPos.Core.Data;
 
@@ -10,9 +11,11 @@ using MyPos.Core.Data;
 namespace MyPos.Core.Migrations
 {
     [DbContext(typeof(MyPosDbContext))]
-    partial class MyPosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261003061542_CashShifts")]
+    partial class CashShifts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
@@ -200,43 +203,6 @@ namespace MyPos.Core.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("MyPos.Core.Entities.HeldSale", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("BranchId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CartJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("HeldAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("InvoiceNumber")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("HeldSales");
                 });
 
             modelBuilder.Entity("MyPos.Core.Entities.InventoryMovement", b =>
@@ -437,9 +403,6 @@ namespace MyPos.Core.Migrations
                     b.Property<decimal>("DiscountAmount")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DiscountKind")
-                        .HasColumnType("INTEGER");
-
                     b.Property<decimal>("GrossAmount")
                         .HasColumnType("TEXT");
 
@@ -463,9 +426,6 @@ namespace MyPos.Core.Migrations
 
                     b.Property<int>("SaleNumber")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("SeniorIdNumber")
-                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("TenderedAmount")
                         .HasColumnType("TEXT");

@@ -36,6 +36,7 @@
                     <ColumnDefinition Width="Auto"/><ColumnDefinition Width="120"/>
                     <ColumnDefinition Width="Auto"/><ColumnDefinition Width="110"/>
                     <ColumnDefinition Width="Auto"/><ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="130"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="Invoice / OR No. *" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -50,8 +51,11 @@
                 <TextBox x:Name="CustomerNameBox" Style="{StaticResource UpperBox}" Grid.Row="1" Grid.Column="1" Height="32" Margin="0,10,0,0"
                          Tag="Customer name (optional)"/>
                 <TextBlock Grid.Row="1" Grid.Column="2" Text="Address" VerticalAlignment="Center" Margin="16,10,8,0"/>
-                <TextBox x:Name="AddressBox" Style="{StaticResource UpperBox}" Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="6" Height="32" Margin="0,10,0,0"
+                <TextBox x:Name="AddressBox" Style="{StaticResource UpperBox}" Grid.Row="1" Grid.Column="3" Height="32" Margin="0,10,0,0"
                          Tag="Address (optional)"/>
+                <TextBlock x:Name="SeniorIdLabel" Grid.Row="1" Grid.Column="4" Text="SC/PWD ID" VerticalAlignment="Center" Margin="16,10,8,0"/>
+                <TextBox x:Name="SeniorIdBox" Grid.Row="1" Grid.Column="5" Height="32" Margin="0,10,0,0"
+                         IsEnabled="False" Style="{StaticResource UpperBox}" Tag="Senior/PWD ID number — required"/>
             </Grid>
         </Border>
 
@@ -179,12 +183,17 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Discount" Foreground="#94A3B8" VerticalAlignment="Center"/>
-                            <TextBox x:Name="DiscountBox" Grid.Column="1" Width="110" Height="30"
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <ComboBox x:Name="DiscountKindBox" Width="110" Height="30" SelectionChanged="DiscountKindBox_SelectionChanged">
+                                <ComboBoxItem Content="NONE"/><ComboBoxItem Content="AMOUNT"/><ComboBoxItem Content="SENIOR/PWD"/>
+                            </ComboBox>
+                            <TextBox x:Name="DiscountBox" Width="90" Height="30" Margin="8,0,0,0"
                                      TextAlignment="Right" VerticalContentAlignment="Center"
                                      Background="#1E293B" BorderBrush="#334155" Foreground="#E2E8F0"
-                                     ToolTip="WHOLE-PESO DISCOUNT, DEDUCTED BEFORE VAT (THE VAT BASE SHRINKS WITH IT)"
+                                     IsEnabled="False" ToolTip="WHOLE-PESO DISCOUNT, DEDUCTED BEFORE VAT"
                                      KeyDown="DiscountBox_KeyDown"
                                      TextChanged="DiscountBox_TextChanged"/>
+                            </StackPanel>
                         </Grid>
                         <Grid Margin="0,2">
                             <Grid.ColumnDefinitions>
@@ -205,6 +214,8 @@
                                        FontWeight="Bold" Foreground="White" Text="₱0.00"/>
                         </Grid>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0" HorizontalAlignment="Right">
+                            <Button x:Name="HoldButton" Content="Hold (F3)" Width="95" Height="40" Margin="0,0,8,0" Click="HoldButton_Click"/>
+                            <Button x:Name="RecallButton" Content="Recall (F6)" Width="100" Height="40" Margin="0,0,8,0" Click="RecallButton_Click"/>
                             <Button x:Name="ClearButton" Content="Clear (F4)" Width="95" Height="40"
                                     Margin="0,0,10,0" Click="ClearButton_Click"/>
                             <Button x:Name="PayButton" Width="150" Height="40"

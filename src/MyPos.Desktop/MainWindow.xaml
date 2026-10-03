@@ -42,6 +42,10 @@
                             <TextBlock Text="Reports" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+                    <Button x:Name="NavShiftButton" Height="34" Padding="14,0" Margin="3,0"
+                            Style="{StaticResource HeaderButton}" Click="NavShift_Click">
+                        <TextBlock Text="Shift" VerticalAlignment="Center"/>
+                    </Button>
                     <Button x:Name="NavUsersButton" Height="34" Padding="14,0" Margin="3,0"
                             Style="{StaticResource HeaderButton}" Click="NavUsers_Click">
                         <StackPanel Orientation="Horizontal">
@@ -56,6 +60,10 @@
                                        FontSize="14" VerticalAlignment="Center"/>
                             <TextBlock Text="Settings" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
+                    </Button>
+                    <Button x:Name="LockButton" Height="34" MinWidth="0" Padding="12,0" Margin="6,0,0,0"
+                            Style="{StaticResource HeaderButton}" Click="LockButton_Click" ToolTip="Lock now (F12)">
+                        <TextBlock Text="&#xE72E;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
                     </Button>
                     <Button x:Name="LogoutButton" Content="Log out" Height="34" Padding="14,0"
                             Margin="10,0,0,0" Style="{StaticResource HeaderButton}" Click="LogoutButton_Click"/>

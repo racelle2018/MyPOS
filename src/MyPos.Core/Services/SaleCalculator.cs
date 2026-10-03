@@ -1,5 +1,7 @@
 namespace MyPos.Core.Services;
 
+using MyPos.Core.Entities;
+
 /// <summary>Single source of truth for sale totals, VAT, discounts, and COGS.</summary>
 public static class SaleCalculator
 {
@@ -14,10 +16,21 @@ public static class SaleCalculator
         decimal Cogs,
         IReadOnlyList<decimal> LineGrosses);
 
-    public static Result Compute(IReadOnlyList<Line> lines, decimal discount, decimal vatRate)
+    public static Result Compute(IReadOnlyList<Line> lines, decimal discount, decimal vatRate, DiscountKind kind = DiscountKind.None)
     {
         var grosses = lines.Select(l => Round2(l.Price * l.Qty)).ToArray();
         var gross = grosses.Sum();
+
+        if (kind == DiscountKind.SeniorPwd)
+        {
+            decimal seniorNet = 0;
+            for (var i = 0; i < lines.Count; i++)
+            {
+                var exemptPrice = lines[i].IsVatExempt ? grosses[i] : Round2(grosses[i] / (1m + vatRate));
+                seniorNet += Round2(exemptPrice * 0.80m);
+            }
+            return new Result(gross, gross - seniorNet, seniorNet, seniorNet, 0, lines.Sum(l => Round2(l.UnitCost * l.Qty)), grosses);
+        }
         var disc = Math.Clamp(discount, 0, gross);
         var total = gross - disc;
 

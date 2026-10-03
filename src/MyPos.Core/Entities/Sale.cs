@@ -1,5 +1,7 @@
 namespace MyPos.Core.Entities;
 
+public enum DiscountKind { None = 0, Regular = 1, SeniorPwd = 2 }
+
 public class Sale : EntityBase
 {
     public Guid BranchId { get; set; }
@@ -14,6 +16,8 @@ public class Sale : EntityBase
     public decimal VatAmount { get; set; }     // VAT portion of TotalAmount
     public decimal NetAmount { get; set; }     // TotalAmount − VatAmount
     public decimal VatRate { get; set; }       // e.g. 0.12m, snapshotted
+    public DiscountKind DiscountKind { get; set; }
+    public string? SeniorIdNumber { get; set; }
     public decimal TenderedAmount { get; set; }
     public decimal ChangeAmount { get; set; }
 

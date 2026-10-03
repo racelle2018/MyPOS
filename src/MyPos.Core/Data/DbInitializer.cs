@@ -37,7 +37,10 @@ public static class DbInitializer
             new Account { Code = "4100", Name = "Sales Discounts",    Type = AccountType.Revenue,   IsSystem = true },
             new Account { Code = "5000", Name = "Cost of Goods Sold", Type = AccountType.Expense,   IsSystem = true },
             new Account { Code = "6000", Name = "Operating Expenses", Type = AccountType.Expense,   IsSystem = true },
+            new Account { Code = "5100", Name = "Cash Over/Short",   Type = AccountType.Expense,   IsSystem = true },
         });
+        else if (!db.Accounts.Any(a => a.Code == "5100"))
+            db.Accounts.Add(new Account { Code = "5100", Name = "Cash Over/Short", Type = AccountType.Expense, IsSystem = true });
 
         AddSettingIfMissing(db, "CompanyName", "My Store");
         AddSettingIfMissing(db, "ReceiptIssuanceEnabled", "false");

@@ -122,13 +122,15 @@ public partial class DailySalesView : UserControl
         if (dialog.ShowDialog() != true) return;
 
         var csv = new StringBuilder();
-        csv.AppendLine("Sale #,Time,Invoice/OR,Customer,Pay Mode,Gross,Discount,Total,VAT,Net,Voided");
+        csv.AppendLine("Sale #,Time,Invoice/OR,Customer,Pay Mode,Senior/PWD ID,Gross,Discount,Total,VAT,Net,Voided");
         foreach (var sale in _report.Sales)
         {
             csv.AppendLine(string.Join(",", sale.SaleNumber,
                 sale.SaleDate.ToString("HH:mm:ss"), Quote(sale.ReceiptNumber ?? ""),
                 Quote(sale.CustomerName ?? "WALK-IN"),
-                sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH",
+                (sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH") +
+                    (sale.DiscountKind == MyPos.Core.Entities.DiscountKind.SeniorPwd ? " (SC)" : ""),
+                Quote(sale.SeniorIdNumber ?? ""),
                 sale.GrossAmount.ToString("N2"), sale.DiscountAmount.ToString("N2"),
                 sale.TotalAmount.ToString("N2"), sale.VatAmount.ToString("N2"),
                 sale.NetAmount.ToString("N2"), sale.IsVoided ? "YES" : ""));
@@ -259,7 +261,8 @@ public sealed class SaleRowVM
     public string TimeText => Sale.SaleDate.ToString("h:mm:ss tt");
     public string ReceiptNumber => Sale.ReceiptNumber ?? "—";
     public string CustomerName => Sale.CustomerName ?? "WALK-IN";
-    public string PayModeText => Sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH";
+    public string PayModeText => (Sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH")
+        + (Sale.DiscountKind == MyPos.Core.Entities.DiscountKind.SeniorPwd ? " (SC)" : "");
     public decimal GrossAmount => Sale.GrossAmount;
     public decimal DiscountAmount => Sale.DiscountAmount;
     public decimal TotalAmount => Sale.TotalAmount;

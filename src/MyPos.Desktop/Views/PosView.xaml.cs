@@ -24,6 +24,10 @@ public partial class PosView : UserControl
     private Dictionary<string, string> _customerAddresses = new(StringComparer.OrdinalIgnoreCase);
     private List<Product> _filtered = new();
 
+    public bool HasItems => _cart.Count > 0;
+    public int CartCount => _cart.Count;
+    private bool IsSeniorSale => DiscountKindBox.SelectedIndex == 2;
+
     public PosView()
     {
         InitializeComponent();
@@ -40,6 +44,7 @@ public partial class PosView : UserControl
         PayModeBox.SelectedIndex = 0;
         TypeBox.ItemsSource = new[] { "Walk-in", "Pick-up", "Delivery" };
         TypeBox.SelectedIndex = 0;
+        DiscountKindBox.SelectedIndex = 0;
 
         _clock.Tick += (_, _) => UpdateClock();
         UpdateClock();
@@ -185,10 +190,49 @@ public partial class PosView : UserControl
         UpdateInvoiceBoxState();
         CustomerNameBox.Text = "";
         AddressBox.Text = "";
+        SeniorIdBox.Text = "";
+        DiscountKindBox.SelectedIndex = 0;
         UpdateClock();
         LoadCustomers();     // a new customer was just created — suggest it from now on
         RefreshProducts();   // stock display refresh
         RefreshTotals();
+    }
+
+    private void HoldButton_Click(object sender, RoutedEventArgs e) => HoldCart();
+    private void RecallButton_Click(object sender, RoutedEventArgs e) => RecallHeld();
+
+    private void HoldCart()
+    {
+        if (_cart.Count == 0) { Status("Nothing to hold - cart is empty"); return; }
+        var count = _cart.Count;
+        var held = new HeldSaleService(App.Db).Hold(_branchId, App.CurrentUser!.Id,
+            _cart.Select(l => new HeldCartLine(l.ProductId, l.Name, null, l.Price, l.UnitCost, l.IsVatExempt, l.Qty, l.StockAvailable)).ToList(),
+            CustomerNameBox.Text, InvoiceBox.Text, null);
+        ResetSaleDraft();
+        Status($"Held - {(string.IsNullOrWhiteSpace(held.CustomerName) ? "WALK-IN" : held.CustomerName)} ({count} item(s))");
+    }
+
+    private void RecallHeld()
+    {
+        if (_cart.Count > 0 && MessageBox.Show($"Recalling will discard the current {_cart.Count} item(s) in the cart. Continue?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        var dialog = new HeldSalesDialog(_branchId);
+        if (dialog.ShowDialog() != true || dialog.RecalledCart == null) return;
+        ResetSaleDraft();
+        var products = App.Db.Products.Where(p => dialog.RecalledCart.Select(l => l.ProductId).Contains(p.Id)).ToDictionary(p => p.Id);
+        var skipped = 0;
+        foreach (var line in dialog.RecalledCart)
+        {
+            if (!products.TryGetValue(line.ProductId, out var product) || !product.IsActive) { skipped++; continue; }
+            var vm = new CartLineVM(product) { Qty = Math.Min(line.Qty, product.StockQty > 0 ? product.StockQty : 0) };
+            if (vm.Qty <= 0) { skipped++; continue; }
+            vm.PropertyChanged += (_, args) => { if (args.PropertyName is nameof(CartLineVM.Qty) or nameof(CartLineVM.LineTotal)) RefreshTotals(); };
+            _cart.Add(vm);
+        }
+        CustomerNameBox.Text = dialog.RecalledCustomer ?? "";
+        InvoiceBox.Text = dialog.RecalledInvoice ?? "";
+        RefreshTotals();
+        Status(skipped > 0 ? $"Recalled - {skipped} item(s) skipped (unavailable or out of stock)" : "Recalled");
+        SearchBox.Focus();
     }
 
     // ---------- totals ----------
@@ -196,7 +240,8 @@ public partial class PosView : UserControl
     private void RefreshTotals()
     {
         var lines = _cart.Select(l => new SaleCalculator.Line(l.Price, l.Qty, l.UnitCost, l.IsVatExempt)).ToList();
-        var r = SaleCalculator.Compute(lines, ParseDiscount(), _vatRate);
+        var kind = IsSeniorSale ? DiscountKind.SeniorPwd : DiscountKind.None;
+        var r = SaleCalculator.Compute(lines, ParseDiscount(), _vatRate, kind);
 
         GrossText.Text = $"₱{r.Gross:N2}";
         VatText.Text = $"₱{r.Vat:N2}";
@@ -208,6 +253,16 @@ public partial class PosView : UserControl
         => decimal.TryParse(DiscountBox.Text.Trim(), out var d) && d > 0 ? d : 0;
 
     private void DiscountBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshTotals();
+
+    private void DiscountKindBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (DiscountBox == null || SeniorIdBox == null) return;
+        DiscountBox.IsEnabled = DiscountKindBox.SelectedIndex == 1;
+        SeniorIdBox.IsEnabled = IsSeniorSale;
+        SeniorIdBox.Background = IsSeniorSale ? new SolidColorBrush(Color.FromRgb(0xFE, 0xF9, 0xC3)) : Brushes.White;
+        if (IsSeniorSale) DiscountBox.Text = "";
+        RefreshTotals();
+    }
 
     private void InvoiceBox_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -320,6 +375,12 @@ public partial class PosView : UserControl
 
     private void Pay()
     {
+        var shiftService = new ShiftService(App.Db);
+        if (!shiftService.HasOpenShift)
+        {
+            Status("No open shift - open one before selling (Shift button)");
+            return;
+        }
         InvoiceBox.BorderBrush = new SolidColorBrush(Color.FromRgb(0xCB, 0xD5, 0xE1));
         InvoiceBox.BorderThickness = new Thickness(1);
 
@@ -339,9 +400,17 @@ public partial class PosView : UserControl
             return;
         }
 
+        var kind = IsSeniorSale ? DiscountKind.SeniorPwd : DiscountKind.None;
+        if (kind == DiscountKind.SeniorPwd && string.IsNullOrWhiteSpace(SeniorIdBox.Text))
+        {
+            Status("Senior/PWD ID number is required");
+            SeniorIdBox.Focus();
+            return;
+        }
+
         var lines = _cart.Select(l => new SaleCalculator.Line(l.Price, l.Qty, l.UnitCost, l.IsVatExempt)).ToList();
         var discount = ParseDiscount();
-        var calc = SaleCalculator.Compute(lines, discount, _vatRate);
+        var calc = SaleCalculator.Compute(lines, discount, _vatRate, kind);
 
         if (discount > calc.Gross) { Status("Discount exceeds the subtotal"); return; }
 
@@ -372,7 +441,9 @@ public partial class PosView : UserControl
                 manualNo,
                 CustomerNameBox.Text,
                 AddressBox.Text,
-                SelectedOrderType);
+                SelectedOrderType,
+                kind,
+                IsSeniorSale ? SeniorIdBox.Text : null);
 
             new SaleCompleteDialog(sale.SaleNumber, sale.TotalAmount, sale.TenderedAmount, sale.ChangeAmount)
                 .ShowDialog();
@@ -398,7 +469,9 @@ public partial class PosView : UserControl
     private void UserControl_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.F2) { e.Handled = true; Pay(); }
+        else if (e.Key == Key.F3) { e.Handled = true; HoldCart(); }
         else if (e.Key == Key.F4) { e.Handled = true; ClearCart(); }
+        else if (e.Key == Key.F6) { e.Handled = true; RecallHeld(); }
         else if (e.Key == Key.Escape && SearchBox.Text.Length > 0)
         {
             SearchBox.Text = "";

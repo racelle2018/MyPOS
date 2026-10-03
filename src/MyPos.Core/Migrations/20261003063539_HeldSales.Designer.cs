@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyPos.Core.Data;
 
@@ -10,9 +11,11 @@ using MyPos.Core.Data;
 namespace MyPos.Core.Migrations
 {
     [DbContext(typeof(MyPosDbContext))]
-    partial class MyPosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261003063539_HeldSales")]
+    partial class HeldSales
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");

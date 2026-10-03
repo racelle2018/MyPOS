@@ -20,6 +20,9 @@ public class MyPosDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Setting> Settings => Set<Setting>();
     public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<CashShift> CashShifts => Set<CashShift>();
+    public DbSet<CashMovement> CashMovements => Set<CashMovement>();
+    public DbSet<HeldSale> HeldSales => Set<HeldSale>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -47,5 +50,6 @@ public class MyPosDbContext : DbContext
         mb.Entity<JournalLine>(e => e.HasIndex(x => x.AccountId));
 
         mb.Entity<Setting>(e => e.HasKey(x => x.Key));
+        mb.Entity<CashShift>(e => e.HasMany(x => x.Movements).WithOne().HasForeignKey(x => x.ShiftId));
     }
 }

@@ -69,13 +69,18 @@ public class SaleService
         decimal tendered = 0, PaymentMethod method = PaymentMethod.Cash, string? reference = null,
         ReceiptType receiptType = ReceiptType.None, string? manualReceiptNumber = null,
         string? customerName = null, string? customerAddress = null,
-        OrderType orderType = OrderType.WalkIn)
+        OrderType orderType = OrderType.WalkIn, DiscountKind discountKind = DiscountKind.None, string? seniorIdNumber = null)
     {
         if (lines is not { Count: > 0 }) throw new InvalidOperationException("Cart is empty.");
         customerName = string.IsNullOrWhiteSpace(customerName) ? null : customerName.Trim().ToUpperInvariant();
         customerAddress = string.IsNullOrWhiteSpace(customerAddress) ? null : customerAddress.Trim().ToUpperInvariant();
         manualReceiptNumber = string.IsNullOrWhiteSpace(manualReceiptNumber) ? null : manualReceiptNumber.Trim().ToUpperInvariant();
         if (discount < 0) throw new InvalidOperationException("Discount cannot be negative.");
+        if (discountKind == DiscountKind.SeniorPwd)
+        {
+            if (discount > 0) throw new InvalidOperationException("Senior/PWD discount cannot be combined with a regular discount.");
+            if (string.IsNullOrWhiteSpace(seniorIdNumber)) throw new InvalidOperationException("Senior/PWD ID number is required.");
+        }
 
         using var tx = _db.Database.BeginTransaction();
 
@@ -123,7 +128,7 @@ public class SaleService
 
         var calc = SaleCalculator.Compute(
             prepared.Select(x => new SaleCalculator.Line(x.Product.Price, x.Qty, x.Product.CostPrice, x.Product.IsVatExempt)).ToList(),
-            discount, vatRate);
+            discount, vatRate, discountKind);
         if (discount > calc.Gross) throw new InvalidOperationException("Discount exceeds sale amount.");
         if (tendered < calc.Total) throw new InvalidOperationException("Tendered amount is less than the total.");
         var total = calc.Total;
@@ -150,6 +155,7 @@ public class SaleService
             NetAmount = calc.Net, VatAmount = calc.Vat, VatRate = vatRate,
             TenderedAmount = tendered, ChangeAmount = tendered - calc.Total,
             ReceiptType = receiptType, ReceiptNumber = receiptNo
+            , DiscountKind = discountKind, SeniorIdNumber = seniorIdNumber?.Trim().ToUpperInvariant()
         };
 
         if (!string.IsNullOrWhiteSpace(customerName))

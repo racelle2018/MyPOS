@@ -49,6 +49,45 @@ public class SaleServiceTests
     }
 
     [Fact]
+    public void Senior_discount_is_vat_exempt_and_twenty_percent_off_net()
+    {
+        using var s = new Setup();
+        var id = s.AddProduct("Medicine", 112m, 50m, 10m);
+        var sale = s.Svc.PostSale(s.BranchId, s.CashierId, new List<CartLine> { new(id, 1m) }, tendered: 100m,
+            discountKind: DiscountKind.SeniorPwd, seniorIdNumber: "SC-12345");
+        Assert.Equal(80m, sale.TotalAmount);
+        Assert.Equal(80m, sale.NetAmount);
+        Assert.Equal(0m, sale.VatAmount);
+        Assert.Equal(32m, sale.DiscountAmount);
+        Assert.Equal("SC-12345", sale.SeniorIdNumber);
+    }
+
+    [Fact]
+    public void Senior_discount_rejects_stacking_and_missing_id()
+    {
+        using var s = new Setup();
+        var id = s.AddProduct("Medicine", 112m, 50m, 10m);
+        Assert.Throws<InvalidOperationException>(() => s.Svc.PostSale(s.BranchId, s.CashierId,
+            new List<CartLine> { new(id, 1m) }, discount: 10m, tendered: 200m,
+            discountKind: DiscountKind.SeniorPwd, seniorIdNumber: "SC-1"));
+        Assert.Throws<InvalidOperationException>(() => s.Svc.PostSale(s.BranchId, s.CashierId,
+            new List<CartLine> { new(id, 1m) }, tendered: 200m, discountKind: DiscountKind.SeniorPwd));
+    }
+
+    [Fact]
+    public void Senior_discount_handles_vat_and_exempt_lines()
+    {
+        using var s = new Setup();
+        var medicine = s.AddProduct("Medicine", 112m, 50m, 10m);
+        var rice = s.AddProduct("Rice", 250m, 180m, 10m, vatExempt: true);
+        var sale = s.Svc.PostSale(s.BranchId, s.CashierId,
+            new List<CartLine> { new(medicine, 1m), new(rice, 1m) }, tendered: 300m,
+            discountKind: DiscountKind.SeniorPwd, seniorIdNumber: "PWD-99");
+        Assert.Equal(280m, sale.TotalAmount);
+        Assert.Equal(0m, sale.VatAmount);
+    }
+
+    [Fact]
     public void Vat_rounds_net_and_derives_vat_by_subtraction()
     {
         using var s = new Setup();

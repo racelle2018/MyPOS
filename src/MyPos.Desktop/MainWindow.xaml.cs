@@ -14,13 +14,14 @@ public partial class MainWindow : Window
         InitializeComponent();
         WelcomeText.Text = $"{App.CurrentUser?.FullName} ({App.CurrentUser?.Role})";
         SettingsButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+        NavUsersButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         ScreenHost.Content = _posView;
         SetActiveNav(NavPosButton);
     }
 
     private void SetActiveNav(Button active)
     {
-        foreach (var button in new[] { NavPosButton, NavProductsButton, NavReportsButton, SettingsButton })
+        foreach (var button in new[] { NavPosButton, NavProductsButton, NavReportsButton, NavUsersButton, SettingsButton })
         {
             button.Background = new SolidColorBrush(Color.FromRgb(0x33, 0x41, 0x55));
             button.Foreground = new SolidColorBrush(Color.FromRgb(0xE2, 0xE8, 0xF0));
@@ -44,7 +45,7 @@ public partial class MainWindow : Window
 
     private void NavReports_Click(object sender, RoutedEventArgs e)
     {
-        ScreenHost.Content = new DailySalesView();
+        ScreenHost.Content = new ReportsView();
         SetActiveNav(NavReportsButton);
     }
 
@@ -53,6 +54,13 @@ public partial class MainWindow : Window
         if (!Permissions.RequireAdmin("change settings")) return;
         ScreenHost.Content = new SettingsView();
         SetActiveNav(SettingsButton);
+    }
+
+    private void NavUsers_Click(object sender, RoutedEventArgs e)
+    {
+        if (!Permissions.RequireAdmin("manage users")) return;
+        ScreenHost.Content = new UserManagementView();
+        SetActiveNav(NavUsersButton);
     }
 
     private void LogoutButton_Click(object sender, RoutedEventArgs e)

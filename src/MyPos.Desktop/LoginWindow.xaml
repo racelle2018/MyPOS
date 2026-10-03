@@ -36,7 +36,7 @@
                            TextWrapping="Wrap" HorizontalAlignment="Center"/>
             </StackPanel>
         </Border>
-        <TextBlock Text="MyPos v1.0" Foreground="#94A3B8" FontSize="11"
+        <TextBlock x:Name="VersionText" Foreground="#94A3B8" FontSize="11"
                    HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,14"/>
     </Grid>
 </Window>

@@ -20,6 +20,7 @@ public partial class PosView : UserControl
     private readonly decimal _vatRate;
     private bool ReceiptsEnabled => AppSettings.Get("ReceiptIssuanceEnabled", "false") == "true";
     private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
+    private bool _sanitizingInvoice;
     private Dictionary<string, string> _customerAddresses = new(StringComparer.OrdinalIgnoreCase);
     private List<Product> _filtered = new();
 
@@ -120,7 +121,13 @@ public partial class PosView : UserControl
         if (line == null)
         {
             if (p.StockQty <= 0) { Status($"{p.Name} — out of stock"); return; }
-            _cart.Add(new CartLineVM(p));
+            var newLine = new CartLineVM(p);
+            newLine.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName is nameof(CartLineVM.Qty) or nameof(CartLineVM.LineTotal))
+                    RefreshTotals();
+            };
+            _cart.Add(newLine);
         }
         else
         {
@@ -202,6 +209,41 @@ public partial class PosView : UserControl
 
     private void DiscountBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshTotals();
 
+    private void InvoiceBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_sanitizingInvoice || !InvoiceBox.IsEnabled) return;
+
+        var clean = string.Concat(InvoiceBox.Text.Where(c => char.IsLetterOrDigit(c) || c == '-'));
+        if (clean != InvoiceBox.Text)
+        {
+            _sanitizingInvoice = true;
+            var caret = Math.Max(0, InvoiceBox.CaretIndex - (InvoiceBox.Text.Length - clean.Length));
+            InvoiceBox.Text = clean;
+            InvoiceBox.CaretIndex = Math.Min(caret, clean.Length);
+            _sanitizingInvoice = false;
+        }
+
+        var duplicate = clean.Length > 0 && App.Db.Sales.ToList().Any(s =>
+            s.BranchId == _branchId && s.ReceiptNumber == clean && !s.IsVoided);
+
+        InvoiceBox.BorderBrush = duplicate
+            ? new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26))
+            : new SolidColorBrush(Color.FromRgb(0xCB, 0xD5, 0xE1));
+        InvoiceBox.BorderThickness = duplicate ? new Thickness(2) : new Thickness(1);
+        InvoiceBox.ToolTip = duplicate
+            ? $"Invoice '{clean}' was already used. Check the next number in your booklet."
+            : "Enter the manual receipt / OR number issued for this sale.";
+    }
+
+    private void DiscountBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            Pay();
+        }
+    }
+
     // ---------- search & products ----------
 
     private void RefreshProducts()
@@ -235,8 +277,7 @@ public partial class PosView : UserControl
 
         if (exact != null)
         {
-            AddToCart(exact);
-            SearchBox.Text = "";
+            AddAndReset(exact);
         }
         else if (_filtered.Count > 0)
         {
@@ -253,9 +294,7 @@ public partial class PosView : UserControl
     {
         if (e.Key == Key.Enter && ProductsGrid.SelectedItem is Product p)
         {
-            AddToCart(p);
-            SearchBox.Text = "";
-            SearchBox.Focus();
+            AddAndReset(p);
             e.Handled = true;
         }
     }
@@ -264,10 +303,17 @@ public partial class PosView : UserControl
     {
         if (ProductsGrid.SelectedItem is Product p)
         {
-            AddToCart(p);
-            SearchBox.Text = "";
-            SearchBox.Focus();
+            AddAndReset(p);
         }
+    }
+
+    private void AddAndReset(Product product)
+    {
+        AddToCart(product);
+        SearchBox.Text = "";
+        DataGridBehaviors.SetKeepSelection(CartGrid, true);
+        SearchBox.Focus();
+        Dispatcher.BeginInvoke(() => DataGridBehaviors.SetKeepSelection(CartGrid, false));
     }
 
     // ---------- pay ----------
@@ -391,7 +437,7 @@ public class CartLineVM : INotifyPropertyChanged
         get => _qty;
         set
         {
-            _qty = value;
+            _qty = Math.Clamp(value, 0, StockAvailable);
             OnPropertyChanged();
             OnPropertyChanged(nameof(LineTotal));
         }

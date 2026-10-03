@@ -42,6 +42,13 @@
                             <TextBlock Text="Reports" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+                    <Button x:Name="NavUsersButton" Height="34" Padding="14,0" Margin="3,0"
+                            Style="{StaticResource HeaderButton}" Click="NavUsers_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE716;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                            <TextBlock Text="Users" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </Button>
                     <Button x:Name="SettingsButton" Height="34" Padding="14,0" Margin="3,0"
                             Style="{StaticResource HeaderButton}" Click="NavSettings_Click">
                         <StackPanel Orientation="Horizontal">

@@ -45,6 +45,13 @@ public partial class ProductCatalogView : UserControl
         CountText.Text = list.Count == 0
             ? "No products match."
             : $"{list.Count} product(s)";
+        EmptyHint.Visibility = list.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (list.Count == 0)
+        {
+            EmptyHint.Text = term.Length > 0
+                ? "No products match your search"
+                : "No products yet — add your first product";
+        }
     }
 
     private void ReselectAndFocus(Guid productId)

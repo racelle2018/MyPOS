@@ -1,23 +1,38 @@
 <UserControl x:Class="MyPos.Desktop.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ScrollViewer>
-        <StackPanel Margin="24" MaxWidth="560">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="12" MaxWidth="600" HorizontalAlignment="Left">
             <TextBlock Text="SETTINGS" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
-            <TextBlock Text="STORE DETAILS" FontWeight="SemiBold" Foreground="#475569"/>
-            <TextBlock Text="Company name" Margin="0,10,0,0"/><TextBox x:Name="CompanyNameBox"/>
-            <TextBlock Text="Address" Margin="0,10,0,0"/><TextBox x:Name="CompanyAddressBox"/>
-            <TextBlock Text="TIN" Margin="0,10,0,0"/><TextBox x:Name="CompanyTinBox"/>
-            <TextBlock Text="Receipt footer" Margin="0,10,0,0"/><TextBox x:Name="FooterMessageBox"/>
-            <TextBlock Text="RECEIPTS" FontWeight="SemiBold" Foreground="#475569" Margin="0,20,0,8"/>
-            <CheckBox x:Name="ReceiptsEnabledBox" Content="Print system receipts"/>
-            <TextBlock Text="Paper width" Margin="0,10,0,0"/>
-            <ComboBox x:Name="WidthBox"><ComboBoxItem Content="58mm (32 characters)"/><ComboBoxItem Content="80mm (48 characters)"/></ComboBox>
-            <TextBlock Text="Printer name (blank uses Windows default)" Margin="0,10,0,0"/>
-            <TextBox x:Name="PrinterNameBox"/>
-            <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
-                <Button Content="Backup Now" Width="110" Margin="0,0,10,0" Click="BackupButton_Click"/>
-                <Button Content="Save Settings" Click="SaveButton_Click"/>
+            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="0,6" Margin="0,0,0,8">
+                <TextBlock Text="STORE DETAILS — PRINTED ON RECEIPTS AND REPORTS" Foreground="#475569" FontSize="11" FontWeight="SemiBold"/>
+            </Border>
+            <TextBlock Text="Company / store name"/><TextBox x:Name="CompanyNameBox" Height="32" Margin="0,4,0,10"/>
+            <TextBlock Text="Address"/><TextBox x:Name="CompanyAddressBox" Height="32" Margin="0,4,0,10"/>
+            <TextBlock Text="TIN (leave blank if not VAT-registered)"/><TextBox x:Name="CompanyTinBox" Height="32" Margin="0,4,0,18"/>
+
+            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="0,6" Margin="0,0,0,8">
+                <TextBlock Text="RECEIPTS" Foreground="#475569" FontSize="11" FontWeight="SemiBold"/>
+            </Border>
+            <CheckBox x:Name="ReceiptsEnabledBox" Margin="0,0,0,10">
+                <TextBlock Text="Print system receipts — the system issues its own numbered invoices (Mode B)." TextWrapping="Wrap"/>
+            </CheckBox>
+            <TextBlock Text="When OFF, you type manual OR/invoice numbers on each sale (Mode A)." Foreground="#94A3B8" FontSize="11" Margin="0,0,0,10"/>
+            <TextBlock Text="Paper width"/><ComboBox x:Name="WidthBox" Height="32" Margin="0,4,0,10" Width="220">
+                <ComboBoxItem Content="58mm roll (32 characters)"/><ComboBoxItem Content="80mm roll (48 characters)"/>
+            </ComboBox>
+            <TextBlock Text="Receipt printer"/><ComboBox x:Name="PrinterBox" Height="32" Margin="0,4,0,4" Width="320"/>
+            <TextBlock Text="Blank = Windows default printer." Foreground="#94A3B8" FontSize="11" Margin="0,0,0,18"/>
+
+            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="0,6" Margin="0,0,0,8">
+                <TextBlock Text="INVENTORY" Foreground="#475569" FontSize="11" FontWeight="SemiBold"/>
+            </Border>
+            <TextBlock Text="Low-stock warning threshold"/><TextBox x:Name="LowStockBox" Height="32" Width="120" Margin="0,4,0,4"/>
+            <TextBlock Text="Products at or below this level show amber; zero shows red." Foreground="#94A3B8" FontSize="11" Margin="0,0,0,18"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Button x:Name="SaveButton" Content="Save Settings" Width="130" Height="38" Background="#0F172A" Foreground="White" FontWeight="SemiBold" Click="SaveButton_Click"/>
+                <Button x:Name="BackupButton" Content="Backup Now" Width="100" Height="38" Margin="10,0,0,0" Click="BackupButton_Click"/>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

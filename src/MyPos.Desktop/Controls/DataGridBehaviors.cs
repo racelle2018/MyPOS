@@ -56,6 +56,7 @@ public static class DataGridBehaviors
     private static void Grid_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
         var grid = (DataGrid)sender;
+        if (GetKeepSelection(grid)) return;
 
         // Focus moved within the grid itself (cell to cell) — keep selection
         if (grid.IsKeyboardFocusWithin) return;
@@ -125,6 +126,16 @@ public static class DataGridBehaviors
 
     private static DependencyObject? Parent(DependencyObject node)
         => VisualTreeHelper.GetParent(node) ?? (node as FrameworkElement)?.Parent;
+
+    public static readonly DependencyProperty KeepSelectionProperty =
+        DependencyProperty.RegisterAttached("KeepSelection", typeof(bool),
+            typeof(DataGridBehaviors), new PropertyMetadata(false));
+
+    public static bool GetKeepSelection(DataGrid grid)
+        => (bool)grid.GetValue(KeepSelectionProperty);
+
+    public static void SetKeepSelection(DataGrid grid, bool value)
+        => grid.SetValue(KeepSelectionProperty, value);
 
     private sealed class Hook
     {

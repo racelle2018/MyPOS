@@ -93,7 +93,12 @@ public class SaleService
                 throw new InvalidOperationException("Product not found or inactive.");
             if (p.StockQty < line.Qty)
                 throw new InvalidOperationException($"Insufficient stock for '{p.Name}' (on hand: {p.StockQty}).");
-            prepared.Add(new PreparedLine { Product = p, Qty = line.Qty });
+            prepared.Add(new PreparedLine
+            {
+                Product = p,
+                Qty = line.Qty,
+                LineGross = Round2(p.Price * line.Qty)
+            });
         }
 
         var gross = prepared.Sum(x => Round2(x.Product.Price * x.Qty));
@@ -332,7 +337,5 @@ public class SaleService
         public decimal Qty;
         public decimal LineGross;     // price × qty, VAT-inclusive
         public decimal DiscountShare;
-        public decimal LineNet;       // VAT-exclusive
-        public decimal LineVat;
     }
 }

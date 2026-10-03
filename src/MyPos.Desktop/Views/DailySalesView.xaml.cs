@@ -25,9 +25,10 @@ public partial class DailySalesView : UserControl
 
     private void LoadDate(DateTime date)
     {
-        ErrorText.Text = "";
         _report = new ReportService(App.Db).GetDailySales(date, _branchId);
         SalesGrid.ItemsSource = _report.Sales.Select(s => new SaleRowVM(s)).ToList();
+        ReportEmptyHint.Visibility = _report.Sales.Count == 0
+            ? Visibility.Visible : Visibility.Collapsed;
         TotalSalesText.Text = $"₱{_report.TotalSales:N2}";
         NetSalesText.Text = $"₱{_report.NetSales:N2}";
         VatText.Text = $"₱{_report.Vat:N2}";
@@ -42,6 +43,26 @@ public partial class DailySalesView : UserControl
         VoidsText.Text = $"VOIDS: {_report.VoidCount} (₱{_report.VoidTotal:N2})";
     }
 
+    private void UpdateSummary()
+    {
+        if (_report == null) return;
+        TotalSalesText.Text = $"₱{_report.TotalSales:N2}";
+        NetSalesText.Text = $"₱{_report.NetSales:N2}";
+        VatText.Text = $"₱{_report.Vat:N2}";
+        CountText.Text = _report.TransactionCount.ToString();
+        AvgText.Text = $"₱{_report.AverageSale:N2}";
+        VoidsText.Text = _report.VoidCount == 0
+            ? "0" : $"{_report.VoidCount} (₱{_report.VoidTotal:N2})";
+        SystemReceiptsText.Text = _report.SystemReceipts.ToString();
+        ManualReceiptsText.Text = _report.ManualReceipts.ToString();
+        MissingReceiptsText.Text = _report.MissingReceipts.ToString();
+        MissingReceiptsText.Foreground = _report.MissingReceipts > 0
+            ? new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26))
+            : new SolidColorBrush(Color.FromRgb(0x0F, 0x17, 0x2A));
+        MissingHint.Visibility = _report.MissingReceipts > 0
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     private void TodayButton_Click(object sender, RoutedEventArgs e)
         => DatePick.SelectedDate = DateTime.Today;
 
@@ -54,7 +75,10 @@ public partial class DailySalesView : UserControl
     private void DatePick_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
     {
         if (DatePick.SelectedDate is DateTime date)
+        {
             LoadDate(date);
+            UpdateSummary();
+        }
     }
 
     private void VoidButton_Click(object sender, RoutedEventArgs e)

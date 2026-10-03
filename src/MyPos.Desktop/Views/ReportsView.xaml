@@ -1,0 +1,11 @@
+<UserControl x:Class="MyPos.Desktop.Views.ReportsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="#F1F5F9" Padding="12,8" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="DailyToggleButton" Content="Daily Sales" Height="30" Padding="14,0" Margin="0,0,6,0" Click="DailyToggle_Click"/>
+                <Button x:Name="AuditToggleButton" Content="Audit Log" Height="30" Padding="14,0" Click="AuditToggle_Click"/>
+            </StackPanel>
+        </Border>
+        <ContentControl x:Name="ReportHost"/>
+    </DockPanel>
+</UserControl>

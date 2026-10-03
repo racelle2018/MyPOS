@@ -10,6 +10,7 @@ public partial class LoginWindow : Window
     {
         InitializeComponent();
         CompanyLabel.Text = AppSettings.Get("CompanyName", "MY STORE");
+        VersionText.Text = $"MYPOS {typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0"}";
         UsernameBox.Focus();
     }
 
@@ -58,6 +59,8 @@ public partial class LoginWindow : Window
             ErrorText.Text = "This account has been disabled.";
             return;
         }
+
+        user.LastLoginAt = DateTime.Now;
 
         App.Db.AuditLogs.Add(new AuditLog
         {

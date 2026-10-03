@@ -10,6 +10,7 @@ using MyPos.Core.Entities;
 using MyPos.Core.Services;
 using MyPos.Desktop.Controls;
 using MyPos.Desktop.Dialogs;
+using MyPos.Desktop.Printing;
 
 namespace MyPos.Desktop.Views;
 
@@ -445,8 +446,11 @@ public partial class PosView : UserControl
                 kind,
                 IsSeniorSale ? SeniorIdBox.Text : null);
 
-            new SaleCompleteDialog(sale.SaleNumber, sale.TotalAmount, sale.TenderedAmount, sale.ChangeAmount)
-                .ShowDialog();
+            var printed = !ReceiptsEnabled || ReceiptPrinting.TryPrint(sale, reprint: false);
+            new SaleCompleteDialog(sale, ReceiptsEnabled, printed).ShowDialog();
+            if (ReceiptsEnabled && !printed)
+                new ReceiptPreviewDialog(sale, false,
+                    "AUTOMATIC PRINTING FAILED - check the printer connection and settings. Retry below.").ShowDialog();
 
             ResetSaleDraft();
             Status($"Sale #{sale.SaleNumber} completed" +

@@ -1,11 +1,3 @@
-<Window x:Class="MyPos.Desktop.Dialogs.SaleCompleteDialog"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Sale Complete" Height="220" Width="340">
-    <StackPanel Margin="24">
-        <TextBlock Text="SALE COMPLETE" Foreground="Green"/>
-        <TextBlock x:Name="SaleNumberText" Margin="0,12"/>
-        <TextBlock x:Name="ChangeText" FontSize="28"/>
-        <Button Content="New Sale (Enter)" IsDefault="True" Click="Done_Click"/>
-    </StackPanel>
+<Window x:Class="MyPos.Desktop.Dialogs.SaleCompleteDialog" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Sale Complete" Height="380" Width="430" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+ <StackPanel Margin="24" VerticalAlignment="Center"><TextBlock Text="SALE COMPLETE" Foreground="#16A34A" FontWeight="SemiBold" HorizontalAlignment="Center"/><TextBlock x:Name="SaleNumberText" FontSize="17" HorizontalAlignment="Center" Margin="0,12"/><TextBlock x:Name="ChangeLabel" Text="CHANGE" Foreground="#475569" HorizontalAlignment="Center"/><TextBlock x:Name="ChangeText" FontSize="42" HorizontalAlignment="Center"/><TextBlock x:Name="PrintStatusText" FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="0,8"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0"><Button x:Name="ReceiptButton" Content="View Receipt" Width="120" Height="40" Margin="0,0,12,0" Click="ReceiptButton_Click"/><Button Content="New Sale (Enter)" Width="150" Height="40" IsDefault="True" Click="Done_Click"/></StackPanel></StackPanel>
 </Window>

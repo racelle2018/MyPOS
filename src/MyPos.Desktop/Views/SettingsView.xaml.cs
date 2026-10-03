@@ -16,8 +16,13 @@ public partial class SettingsView : UserControl
         CompanyNameBox.Text = AppSettings.Get("CompanyName", "MY STORE");
         CompanyAddressBox.Text = AppSettings.Get("CompanyAddress", "");
         CompanyTinBox.Text = AppSettings.Get("CompanyTin", "");
+        BranchNameBox.Text = AppSettings.Get("BranchName", "");
+        AccrBox.Text = AppSettings.Get("AccrNo", "");
+        MinBox.Text = AppSettings.Get("Min", "");
+        SnBox.Text = AppSettings.Get("Sn", "");
         ReceiptsEnabledBox.IsChecked = AppSettings.Get("ReceiptIssuanceEnabled", "false") == "true";
         WidthBox.SelectedIndex = AppSettings.Get("ReceiptWidth", "32") == "48" ? 1 : 0;
+        PrintModeBox.SelectedIndex = AppSettings.Get("ReceiptPrintMode", "Thermal") == "Regular" ? 1 : 0;
         LowStockBox.Text = AppSettings.Get("LowStockThreshold", "5");
         LoadPrinters();
     }
@@ -60,8 +65,13 @@ public partial class SettingsView : UserControl
         Set("CompanyName", CompanyNameBox.Text.Trim());
         Set("CompanyAddress", CompanyAddressBox.Text.Trim());
         Set("CompanyTin", CompanyTinBox.Text.Trim());
+        Set("BranchName", BranchNameBox.Text.Trim().ToUpperInvariant());
+        Set("AccrNo", AccrBox.Text.Trim().ToUpperInvariant());
+        Set("Min", MinBox.Text.Trim().ToUpperInvariant());
+        Set("Sn", SnBox.Text.Trim().ToUpperInvariant());
         Set("ReceiptIssuanceEnabled", ReceiptsEnabledBox.IsChecked == true ? "true" : "false");
         Set("ReceiptWidth", WidthBox.SelectedIndex == 1 ? "48" : "32");
+        Set("ReceiptPrintMode", PrintModeBox.SelectedIndex == 1 ? "Regular" : "Thermal");
         Set("ReceiptPrinterName", PrinterBox.SelectedItem as string ?? "");
         Set("LowStockThreshold", threshold.ToString());
 

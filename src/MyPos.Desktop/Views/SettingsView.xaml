@@ -10,6 +10,9 @@
             <TextBlock Text="Company / store name"/><TextBox x:Name="CompanyNameBox" Height="32" Margin="0,4,0,10"/>
             <TextBlock Text="Address"/><TextBox x:Name="CompanyAddressBox" Height="32" Margin="0,4,0,10"/>
             <TextBlock Text="TIN (leave blank if not VAT-registered)"/><TextBox x:Name="CompanyTinBox" Height="32" Margin="0,4,0,18"/>
+            <TextBlock Text="Branch name (printed under the store name)"/><TextBox x:Name="BranchNameBox" Height="32" Margin="0,4,0,10"/>
+            <TextBlock Text="BIR ACCREDITATION - leave blank until accredited" Foreground="#475569"/>
+            <Grid Margin="0,4,0,18"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><StackPanel Margin="0,0,6,0"><TextBlock Text="ACCR NO." FontSize="11"/><TextBox x:Name="AccrBox" Height="32"/></StackPanel><StackPanel Grid.Column="1" Margin="0,0,6,0"><TextBlock Text="MIN" FontSize="11"/><TextBox x:Name="MinBox" Height="32"/></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="SN" FontSize="11"/><TextBox x:Name="SnBox" Height="32"/></StackPanel></Grid>
 
             <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="0,6" Margin="0,0,0,8">
                 <TextBlock Text="RECEIPTS" Foreground="#475569" FontSize="11" FontWeight="SemiBold"/>
@@ -18,6 +21,7 @@
                 <TextBlock Text="Print system receipts — the system issues its own numbered invoices (Mode B)." TextWrapping="Wrap"/>
             </CheckBox>
             <TextBlock Text="When OFF, you type manual OR/invoice numbers on each sale (Mode A)." Foreground="#94A3B8" FontSize="11" Margin="0,0,0,10"/>
+            <TextBlock Text="Printer type"/><ComboBox x:Name="PrintModeBox" Height="32" Margin="0,4,0,10" Width="280"><ComboBoxItem Content="Thermal receipt printer (ESC/POS)"/><ComboBoxItem Content="Regular printer (any inkjet/laser)"/></ComboBox>
             <TextBlock Text="Paper width"/><ComboBox x:Name="WidthBox" Height="32" Margin="0,4,0,10" Width="220">
                 <ComboBoxItem Content="58mm roll (32 characters)"/><ComboBoxItem Content="80mm roll (48 characters)"/>
             </ComboBox>

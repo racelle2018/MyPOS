@@ -86,7 +86,6 @@
 
         <!-- Textboxes: rounded, blue focus ring -->
         <Style TargetType="TextBox">
-            <Setter Property="CharacterCasing" Value="Upper"/>
             <Setter Property="Padding" Value="8,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="BorderBrush" Value="#CBD5E1"/>
@@ -130,6 +129,10 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <Style x:Key="UpperBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="CharacterCasing" Value="Upper"/>
         </Style>
 
         <!-- PasswordBox: same look (login screen) -->

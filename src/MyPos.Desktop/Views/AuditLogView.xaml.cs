@@ -12,7 +12,7 @@ public partial class AuditLogView : UserControl
     private bool _loading;
     private List<AuditRowVM> _rows = new();
     private static readonly string[] SecurityActions = { "LoginFailed", "PermissionDenied" };
-    private static readonly string[] SensitiveActions = { "VoidSale", "ReceiptReprint", "SettingChanged", "SetupCompleted", "UserCreate", "UserEdit", "UserActivate", "UserDeactivate", "ProductDeactivate" };
+    private static readonly string[] SensitiveActions = { "VoidSale", "ReceiptReprint", "SettingChanged", "SetupCompleted", "UserCreate", "UserEdit", "UserActivate", "UserDeactivate", "ProductDeactivate", "ProductActivate" };
 
     public AuditLogView()
     {

@@ -13,6 +13,7 @@ public partial class UserManagementView : UserControl
         InitializeComponent();
         if (!Permissions.IsAdmin) throw new UnauthorizedAccessException("Only administrators may manage users.");
         LoadUsers();
+        UsersGrid.MouseDoubleClick += (_, _) => { if (Selected != null) EditButton_Click(this, new RoutedEventArgs()); };
         SearchBox.Focus();
     }
 
@@ -21,18 +22,19 @@ public partial class UserManagementView : UserControl
     private void LoadUsers()
     {
         var term = SearchBox.Text.Trim();
-        var users = App.Db.Users.OrderBy(user => user.Username).ToList();
+        var users = App.Db.Users.Where(user => ShowInactiveBox.IsChecked == true || user.IsActive).OrderBy(user => user.Username).ToList();
         if (term.Length > 0)
             users = users.Where(user => user.Username.Contains(term, StringComparison.OrdinalIgnoreCase) || user.FullName.Contains(term, StringComparison.OrdinalIgnoreCase)).ToList();
         var list = users.Select(user => new UserRowVM(user)).ToList();
         UsersGrid.ItemsSource = list;
-        CountText.Text = $"{list.Count} user(s)";
+        CountText.Text = ShowInactiveBox.IsChecked == true ? $"{list.Count} user(s) — showing inactive" : $"{list.Count} active user(s)";
         EmptyHint.Visibility = list.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyHint.Text = term.Length > 0 ? "No users match your search" : "No users yet — add your first user";
         UpdateToggleButton();
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => LoadUsers();
+    private void ShowInactiveBox_Changed(object sender, RoutedEventArgs e) => LoadUsers();
     private void UsersGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateToggleButton();
 
     private void UpdateToggleButton()

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using MyPos.Core.Entities;
 using MyPos.Desktop.Dialogs;
 
@@ -24,7 +25,7 @@ public partial class ProductCatalogView : UserControl
         SearchBox.Focus();
     }
 
-    private Product? Selected => ProductsGrid.SelectedItem as Product;
+    private Product? Selected => (ProductsGrid.SelectedItem as ProductRowVM)?.Product;
 
     private void LoadProducts()
     {
@@ -39,25 +40,27 @@ public partial class ProductCatalogView : UserControl
                 (p.Category ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
-        var list = products.OrderBy(p => p.Name).ToList();
-        ProductsGrid.ItemsSource = list;
+        var list = products.OrderByDescending(p => p.IsActive).ThenBy(p => p.Name).ToList();
+        var rows = list.Select(p => new ProductRowVM(p)).ToList();
+        ProductsGrid.ItemsSource = rows;
 
-        CountText.Text = list.Count == 0
+        CountText.Text = rows.Count == 0
             ? "No products match."
-            : $"{list.Count} product(s)";
-        EmptyHint.Visibility = list.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        if (list.Count == 0)
+            : $"{rows.Count} product(s)";
+        EmptyHint.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (rows.Count == 0)
         {
             EmptyHint.Text = term.Length > 0
                 ? "No products match your search"
                 : "No products yet — add your first product";
         }
+        DeactivateButton.Content = Selected != null && !Selected.IsActive ? "Activate" : "Deactivate";
     }
 
     private void ReselectAndFocus(Guid productId)
     {
-        var row = ProductsGrid.ItemsSource.OfType<Product>()
-            .FirstOrDefault(p => p.Id == productId);
+        var row = ProductsGrid.ItemsSource.OfType<ProductRowVM>()
+            .FirstOrDefault(p => p.Product.Id == productId);
 
         if (row != null)
         {
@@ -74,7 +77,7 @@ public partial class ProductCatalogView : UserControl
     {
         if (e.Key == Key.Escape) SearchBox.Text = "";
         else if (e.Key == Key.Enter
-                 && ProductsGrid.ItemsSource is List<Product> { Count: 1 })
+                 && ProductsGrid.ItemsSource is List<ProductRowVM> { Count: 1 })
         {
             ProductsGrid.SelectedIndex = 0;
             ProductsGrid.Focus();
@@ -122,7 +125,7 @@ public partial class ProductCatalogView : UserControl
 
     private void DeactivateButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!Permissions.RequireAdmin("deactivate products")) return;
+        if (!Permissions.RequireAdmin("change products")) return;
 
         var p = Selected;
         if (p == null)
@@ -132,18 +135,39 @@ public partial class ProductCatalogView : UserControl
             return;
         }
 
-        var confirm = MessageBox.Show(
-            $"Deactivate '{p.Name}'?\nIt disappears from the catalog, but sales history stays intact.",
+        var confirm = MessageBox.Show(p.IsActive
+            ? $"Deactivate '{p.Name}'?\nIt disappears from the catalog, but sales history stays intact."
+            : $"Reactivate '{p.Name}'?\nIt returns to the catalog and POS immediately.",
             "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (confirm != MessageBoxResult.Yes) return;
 
-        p.IsActive = false;
+        var activating = !p.IsActive;
+        p.IsActive = activating;
         App.Db.AuditLogs.Add(new AuditLog
         {
             Date = DateTime.Now, UserId = App.CurrentUser?.Id,
-            Action = "ProductDeactivate", EntityName = "Product", EntityId = p.Id, Details = p.Name
+            Action = activating ? "ProductActivate" : "ProductDeactivate",
+            EntityName = "Product", EntityId = p.Id, Details = p.Name
         });
         App.Db.SaveChanges();
         LoadProducts();
     }
+
+    private void ProductsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => DeactivateButton.Content = Selected != null && !Selected.IsActive ? "Activate" : "Deactivate";
+}
+
+public sealed class ProductRowVM
+{
+    public Product Product { get; }
+    public ProductRowVM(Product product) => Product = product;
+    public string Name => Product.Name;
+    public string? Barcode => Product.Barcode;
+    public string Category => Product.Category;
+    public string Unit => Product.Unit;
+    public decimal CostPrice => Product.CostPrice;
+    public decimal Price => Product.Price;
+    public decimal StockQty => Product.StockQty;
+    public string ActiveText => Product.IsActive ? "ACTIVE" : "OFF";
+    public Brush ActiveBrush => Product.IsActive ? Brushes.ForestGreen : Brushes.SlateGray;
 }

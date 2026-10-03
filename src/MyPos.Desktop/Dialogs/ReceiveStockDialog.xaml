@@ -14,7 +14,7 @@
         <TextBox x:Name="CostBox" Height="28" Margin="0,4,0,12"/>
 
         <TextBlock Text="Notes (supplier, invoice no.…)"/>
-        <TextBox x:Name="NotesBox" Height="28" Margin="0,4,0,12"/>
+        <TextBox x:Name="NotesBox" Style="{StaticResource UpperBox}" Height="28" Margin="0,4,0,12"/>
 
         <TextBlock x:Name="ErrorText" Foreground="#DC2626" TextWrapping="Wrap" Margin="0,0,0,12"/>
 

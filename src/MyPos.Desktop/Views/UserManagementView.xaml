@@ -11,7 +11,10 @@
                     <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE710;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"/><TextBlock Text="Add User" Margin="7,0,0,0"/></StackPanel>
                 </Button>
             </StackPanel>
-            <TextBox x:Name="SearchBox" Width="280" Height="32" Tag="Search users" TextChanged="SearchBox_TextChanged"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="SearchBox" Width="240" Height="32" Tag="Search users" TextChanged="SearchBox_TextChanged"/>
+                <CheckBox x:Name="ShowInactiveBox" Content="Show inactive" Margin="14,0,0,0" VerticalAlignment="Center" Checked="ShowInactiveBox_Changed" Unchecked="ShowInactiveBox_Changed"/>
+            </StackPanel>
         </DockPanel>
         <TextBlock x:Name="CountText" DockPanel.Dock="Bottom" Foreground="Gray" Margin="0,8,0,0"/>
         <Grid>

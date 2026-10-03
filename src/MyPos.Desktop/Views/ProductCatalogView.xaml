@@ -6,6 +6,7 @@
              xmlns:app="clr-namespace:MyPos.Desktop">
     <UserControl.Resources>
         <converters:StockBrushConverter x:Key="StockBrush"/>
+        <converters:UpperTextConverter x:Key="UpperText"/>
     </UserControl.Resources>
     <DockPanel Margin="12">
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
@@ -33,7 +34,7 @@
                 </Button>
             </StackPanel>
             <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-            <TextBox x:Name="SearchBox" Width="320" Height="32"
+            <TextBox x:Name="SearchBox" Style="{StaticResource UpperBox}" Width="320" Height="32"
                      VerticalContentAlignment="Center"
                      TextChanged="SearchBox_TextChanged"
                      KeyDown="SearchBox_KeyDown"/>
@@ -48,11 +49,15 @@
                   HeadersVisibility="Column" RowHeaderWidth="0"
                   GridLinesVisibility="None"
                   BorderThickness="0" Background="White"
-                  CanUserResizeColumns="True">
+                  CanUserResizeColumns="True" SelectionChanged="ProductsGrid_SelectionChanged">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Product Description" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Product Description" Width="*">
+                    <DataGridTextColumn.Binding><Binding Path="Name" Converter="{StaticResource UpperText}"/></DataGridTextColumn.Binding>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="130"/>
-                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="110"/>
+                <DataGridTextColumn Header="Category" Width="110">
+                    <DataGridTextColumn.Binding><Binding Path="Category" Converter="{StaticResource UpperText}"/></DataGridTextColumn.Binding>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="Unit" Binding="{Binding Unit}" Width="55"/>
                 <DataGridTextColumn x:Name="CostColumn" Header="Cost" ElementStyle="{StaticResource RightCell}"
                                     Binding="{Binding CostPrice, StringFormat=₱{0:N2}}" Width="90"/>
@@ -68,7 +73,11 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="60"/>
+                <DataGridTemplateColumn Header="Status" Width="70">
+                    <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                        <TextBlock Text="{Binding ActiveText}" FontWeight="SemiBold" Foreground="{Binding ActiveBrush}"/>
+                    </DataTemplate></DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
             <TextBlock x:Name="EmptyHint" Text="No products yet — add your first product"

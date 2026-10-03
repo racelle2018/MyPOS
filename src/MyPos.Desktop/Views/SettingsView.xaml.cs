@@ -57,9 +57,9 @@ public partial class SettingsView : UserControl
             AppSettings.Set(key, value);
         }
 
-        Set("CompanyName", CompanyNameBox.Text.Trim().ToUpperInvariant());
-        Set("CompanyAddress", CompanyAddressBox.Text.Trim().ToUpperInvariant());
-        Set("CompanyTin", CompanyTinBox.Text.Trim().ToUpperInvariant());
+        Set("CompanyName", CompanyNameBox.Text.Trim());
+        Set("CompanyAddress", CompanyAddressBox.Text.Trim());
+        Set("CompanyTin", CompanyTinBox.Text.Trim());
         Set("ReceiptIssuanceEnabled", ReceiptsEnabledBox.IsChecked == true ? "true" : "false");
         Set("ReceiptWidth", WidthBox.SelectedIndex == 1 ? "48" : "32");
         Set("ReceiptPrinterName", PrinterBox.SelectedItem as string ?? "");

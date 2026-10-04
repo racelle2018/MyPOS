@@ -7,10 +7,10 @@
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button Content="Close" Width="90" Height="34" Margin="0,0,8,0" IsCancel="True"/>
-            <Button Content="Print" Width="110" Height="34" Background="#0F172A"
+            <Button Content="Print" Width="110" Height="34" Background="#2878BD"
                     Foreground="White" FontWeight="SemiBold" Click="PrintButton_Click"/>
         </StackPanel>
-        <Border BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6"
+        <Border BorderBrush="#B8C7D8" BorderThickness="1" CornerRadius="2"
                 Background="#CBD5E1" Padding="8">
             <FlowDocumentScrollViewer x:Name="DocViewer"/>
         </Border>

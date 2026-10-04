@@ -1,6 +1,7 @@
 <UserControl x:Class="MyPos.Desktop.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="12" MaxWidth="600" HorizontalAlignment="Left">
             <TextBlock Text="SETTINGS" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
@@ -26,7 +27,31 @@
                 <ComboBoxItem Content="58mm roll (32 characters)"/><ComboBoxItem Content="80mm roll (48 characters)"/>
             </ComboBox>
             <TextBlock Text="Receipt printer"/><ComboBox x:Name="PrinterBox" Height="32" Margin="0,4,0,4" Width="320"/>
+            <TextBlock x:Name="PrinterWarningText" Foreground="#B91C1C" TextWrapping="Wrap"
+                       Margin="0,0,0,4" Visibility="Collapsed"/>
             <TextBlock Text="Blank = Windows default printer." Foreground="#94A3B8" FontSize="11" Margin="0,0,0,18"/>
+            <Button Content="Preview / Test Receipt" Width="170" Height="34"
+                    Margin="0,0,0,18" HorizontalAlignment="Left"
+                    Click="TestReceiptButton_Click"/>
+
+            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="0,6" Margin="0,0,0,8">
+                <TextBlock Text="BACKUP AND RECOVERY" Foreground="#475569" FontSize="11" FontWeight="SemiBold"/>
+            </Border>
+            <TextBlock x:Name="BackupStatusText" TextWrapping="Wrap" Margin="0,0,0,8"/>
+            <TextBlock Text="Second backup copy folder (external drive or synced folder)"/>
+            <TextBox x:Name="BackupCopyFolderBox" Height="34" Margin="0,4,0,4"
+                     mah:TextBoxHelper.Watermark="External drive or synced-folder path"/>
+            <TextBlock Text="Local backups stay on this PC. Set a second location to protect against computer failure."
+                       Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,10"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                <Button x:Name="BackupButton" Content="Backup Now" Width="110" Height="38"
+                        Click="BackupButton_Click"/>
+                <Button x:Name="RestoreButton" Content="Restore Backup" Width="125" Height="38"
+                        Margin="10,0,0,0" Click="RestoreButton_Click"/>
+            </StackPanel>
+            <TextBlock Text="Recovery: choose a verified .db backup, confirm, then close and reopen MyPos. A pre-restore safety copy is made before the database is replaced. Keep a copy outside this computer."
+                       Foreground="#64748B" FontSize="11" TextWrapping="Wrap"
+                       Margin="0,0,0,18"/>
 
             <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="0,6" Margin="0,0,0,8">
                 <TextBlock Text="INVENTORY" Foreground="#475569" FontSize="11" FontWeight="SemiBold"/>
@@ -35,8 +60,9 @@
             <TextBlock Text="Products at or below this level show amber; zero shows red." Foreground="#94A3B8" FontSize="11" Margin="0,0,0,18"/>
 
             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                <Button x:Name="SaveButton" Content="Save Settings" Width="130" Height="38" Background="#0F172A" Foreground="White" FontWeight="SemiBold" Click="SaveButton_Click"/>
-                <Button x:Name="BackupButton" Content="Backup Now" Width="100" Height="38" Margin="10,0,0,0" Click="BackupButton_Click"/>
+                <Button x:Name="SaveButton" Content="Save Settings" Width="130" Height="34"
+                        Background="#2878BD" Foreground="White" FontWeight="SemiBold"
+                        Click="SaveButton_Click"/>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

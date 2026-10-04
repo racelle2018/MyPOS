@@ -1,11 +1,32 @@
 using System.Windows;
 using MyPos.Core.Entities;
 using MyPos.Desktop.Printing;
+
 namespace MyPos.Desktop.Dialogs;
+
 public partial class ReceiptPreviewDialog : Window
 {
-    private readonly Sale _sale; private readonly bool _reprint;
-    public ReceiptPreviewDialog(Sale sale, bool reprint = false, string? warning = null) { InitializeComponent(); _sale = sale; _reprint = reprint; ReceiptText.Text = ReceiptPrinting.BuildPreviewText(sale, reprint); if (warning != null) { WarningText.Text = warning; WarningText.Visibility = Visibility.Visible; } }
+    private readonly Sale _sale;
+    private readonly bool _reprint;
+
+    public ReceiptPreviewDialog(Sale sale, bool reprint = false, string? warning = null)
+    {
+        InitializeComponent();
+        _sale = sale;
+        _reprint = reprint;
+        ReceiptText.Text = ReceiptPrinting.BuildPreviewText(sale, reprint);
+        if (ReceiptPrinting.LoadOptions(sale).ShowQr && sale.SaleNumber != 0)
+        {
+            QrImage.Source = ReceiptPrinting.CreateQrImage(sale);
+            QrImage.Visibility = Visibility.Visible;
+        }
+        if (warning != null)
+        {
+            WarningText.Text = warning;
+            WarningText.Visibility = Visibility.Visible;
+        }
+    }
+
     private void PrintButton_Click(object sender, RoutedEventArgs e)
     {
         if (ReceiptPrinting.TryPrint(_sale, _reprint))

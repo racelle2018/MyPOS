@@ -41,6 +41,19 @@ public partial class AuditLogView : UserControl
 
     private void LoadLogs()
     {
+        if (FromPick.SelectedDate > ToPick.SelectedDate)
+        {
+            RangeErrorText.Text = "The start date must be on or before the end date.";
+            AuditGrid.ItemsSource = Array.Empty<AuditRowVM>();
+            _rows = new List<AuditRowVM>();
+            CountText.Text = "0 entries";
+            EmptyHint.Text = "Choose a valid date range.";
+            EmptyHint.Visibility = Visibility.Visible;
+            return;
+        }
+
+        RangeErrorText.Text = "";
+        EmptyHint.Text = "No audit entries match these filters";
         var from = FromPick.SelectedDate?.Date ?? DateTime.MinValue;
         var toExclusive = ToPick.SelectedDate?.Date.AddDays(1) ?? DateTime.MaxValue;
         var users = App.Db.Users.ToDictionary(user => user.Id, user => user.Username);

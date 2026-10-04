@@ -32,7 +32,7 @@ public partial class ShiftView : UserControl
             CashSalesText.Text = $"₱{totals.CashSales:N2}"; NonCashText.Text = $"₱{totals.NonCashSales:N2}";
             CashInText.Text = $"₱{totals.CashIn:N2}"; CashOutText.Text = $"₱{totals.CashOut:N2}";
             TxnText.Text = totals.TransactionCount.ToString();
-            ExpectedText.Text = $"₱{open.OpeningFloat + totals.CashSales + totals.CashIn - totals.CashOut - totals.VoidedCashSales:N2}";
+            ExpectedText.Text = $"₱{open.OpeningFloat + totals.CashSales + totals.CashIn - totals.CashOut:N2}";
         }
         var users = App.Db.Users.ToDictionary(u => u.Id, u => u.Username);
         ShiftsGrid.ItemsSource = App.Db.CashShifts.OrderByDescending(s => s.OpenedAt).Take(15).ToList().Select(s => new ShiftRowVM(s, users.GetValueOrDefault(s.UserId) ?? "—")).ToList();

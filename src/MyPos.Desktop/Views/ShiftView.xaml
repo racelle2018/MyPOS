@@ -4,7 +4,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24" MaxWidth="760" HorizontalAlignment="Left">
             <TextBlock Text="SHIFT" FontSize="22" FontWeight="Bold" Margin="0,0,0,14"/>
-            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,14">
+            <Border Background="White" BorderBrush="#B8C7D8" BorderThickness="1" CornerRadius="2" Padding="12" Margin="0,0,0,12">
                 <StackPanel>
                     <TextBlock x:Name="StatusHeader" FontSize="16" FontWeight="SemiBold"/>
                     <TextBlock x:Name="StatusDetail" Foreground="#475569" TextWrapping="Wrap" Margin="0,4,0,14"/>

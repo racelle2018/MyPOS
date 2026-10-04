@@ -24,6 +24,9 @@ public partial class PosView : UserControl
     private bool _sanitizingInvoice;
     private Dictionary<string, string> _customerAddresses = new(StringComparer.OrdinalIgnoreCase);
     private List<Product> _filtered = new();
+    private string? _lastAutoAddress;
+
+    public event EventHandler? ShiftRequested;
 
     public bool HasItems => _cart.Count > 0;
     public int CartCount => _cart.Count;
@@ -39,7 +42,13 @@ public partial class PosView : UserControl
             System.Globalization.CultureInfo.InvariantCulture);
         VatLabel.Text = $"VAT ({_vatRate * 100:0.#}%)";
         UpdateInvoiceBoxState();
-        Loaded += (_, _) => UpdateInvoiceBoxState();
+        Loaded += (_, _) =>
+        {
+            UpdateInvoiceBoxState();
+            UpdateShiftStatus();
+            UpdateHeldCount();
+            _clock.Start();
+        };
 
         PayModeBox.ItemsSource = new[] { "Cash", "Card", "GCash", "Maya", "Bank" };
         PayModeBox.SelectedIndex = 0;
@@ -53,6 +62,7 @@ public partial class PosView : UserControl
         Unloaded += (_, _) => _clock.Stop();
 
         CartGrid.ItemsSource = _cart;
+        LoadCustomers();
         RefreshProducts();
         RefreshTotals();
         SearchBox.Focus();
@@ -93,14 +103,38 @@ public partial class PosView : UserControl
         // Customer is intentionally a plain text field; Core still stores snapshots.
     }
 
-    private void CustomerNameBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void CustomerNameBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var address = "";
-        if (CustomerNameBox == null
-            )
-        {
-            AddressBox.Text = address;   // pick a known customer → address fills itself
-        }
+        if (AddressBox == null || _customerAddresses.Count == 0) return;
+        if (!string.IsNullOrWhiteSpace(AddressBox.Text) && AddressBox.Text != _lastAutoAddress) return;
+        var address = _customerAddresses.GetValueOrDefault(CustomerNameBox.Text.Trim());
+        if (address == null) return;
+        AddressBox.Text = address;
+        _lastAutoAddress = address;
+    }
+
+    private void UpdateShiftStatus()
+    {
+        var open = new ShiftService(App.Db).GetOpenShift();
+        ShiftBanner.Visibility = Visibility.Visible;
+        OpenShiftButton.Visibility = open == null ? Visibility.Visible : Visibility.Collapsed;
+        ShiftBanner.Background = new SolidColorBrush(open == null
+            ? Color.FromRgb(0xFE, 0xF3, 0xC7)
+            : Color.FromRgb(0xEC, 0xFD, 0xF5));
+        ShiftBanner.BorderBrush = new SolidColorBrush(open == null
+            ? Color.FromRgb(0xF5, 0x9E, 0x0B)
+            : Color.FromRgb(0x34, 0xD3, 0x99));
+        ShiftStatusText.Text = open == null
+            ? "No shift is open. Open one before taking payment."
+            : $"Shift open · {App.Db.Users.Find(open.UserId)?.Username ?? "Cashier"} · {open.OpenedAt:g}";
+    }
+
+    private void OpenShiftButton_Click(object sender, RoutedEventArgs e) => ShiftRequested?.Invoke(this, EventArgs.Empty);
+
+    private void UpdateHeldCount()
+    {
+        var count = new HeldSaleService(App.Db).ListActive(_branchId).Count;
+        RecallButton.Content = count == 0 ? "Recall (F6)" : $"Recall (F6) · {count}";
     }
 
     private PaymentMethod SelectedMethod => (PayModeBox.SelectedItem as string) switch
@@ -191,8 +225,13 @@ public partial class PosView : UserControl
         UpdateInvoiceBoxState();
         CustomerNameBox.Text = "";
         AddressBox.Text = "";
+        _lastAutoAddress = null;
+        InvoiceErrorText.Text = "";
+        SeniorIdErrorText.Text = "";
         SeniorIdBox.Text = "";
         DiscountKindBox.SelectedIndex = 0;
+        PayModeBox.SelectedIndex = 0;
+        TypeBox.SelectedIndex = 0;
         UpdateClock();
         LoadCustomers();     // a new customer was just created — suggest it from now on
         RefreshProducts();   // stock display refresh
@@ -208,8 +247,17 @@ public partial class PosView : UserControl
         var count = _cart.Count;
         var held = new HeldSaleService(App.Db).Hold(_branchId, App.CurrentUser!.Id,
             _cart.Select(l => new HeldCartLine(l.ProductId, l.Name, null, l.Price, l.UnitCost, l.IsVatExempt, l.Qty, l.StockAvailable)).ToList(),
-            CustomerNameBox.Text, InvoiceBox.Text, null);
+            CustomerNameBox.Text,
+            InvoiceBox.IsEnabled ? InvoiceBox.Text : null,
+            null,
+            AddressBox.Text,
+            SelectedMethod,
+            SelectedOrderType,
+            IsSeniorSale ? DiscountKind.SeniorPwd : DiscountBox.IsEnabled ? DiscountKind.Regular : DiscountKind.None,
+            ParseDiscount(),
+            SeniorIdBox.Text);
         ResetSaleDraft();
+        UpdateHeldCount();
         Status($"Held - {(string.IsNullOrWhiteSpace(held.CustomerName) ? "WALK-IN" : held.CustomerName)} ({count} item(s))");
     }
 
@@ -217,22 +265,45 @@ public partial class PosView : UserControl
     {
         if (_cart.Count > 0 && MessageBox.Show($"Recalling will discard the current {_cart.Count} item(s) in the cart. Continue?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         var dialog = new HeldSalesDialog(_branchId);
-        if (dialog.ShowDialog() != true || dialog.RecalledCart == null) return;
-        ResetSaleDraft();
-        var products = App.Db.Products.Where(p => dialog.RecalledCart.Select(l => l.ProductId).Contains(p.Id)).ToDictionary(p => p.Id);
+        var recalled = dialog.ShowDialog() == true;
+        UpdateHeldCount();
+        if (!recalled || dialog.RecalledCart == null || dialog.SelectedDraft == null) return;
+        var ids = dialog.RecalledCart.Select(line => line.ProductId).ToList();
+        var products = App.Db.Products.Where(p => ids.Contains(p.Id)).ToDictionary(p => p.Id);
+        var restored = new List<CartLineVM>();
         var skipped = 0;
+        var reduced = 0;
         foreach (var line in dialog.RecalledCart)
         {
             if (!products.TryGetValue(line.ProductId, out var product) || !product.IsActive) { skipped++; continue; }
-            var vm = new CartLineVM(product) { Qty = Math.Min(line.Qty, product.StockQty > 0 ? product.StockQty : 0) };
+            var vm = new CartLineVM(product) { Qty = Math.Min(line.Qty, product.StockQty) };
             if (vm.Qty <= 0) { skipped++; continue; }
+            if (vm.Qty < line.Qty) reduced++;
             vm.PropertyChanged += (_, args) => { if (args.PropertyName is nameof(CartLineVM.Qty) or nameof(CartLineVM.LineTotal)) RefreshTotals(); };
-            _cart.Add(vm);
+            restored.Add(vm);
         }
-        CustomerNameBox.Text = dialog.RecalledCustomer ?? "";
-        InvoiceBox.Text = dialog.RecalledInvoice ?? "";
+        if (restored.Count == 0)
+        {
+            MessageBox.Show("No items from this held sale are currently available. The held sale is still saved.",
+                "Recall unavailable", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var draft = dialog.SelectedDraft;
+        ResetSaleDraft();
+        foreach (var line in restored) _cart.Add(line);
+        CustomerNameBox.Text = draft.CustomerName;
+        AddressBox.Text = draft.CustomerAddress ?? "";
+        if (InvoiceBox.IsEnabled) InvoiceBox.Text = draft.InvoiceNumber ?? "";
+        PayModeBox.SelectedIndex = Math.Max(0, (int)draft.PaymentMethod - 1);
+        TypeBox.SelectedIndex = Math.Max(0, (int)draft.OrderType - 1);
+        DiscountKindBox.SelectedIndex = (int)draft.DiscountKind;
+        DiscountBox.Text = draft.DiscountAmount > 0 ? draft.DiscountAmount.ToString("0.##") : "";
+        SeniorIdBox.Text = draft.SeniorIdNumber ?? "";
         RefreshTotals();
-        Status(skipped > 0 ? $"Recalled - {skipped} item(s) skipped (unavailable or out of stock)" : "Recalled");
+        new HeldSaleService(App.Db).CompleteRecall(draft.Id, App.CurrentUser!.Id);
+        UpdateHeldCount();
+        Status($"Recalled. {skipped} unavailable item(s) skipped; {reduced} quantity/quantities reduced to current stock.");
         SearchBox.Focus();
     }
 
@@ -245,8 +316,10 @@ public partial class PosView : UserControl
         var r = SaleCalculator.Compute(lines, ParseDiscount(), _vatRate, kind);
 
         GrossText.Text = $"₱{r.Gross:N2}";
+        NetText.Text = $"₱{r.Net:N2}";
         VatText.Text = $"₱{r.Vat:N2}";
         TotalText.Text = $"₱{r.Total:N2}";
+        ItemCountText.Text = _cart.Sum(l => l.Qty).ToString("0.##");
         PayButton.IsEnabled = _cart.Count > 0;
     }
 
@@ -268,6 +341,7 @@ public partial class PosView : UserControl
     private void InvoiceBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (_sanitizingInvoice || !InvoiceBox.IsEnabled) return;
+        InvoiceErrorText.Text = "";
 
         var clean = string.Concat(InvoiceBox.Text.Where(c => char.IsLetterOrDigit(c) || c == '-'));
         if (clean != InvoiceBox.Text)
@@ -379,6 +453,7 @@ public partial class PosView : UserControl
         var shiftService = new ShiftService(App.Db);
         if (!shiftService.HasOpenShift)
         {
+            UpdateShiftStatus();
             Status("No open shift - open one before selling (Shift button)");
             return;
         }
@@ -390,6 +465,7 @@ public partial class PosView : UserControl
         if (!ReceiptsEnabled && string.IsNullOrWhiteSpace(InvoiceBox.Text))
         {
             Status("Invoice / OR number is required");
+            InvoiceErrorText.Text = "Required before payment";
             InvoiceBox.BorderBrush = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
             InvoiceBox.BorderThickness = new Thickness(2);
             InvoiceBox.Focus();
@@ -405,9 +481,11 @@ public partial class PosView : UserControl
         if (kind == DiscountKind.SeniorPwd && string.IsNullOrWhiteSpace(SeniorIdBox.Text))
         {
             Status("Senior/PWD ID number is required");
+            SeniorIdErrorText.Text = "Required for SC/PWD sale";
             SeniorIdBox.Focus();
             return;
         }
+        SeniorIdErrorText.Text = "";
 
         var lines = _cart.Select(l => new SaleCalculator.Line(l.Price, l.Qty, l.UnitCost, l.IsVatExempt)).ToList();
         var discount = ParseDiscount();
@@ -428,16 +506,17 @@ public partial class PosView : UserControl
         { receiptType = ReceiptType.Manual; manualNo = InvoiceBox.Text.Trim(); }
         else receiptType = ReceiptType.None;
 
+        Sale sale;
         try
         {
-            var sale = new SaleService(App.Db).PostSale(
+            sale = new SaleService(App.Db).PostSale(
                 _branchId,
                 App.CurrentUser!.Id,
                 _cart.Select(l => new CartLine(l.ProductId, l.Qty)).ToList(),
-                calc.Discount,
+                discount,
                 dlg.Tendered,
                 method,
-                null,
+                dlg.Reference,
                 receiptType,
                 manualNo,
                 CustomerNameBox.Text,
@@ -446,26 +525,30 @@ public partial class PosView : UserControl
                 kind,
                 IsSeniorSale ? SeniorIdBox.Text : null);
 
-            var printed = !ReceiptsEnabled || ReceiptPrinting.TryPrint(sale, reprint: false);
-            new SaleCompleteDialog(sale, ReceiptsEnabled, printed).ShowDialog();
-            if (ReceiptsEnabled && !printed)
-                new ReceiptPreviewDialog(sale, false,
-                    "AUTOMATIC PRINTING FAILED - check the printer connection and settings. Retry below.").ShowDialog();
-
-            ResetSaleDraft();
-            Status($"Sale #{sale.SaleNumber} completed" +
-                   (sale.ReceiptNumber != null ? $" — {sale.ReceiptNumber}" : ""));
         }
         catch (InvalidOperationException ex)
         {
-            // Final guard — e.g. stock changed underneath us; the transaction rolled back cleanly
             MessageBox.Show(ex.Message, "Sale not completed",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
-        finally
-        {
             SearchBox.Focus();
+            return;
         }
+
+        // The sale is committed. Clear the draft before any optional printer work
+        // so retrying a receipt can never accidentally post the sale a second time.
+        ResetSaleDraft();
+        Status($"Sale #{sale.SaleNumber} saved" +
+               (sale.ReceiptNumber != null ? $" - {sale.ReceiptNumber}" : ""));
+
+        var printed = !ReceiptsEnabled || ReceiptPrinting.TryPrint(sale, reprint: false);
+        new SaleCompleteDialog(sale, ReceiptsEnabled, printed).ShowDialog();
+        if (ReceiptsEnabled && !printed)
+        {
+            Status($"Sale #{sale.SaleNumber} saved; receipt printing failed. Use View Receipt to retry.");
+            new ReceiptPreviewDialog(sale, false,
+                "Sale saved. Automatic printing failed; check the printer and retry below.").ShowDialog();
+        }
+        SearchBox.Focus();
     }
 
     // ---------- hotkeys ----------
@@ -502,6 +585,7 @@ public partial class PosView : UserControl
 public class CartLineVM : INotifyPropertyChanged
 {
     public Guid ProductId { get; }
+    public string ItemCode { get; }
     public string Name { get; }
     public decimal Price { get; }
     public decimal UnitCost { get; }
@@ -524,7 +608,8 @@ public class CartLineVM : INotifyPropertyChanged
 
     public CartLineVM(Product p)
     {
-        ProductId = p.Id; Name = p.Name; Price = p.Price; UnitCost = p.CostPrice;
+        ProductId = p.Id; ItemCode = string.IsNullOrWhiteSpace(p.Barcode) ? "—" : p.Barcode;
+        Name = p.Name; Price = p.Price; UnitCost = p.CostPrice;
         IsVatExempt = p.IsVatExempt; StockAvailable = p.StockQty;
         _qty = 1;
     }

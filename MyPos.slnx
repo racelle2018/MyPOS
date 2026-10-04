@@ -4,6 +4,7 @@
     <Project Path="src/MyPos.Desktop/MyPos.Desktop.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/MyPos.Desktop.Tests/MyPos.Desktop.Tests.csproj" />
     <Project Path="tests/MyPos.Tests/MyPos.Tests.csproj" />
   </Folder>
 </Solution>

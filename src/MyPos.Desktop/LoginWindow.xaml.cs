@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using MyPos.Core.Entities;
+using MyPos.Desktop.Dialogs;
 
 namespace MyPos.Desktop;
 
@@ -11,13 +12,22 @@ public partial class LoginWindow : Window
         InitializeComponent();
         CompanyLabel.Text = AppSettings.Get("CompanyName", "MY STORE");
         VersionText.Text = $"MYPOS {typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0"}";
-        UsernameBox.Focus();
+        Loaded += (_, _) =>
+        {
+            UsernameBox.Focus();
+            UpdateCapsLockHint();
+        };
     }
 
     private void PasswordBox_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        var capsOn = (Keyboard.GetKeyStates(Key.CapsLock) & KeyStates.Toggled) == KeyStates.Toggled;
-        CapsLockHint.Visibility = capsOn ? Visibility.Visible : Visibility.Collapsed;
+        Dispatcher.BeginInvoke(UpdateCapsLockHint);
+    }
+
+    private void UpdateCapsLockHint()
+    {
+        CapsLockHint.Visibility = Keyboard.IsKeyToggled(Key.CapsLock)
+            ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void LoginButton_Click(object sender, RoutedEventArgs e)
@@ -58,6 +68,13 @@ public partial class LoginWindow : Window
         {
             ErrorText.Text = "This account has been disabled.";
             return;
+        }
+
+        if (string.Equals(user.Username, "admin", StringComparison.OrdinalIgnoreCase)
+            && BCrypt.Net.BCrypt.Verify("admin123", user.PasswordHash))
+        {
+            var change = new ChangeInitialPasswordDialog(user) { Owner = this };
+            if (change.ShowDialog() != true) return;
         }
 
         user.LastLoginAt = DateTime.Now;

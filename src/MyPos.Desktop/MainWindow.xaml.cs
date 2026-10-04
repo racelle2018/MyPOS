@@ -19,6 +19,7 @@ public partial class MainWindow : Window
         SettingsButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         NavUsersButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         ScreenHost.Content = _posView;
+        _posView.ShiftRequested += (_, _) => NavShift_Click(this, new RoutedEventArgs());
         SetActiveNav(NavPosButton);
 
         _idleGuard = new IdleSessionGuard(TimeSpan.FromMinutes(5))
@@ -42,12 +43,20 @@ public partial class MainWindow : Window
     {
         foreach (var button in new[] { NavPosButton, NavProductsButton, NavReportsButton, NavShiftButton, NavUsersButton, SettingsButton })
         {
-            button.Background = new SolidColorBrush(Color.FromRgb(0x33, 0x41, 0x55));
-            button.Foreground = new SolidColorBrush(Color.FromRgb(0xE2, 0xE8, 0xF0));
+            button.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
+            button.Foreground = new SolidColorBrush(Color.FromRgb(0x1F, 0x29, 0x37));
         }
 
-        active.Background = new SolidColorBrush(Color.FromRgb(0x00, 0x78, 0xD7));
-        active.Foreground = Brushes.White;
+        active.Background = new SolidColorBrush(Color.FromRgb(0xE4, 0xF1, 0xFC));
+        active.Foreground = new SolidColorBrush(Color.FromRgb(0x1D, 0x4E, 0x72));
+        var section = active == NavPosButton ? "New Sale"
+            : active == NavProductsButton ? "Products"
+            : active == NavReportsButton ? "Reports"
+            : active == NavShiftButton ? "Shift"
+            : active == NavUsersButton ? "Users"
+            : "Settings";
+        ViewTitleText.Text = section;
+        StatusSectionText.Text = section;
     }
 
     private void NavPos_Click(object sender, RoutedEventArgs e)

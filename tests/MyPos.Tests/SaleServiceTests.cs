@@ -63,6 +63,33 @@ public class SaleServiceTests
     }
 
     [Fact]
+    public void Senior_checkout_uses_zero_entered_discount_and_preserves_reported_saving()
+    {
+        using var setup = new Setup();
+        var productId = setup.AddProduct("Medicine", 112m, 50m, 5m);
+        var lines = new List<CartLine> { new(productId, 1m) };
+        const decimal enteredDiscount = 0m;
+
+        var preview = SaleCalculator.Compute(
+            new[] { new SaleCalculator.Line(112m, 1m, 50m, false) },
+            enteredDiscount,
+            0.12m,
+            DiscountKind.SeniorPwd);
+
+        var sale = setup.Svc.PostSale(
+            setup.BranchId,
+            setup.CashierId,
+            lines,
+            discount: enteredDiscount,
+            tendered: preview.Total,
+            discountKind: DiscountKind.SeniorPwd,
+            seniorIdNumber: "SC-12345");
+
+        Assert.Equal(preview.Total, sale.TotalAmount);
+        Assert.Equal(32m, sale.DiscountAmount);
+    }
+
+    [Fact]
     public void Senior_discount_rejects_stacking_and_missing_id()
     {
         using var s = new Setup();

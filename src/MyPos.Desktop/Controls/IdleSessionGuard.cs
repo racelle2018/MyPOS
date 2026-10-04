@@ -59,7 +59,10 @@ public sealed class IdleSessionGuard
                 return;
             }
 
-            var lockWindow = new LockWindow(user, PendingCartCount?.Invoke() ?? 0);
+            var lockWindow = new LockWindow(user, PendingCartCount?.Invoke() ?? 0)
+            {
+                Owner = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault()
+            };
             var resumed = lockWindow.ShowDialog() == true;
             if (!resumed) OnSwitchUser?.Invoke();
         }

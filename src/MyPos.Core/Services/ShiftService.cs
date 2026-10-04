@@ -50,17 +50,33 @@ public sealed class ShiftService
     public ShiftTotals GetShiftTotals(Guid shiftId)
     {
         var shift = _db.CashShifts.Include(s => s.Movements).First(s => s.Id == shiftId);
-        var sales = _db.Sales.Include(s => s.Payments).Where(s => s.SaleDate >= shift.OpenedAt).ToList();
-        decimal cashSales = 0, voidedCash = 0, nonCash = 0;
+        var end = shift.ClosedAt ?? DateTime.Now;
+        var sales = _db.Sales.Include(s => s.Payments)
+            .Where(s => s.BranchId == shift.BranchId && s.SaleDate >= shift.OpenedAt && s.SaleDate <= end)
+            .ToList();
+        decimal cashSales = 0, nonCash = 0;
         var count = 0;
         foreach (var sale in sales)
         {
             var isCash = sale.Payments.Any(p => p.Method == PaymentMethod.Cash);
-            if (sale.IsVoided) { if (isCash) voidedCash += sale.TotalAmount; continue; }
+            var voidedDuringShift = sale.IsVoided && sale.VoidedAt <= end;
+            if (voidedDuringShift) continue;
             count++;
             if (isCash) cashSales += sale.Payments.Where(p => p.Method == PaymentMethod.Cash).Sum(p => p.Amount);
             else nonCash += sale.TotalAmount;
         }
+        var voidedCashSales = _db.Sales.Include(s => s.Payments)
+            .Where(s => s.BranchId == shift.BranchId && s.VoidedAt >= shift.OpenedAt && s.VoidedAt <= end)
+            .ToList()
+            .Where(s => s.Payments.Any(p => p.Method == PaymentMethod.Cash))
+            .ToList();
+        var voidedCash = voidedCashSales.Sum(s => s.TotalAmount);
+
+        // Same-shift voids were already excluded above. A refund for a sale from
+        // an earlier shift reduces the cash actually present in this drawer.
+        cashSales -= voidedCashSales
+            .Where(s => s.SaleDate < shift.OpenedAt)
+            .Sum(s => s.TotalAmount);
         var cashIn = shift.Movements.Where(m => m.Type == CashMovementType.CashIn).Sum(m => m.Amount);
         var cashOut = shift.Movements.Where(m => m.Type == CashMovementType.CashOut).Sum(m => m.Amount);
         return new ShiftTotals(cashSales, voidedCash, nonCash, cashIn, cashOut, count);
@@ -71,14 +87,16 @@ public sealed class ShiftService
         if (countedDrawer < 0) throw new InvalidOperationException("Counted drawer cannot be negative.");
         var shift = GetOpenShift() ?? throw new InvalidOperationException("No open shift.");
         var totals = GetShiftTotals(shift.Id);
-        var expected = shift.OpeningFloat + totals.CashSales + totals.CashIn - totals.CashOut - totals.VoidedCashSales;
+        var expected = shift.OpeningFloat + totals.CashSales + totals.CashIn - totals.CashOut;
         var variance = Math.Round(countedDrawer - expected, 2, MidpointRounding.AwayFromZero);
         var now = DateTime.Now;
         shift.ClosedAt = now; shift.CountedDrawer = countedDrawer; shift.ExpectedDrawer = expected; shift.Variance = variance; shift.Notes = notes?.Trim();
-        if (variance >= 0) Post(now, shift.BranchId, "ShiftClose", shift.Id, $"Z-READING: VARIANCE +{variance:N2}", (ShiftAccountCodes.CashOnHand, variance, 0), (ShiftAccountCodes.CashOverShort, 0, variance));
-        else Post(now, shift.BranchId, "ShiftClose", shift.Id, $"Z-READING: VARIANCE {variance:N2}", (ShiftAccountCodes.CashOverShort, -variance, 0), (ShiftAccountCodes.CashOnHand, 0, -variance));
+        using var transaction = _db.Database.BeginTransaction();
+        if (variance > 0) Post(now, shift.BranchId, "ShiftClose", shift.Id, $"Z-READING: VARIANCE +{variance:N2}", (ShiftAccountCodes.CashOnHand, variance, 0), (ShiftAccountCodes.CashOverShort, 0, variance));
+        else if (variance < 0) Post(now, shift.BranchId, "ShiftClose", shift.Id, $"Z-READING: VARIANCE {variance:N2}", (ShiftAccountCodes.CashOverShort, -variance, 0), (ShiftAccountCodes.CashOnHand, 0, -variance));
         _db.AuditLogs.Add(new AuditLog { Date = now, UserId = userId, Action = "ShiftClose", EntityName = "CashShift", EntityId = shift.Id, Details = $"EXPECTED {expected:N2} COUNTED {countedDrawer:N2} VARIANCE {variance:+0.00;-0.00}" });
         _db.SaveChanges();
+        transaction.Commit();
         return shift;
     }
 

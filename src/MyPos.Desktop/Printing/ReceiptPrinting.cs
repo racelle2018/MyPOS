@@ -1,5 +1,8 @@
 using System.Printing;
+using System.IO;
 using System.Windows;
+using System.Windows.Media.Imaging;
+using QRCoder;
 using MyPos.Core.Entities;
 namespace MyPos.Desktop.Printing;
 public static class ReceiptPrinting
@@ -10,8 +13,23 @@ public static class ReceiptPrinting
     };
     public static string BuildPreviewText(Sale sale, bool reprint = false)
     {
-        var opt = LoadOptions(sale); var text = ReceiptPrinter.BuildPreviewText(sale, opt, reprint);
-        return opt.ShowQr && sale.SaleNumber != 0 ? text + Environment.NewLine + Environment.NewLine + new string(' ', Math.Max(0, (opt.Width - 11) / 2)) + "[ QR CODE ]" : text;
+        var options = LoadOptions(sale);
+        return ReceiptPrinter.BuildPreviewText(sale, options, reprint);
+    }
+
+    public static BitmapImage CreateQrImage(Sale sale)
+    {
+        using var generator = new QRCodeGenerator();
+        using var qrData = generator.CreateQrCode(ReceiptPrinter.QrPayload(sale), QRCodeGenerator.ECCLevel.M);
+        var png = new PngByteQRCode(qrData).GetGraphic(4);
+        var image = new BitmapImage();
+        using var stream = new MemoryStream(png);
+        image.BeginInit();
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.StreamSource = stream;
+        image.EndInit();
+        image.Freeze();
+        return image;
     }
     public static bool TryPrint(Sale sale, bool reprint)
     {
@@ -25,9 +43,11 @@ public static class ReceiptPrinting
         try
         {
             var opt = LoadOptions(sale);
+            // WPF sizes are device-independent pixels (1/96 inch).
+            var paperWidth = opt.Width == 48 ? 302d : 219d;
             var document = new System.Windows.Documents.FlowDocument
             {
-                PageWidth = 302, PageHeight = 1100, PagePadding = new Thickness(14, 20, 14, 20),
+                PageWidth = paperWidth, PageHeight = 1100, PagePadding = new Thickness(14, 20, 14, 20),
                 ColumnWidth = double.PositiveInfinity, FontFamily = new System.Windows.Media.FontFamily("Consolas"), FontSize = 10
             };
             foreach (var line in ReceiptPrinter.BuildLines(sale, opt, reprint))
@@ -47,12 +67,24 @@ public static class ReceiptPrinting
                 if (line.Big) { run.FontSize = 14; run.FontWeight = FontWeights.Bold; }
                 paragraph.Inlines.Add(run); document.Blocks.Add(paragraph);
             }
+            if (opt.ShowQr && sale.SaleNumber != 0)
+            {
+                var qr = new System.Windows.Controls.Image
+                {
+                    Source = CreateQrImage(sale),
+                    Width = 112,
+                    Height = 112
+                };
+                var block = new System.Windows.Documents.BlockUIContainer(qr);
+                block.TextAlignment = TextAlignment.Center;
+                document.Blocks.Add(block);
+            }
             var printer = ResolvePrinter(opt);
             var queue = new PrintServer().GetPrintQueues().FirstOrDefault(q => q.FullName == printer)
                 ?? throw new InvalidOperationException($"Printer '{printer}' was not found on this computer.");
             var dialog = new System.Windows.Controls.PrintDialog { PrintQueue = queue, UserPageRangeEnabled = false };
             var paginator = ((System.Windows.Documents.IDocumentPaginatorSource)document).DocumentPaginator;
-            paginator.PageSize = new Size(302, 1100);
+            paginator.PageSize = new Size(paperWidth, 1100);
             dialog.PrintDocument(paginator, $"MyPos Receipt - Sale #{sale.SaleNumber}");
             return true;
         }

@@ -1,75 +1,112 @@
 <Window x:Class="MyPos.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MyPos" Height="680" Width="1120" WindowStartupLocation="CenterScreen">
-    <DockPanel>
-        <Border DockPanel.Dock="Top" Background="#1E293B">
+        Title="MyPos" Height="680" Width="1120" MinWidth="760" MinHeight="560"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="58" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- A compact activity rail keeps every screen one click away. -->
+        <Border Grid.Column="0" Background="White" BorderBrush="#E2E8F0"
+                BorderThickness="0,0,1,0">
             <DockPanel>
-                <StackPanel Orientation="Horizontal" Margin="16,8,0,8">
-                    <Border Width="30" Height="30" CornerRadius="7" Background="#0078D7">
-                        <TextBlock Text="M" Foreground="White" FontWeight="Bold" FontSize="16"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Text="MyPos" Foreground="White" FontWeight="Bold" FontSize="17"
-                               Margin="10,0,0,0" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="WelcomeText" Foreground="#94A3B8" FontSize="12"
-                               Margin="14,2,0,0" VerticalAlignment="Center"/>
+                <StackPanel DockPanel.Dock="Bottom" Margin="5,0,5,7">
+                    <Button x:Name="LockButton" Height="44" MinWidth="0" Margin="0,3,0,0"
+                            Style="{StaticResource HeaderButton}" Click="LockButton_Click"
+                            ToolTip="Lock now (F12)" AutomationProperties.Name="Lock session">
+                        <TextBlock Text="&#xE72E;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="17" HorizontalAlignment="Center" />
+                    </Button>
+                    <Button x:Name="LogoutButton" Height="44" MinWidth="0" Margin="0,3,0,0"
+                            Style="{StaticResource HeaderButton}" Click="LogoutButton_Click"
+                            ToolTip="Log out" AutomationProperties.Name="Log out">
+                        <TextBlock Text="&#xE8AC;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="17" HorizontalAlignment="Center" />
+                    </Button>
                 </StackPanel>
 
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
-                            HorizontalAlignment="Right" Margin="0,6,12,6" VerticalAlignment="Center">
-                    <Button x:Name="NavPosButton" Height="34" Padding="14,0" Margin="3,0"
-                            Style="{StaticResource HeaderButton}" Click="NavPos_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE7BF;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                       FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="New Sale" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
+                <StackPanel Margin="5,8,5,0">
+                    <Border Width="40" Height="40" Margin="0,0,0,12"
+                            CornerRadius="20" Background="#2878BD">
+                        <TextBlock Text="M" Foreground="White" FontWeight="Bold" FontSize="19"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <Button x:Name="NavPosButton" Height="44" MinWidth="0" Margin="0,3"
+                            Style="{StaticResource HeaderButton}" Click="NavPos_Click"
+                            ToolTip="New Sale" AutomationProperties.Name="New Sale">
+                        <TextBlock Text="&#xE7BF;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="17" HorizontalAlignment="Center" />
                     </Button>
-                    <Button x:Name="NavProductsButton" Height="34" Padding="14,0" Margin="3,0"
-                            Style="{StaticResource HeaderButton}" Click="NavProducts_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8FD;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                       FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="Products" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
+                    <Button x:Name="NavProductsButton" Height="44" MinWidth="0" Margin="0,3"
+                            Style="{StaticResource HeaderButton}" Click="NavProducts_Click"
+                            ToolTip="Products" AutomationProperties.Name="Products">
+                        <TextBlock Text="&#xE8FD;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="17" HorizontalAlignment="Center" />
                     </Button>
-                    <Button x:Name="NavReportsButton" Height="34" Padding="14,0" Margin="3,0"
-                            Style="{StaticResource HeaderButton}" Click="NavReports_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE787;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                       FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="Reports" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
+                    <Button x:Name="NavReportsButton" Height="44" MinWidth="0" Margin="0,3"
+                            Style="{StaticResource HeaderButton}" Click="NavReports_Click"
+                            ToolTip="Reports" AutomationProperties.Name="Reports">
+                        <TextBlock Text="&#xE787;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="17" HorizontalAlignment="Center" />
                     </Button>
-                    <Button x:Name="NavShiftButton" Height="34" Padding="14,0" Margin="3,0"
-                            Style="{StaticResource HeaderButton}" Click="NavShift_Click">
-                        <TextBlock Text="Shift" VerticalAlignment="Center"/>
+                    <Button x:Name="NavShiftButton" Height="44" MinWidth="0" Margin="0,3"
+                            Style="{StaticResource HeaderButton}" Click="NavShift_Click"
+                            ToolTip="Shift" AutomationProperties.Name="Shift">
+                        <TextBlock Text="&#xE823;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="17" HorizontalAlignment="Center" />
                     </Button>
-                    <Button x:Name="NavUsersButton" Height="34" Padding="14,0" Margin="3,0"
-                            Style="{StaticResource HeaderButton}" Click="NavUsers_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE716;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
-                            <TextBlock Text="Users" Margin="8,0,0,0"/>
-                        </StackPanel>
+                    <Button x:Name="NavUsersButton" Height="44" MinWidth="0" Margin="0,3"
+                            Style="{StaticResource HeaderButton}" Click="NavUsers_Click"
+                            ToolTip="Users" AutomationProperties.Name="Users">
+                        <TextBlock Text="&#xE716;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="17" HorizontalAlignment="Center" />
                     </Button>
-                    <Button x:Name="SettingsButton" Height="34" Padding="14,0" Margin="3,0"
-                            Style="{StaticResource HeaderButton}" Click="NavSettings_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                       FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="Settings" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
+                    <Button x:Name="SettingsButton" Height="44" MinWidth="0" Margin="0,3"
+                            Style="{StaticResource HeaderButton}" Click="NavSettings_Click"
+                            ToolTip="Settings" AutomationProperties.Name="Settings">
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="17" HorizontalAlignment="Center" />
                     </Button>
-                    <Button x:Name="LockButton" Height="34" MinWidth="0" Padding="12,0" Margin="6,0,0,0"
-                            Style="{StaticResource HeaderButton}" Click="LockButton_Click" ToolTip="Lock now (F12)">
-                        <TextBlock Text="&#xE72E;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
-                    </Button>
-                    <Button x:Name="LogoutButton" Content="Log out" Height="34" Padding="14,0"
-                            Margin="10,0,0,0" Style="{StaticResource HeaderButton}" Click="LogoutButton_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>
-        <ContentControl x:Name="ScreenHost"/>
-    </DockPanel>
+
+        <DockPanel Grid.Column="1" LastChildFill="True">
+            <!-- Workbench header: same location and hierarchy on every page. -->
+            <Border DockPanel.Dock="Top" Background="White" BorderBrush="#E2E8F0"
+                    BorderThickness="0,0,0,1" Padding="16,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="ViewTitleText" FontSize="15" FontWeight="SemiBold"
+                               Foreground="#1F2937" VerticalAlignment="Center" />
+                    <TextBlock x:Name="WelcomeText" Grid.Column="1" Foreground="#64748B"
+                               FontSize="12" MaxWidth="300" TextTrimming="CharacterEllipsis"
+                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                               Margin="12,0,0,0" />
+                </Grid>
+            </Border>
+
+            <!-- POS keeps its own transaction messages and clock above this shell status. -->
+            <Border DockPanel.Dock="Bottom" Background="#2878BD" Padding="12,4">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="StatusSectionText" Foreground="White" FontSize="11"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="MyPos 1.0.0" Grid.Column="1" Foreground="White"
+                               FontSize="11" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <ContentControl x:Name="ScreenHost" />
+        </DockPanel>
+    </Grid>
 </Window>

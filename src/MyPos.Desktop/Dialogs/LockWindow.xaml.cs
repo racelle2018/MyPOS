@@ -16,7 +16,17 @@ public partial class LockWindow : Window
         _user = user;
         _pendingCartCount = pendingCartCount;
         UserText.Text = $"{user.FullName} ({user.Username})";
-        Loaded += (_, _) => PasswordBox.Focus();
+        if (pendingCartCount > 0)
+        {
+            PendingCartText.Text = $"Switching users will discard the current sale ({pendingCartCount} item(s)).";
+            PendingCartText.Visibility = Visibility.Visible;
+        }
+
+        Loaded += (_, _) =>
+        {
+            PasswordBox.Focus();
+            UpdateCapsLockHint();
+        };
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
@@ -29,10 +39,22 @@ public partial class LockWindow : Window
 
     private void PasswordBox_OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) Unlock();
+        if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            Unlock();
+        }
     }
 
+    private void PasswordBox_OnPreviewKeyDown(object sender, KeyEventArgs e)
+        => Dispatcher.BeginInvoke(UpdateCapsLockHint);
+
     private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
+    {
+        UpdateCapsLockHint();
+    }
+
+    private void UpdateCapsLockHint()
     {
         CapsLockHint.Visibility = Keyboard.IsKeyToggled(Key.CapsLock)
             ? Visibility.Visible : Visibility.Collapsed;

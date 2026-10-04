@@ -1,25 +1,28 @@
 <Window x:Class="MyPos.Desktop.Dialogs.PaymentDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Payment" Height="440" Width="380"
+        Title="Payment" Width="380" SizeToContent="Height" MaxHeight="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
-    <StackPanel Margin="24">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="24">
         <TextBlock Text="Amount Due" Foreground="#475569"/>
         <TextBlock x:Name="TotalText" FontSize="30" FontWeight="Bold" Margin="0,2,0,16"/>
         <TextBlock x:Name="TenderedLabel" Text="Cash Tendered"/>
         <TextBox x:Name="TenderedBox" Height="36" FontSize="18" Margin="0,4,0,10"
+                 Tag="Amount received"
                  TextAlignment="Right" TextChanged="TenderedBox_TextChanged"/>
         <WrapPanel x:Name="QuickWrap" Margin="0,0,0,14">
-            <Button Content="₱20" Tag="20" Click="QuickAmount_Click"/>
-            <Button Content="₱50" Tag="50" Click="QuickAmount_Click"/>
-            <Button Content="₱100" Tag="100" Click="QuickAmount_Click"/>
-            <Button Content="₱200" Tag="200" Click="QuickAmount_Click"/>
-            <Button Content="₱500" Tag="500" Click="QuickAmount_Click"/>
-            <Button Content="₱1000" Tag="1000" Click="QuickAmount_Click"/>
+            <Button Content="₱20" Tag="20" Margin="0,0,6,6" Click="QuickAmount_Click"/>
+            <Button Content="₱50" Tag="50" Margin="0,0,6,6" Click="QuickAmount_Click"/>
+            <Button Content="₱100" Tag="100" Margin="0,0,6,6" Click="QuickAmount_Click"/>
+            <Button Content="₱200" Tag="200" Margin="0,0,6,6" Click="QuickAmount_Click"/>
+            <Button Content="₱500" Tag="500" Margin="0,0,6,6" Click="QuickAmount_Click"/>
+            <Button Content="₱1000" Tag="1000" Margin="0,0,6,6" Click="QuickAmount_Click"/>
         </WrapPanel>
         <StackPanel x:Name="ReferencePanel" Visibility="Collapsed" Margin="0,0,0,12">
             <TextBlock Text="Reference / approval no. (optional)" Foreground="#475569"/>
-            <TextBox x:Name="ReferenceBox" Height="32" Margin="0,4,0,0"/>
+            <TextBox x:Name="ReferenceBox" Height="34" Margin="0,4,0,0"
+                     Tag="Reference number, if provided"/>
         </StackPanel>
         <StackPanel x:Name="ChangePanel">
             <TextBlock Text="Change" Foreground="#475569"/>
@@ -27,9 +30,10 @@
         </StackPanel>
         <TextBlock x:Name="ErrorText" Foreground="#DC2626" TextWrapping="Wrap" Margin="0,0,0,10"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Cancel" IsCancel="True"/>
-            <Button Content="Confirm (Enter)" Background="#0F172A" Foreground="White"
+            <Button Content="Cancel" IsCancel="True" Margin="0,0,8,0"/>
+            <Button Content="Confirm (Enter)" Background="#2878BD" Foreground="White"
                     IsDefault="True" Click="Confirm_Click"/>
         </StackPanel>
-    </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
 </Window>

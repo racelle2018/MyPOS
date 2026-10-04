@@ -13,34 +13,61 @@ public sealed class HeldSaleService
 
     public List<HeldSale> ListActive(Guid branchId)
     {
-        var cutoff = DateTime.Now.AddHours(-24);
-        var stale = _db.HeldSales.Where(h => h.HeldAt < cutoff).ToList();
-        foreach (var held in stale)
-        {
-            _db.AuditLogs.Add(new AuditLog { Date = DateTime.Now, Action = "HeldSaleExpired", EntityName = "HeldSale", EntityId = held.Id, Details = $"{held.CustomerName} - HELD {held.HeldAt:MM/dd HH:mm}" });
-        }
-        if (stale.Count > 0) { _db.HeldSales.RemoveRange(stale); _db.SaveChanges(); }
         return _db.HeldSales.Where(h => h.BranchId == branchId).OrderByDescending(h => h.HeldAt).ToList();
     }
 
-    public HeldSale Hold(Guid branchId, Guid userId, List<HeldCartLine> cart, string? customerName, string? invoice, string? notes)
+    public HeldSale Hold(
+        Guid branchId,
+        Guid userId,
+        List<HeldCartLine> cart,
+        string? customerName,
+        string? invoice,
+        string? notes,
+        string? customerAddress = null,
+        PaymentMethod paymentMethod = PaymentMethod.Cash,
+        OrderType orderType = OrderType.WalkIn,
+        DiscountKind discountKind = DiscountKind.None,
+        decimal discountAmount = 0,
+        string? seniorIdNumber = null)
     {
         if (cart.Count == 0) throw new InvalidOperationException("Nothing to hold - the cart is empty.");
-        var held = new HeldSale { BranchId = branchId, UserId = userId, HeldAt = DateTime.Now, CustomerName = customerName?.Trim().ToUpperInvariant() ?? "", InvoiceNumber = string.IsNullOrWhiteSpace(invoice) ? null : invoice.Trim().ToUpperInvariant(), Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim().ToUpperInvariant(), CartJson = JsonSerializer.Serialize(cart) };
+        var held = new HeldSale
+        {
+            BranchId = branchId,
+            UserId = userId,
+            HeldAt = DateTime.Now,
+            CustomerName = customerName?.Trim().ToUpperInvariant() ?? "",
+            CustomerAddress = customerAddress?.Trim(),
+            InvoiceNumber = string.IsNullOrWhiteSpace(invoice) ? null : invoice.Trim().ToUpperInvariant(),
+            Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim(),
+            PaymentMethod = paymentMethod,
+            OrderType = orderType,
+            DiscountKind = discountKind,
+            DiscountAmount = discountAmount,
+            SeniorIdNumber = seniorIdNumber?.Trim(),
+            CartJson = JsonSerializer.Serialize(cart)
+        };
         _db.HeldSales.Add(held);
         _db.AuditLogs.Add(new AuditLog { Date = DateTime.Now, UserId = userId, Action = "HeldSaleCreate", EntityName = "HeldSale", EntityId = held.Id, Details = $"{held.CustomerName} - {cart.Count} item(s)" });
         _db.SaveChanges();
         return held;
     }
 
-    public List<HeldCartLine> Recall(Guid heldSaleId)
+    public List<HeldCartLine> ReadCart(Guid heldSaleId)
     {
         var held = _db.HeldSales.Find(heldSaleId) ?? throw new InvalidOperationException("Held sale not found.");
-        var lines = JsonSerializer.Deserialize<List<HeldCartLine>>(held.CartJson) ?? new();
+        return JsonSerializer.Deserialize<List<HeldCartLine>>(held.CartJson)
+            ?? throw new InvalidDataException("Held cart data could not be read.");
+    }
+
+    public void CompleteRecall(Guid heldSaleId, Guid userId)
+    {
+        var held = _db.HeldSales.Find(heldSaleId) ?? throw new InvalidOperationException("Held sale not found.");
+        using var transaction = _db.Database.BeginTransaction();
         _db.HeldSales.Remove(held);
-        _db.AuditLogs.Add(new AuditLog { Date = DateTime.Now, UserId = held.UserId, Action = "HeldSaleRecall", EntityName = "HeldSale", EntityId = held.Id, Details = held.CustomerName });
+        _db.AuditLogs.Add(new AuditLog { Date = DateTime.Now, UserId = userId, Action = "HeldSaleRecall", EntityName = "HeldSale", EntityId = held.Id, Details = held.CustomerName });
         _db.SaveChanges();
-        return lines;
+        transaction.Commit();
     }
 
     public void Discard(Guid heldSaleId, Guid userId)

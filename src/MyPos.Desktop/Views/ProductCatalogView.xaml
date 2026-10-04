@@ -9,36 +9,35 @@
         <converters:UpperTextConverter x:Key="UpperText"/>
     </UserControl.Resources>
     <DockPanel Margin="12">
-        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button x:Name="ReceiveStockButton" Content="Receive Stock" Height="32"
-                        MinWidth="100" Margin="4,0" Click="ReceiveStockButton_Click"/>
-                <Button x:Name="EditButton" Height="32" MinWidth="0" Padding="12,0"
-                        Margin="4,0" Click="EditButton_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE70F;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                   FontSize="13" VerticalAlignment="Center"/>
-                        <TextBlock Text="Edit" Margin="7,0,0,0" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="DeactivateButton" Content="Deactivate" Height="32"
-                        MinWidth="90" Margin="4,0" Click="DeactivateButton_Click"/>
-                <Button x:Name="AddButton" Height="32" MinWidth="0" Padding="12,0"
-                        Margin="4,0" Background="#0F172A" Foreground="White"
-                        Click="AddButton_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE710;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                   FontSize="13" VerticalAlignment="Center"/>
-                        <TextBlock Text="Add Product" Margin="7,0,0,0" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-            </StackPanel>
+        <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,10">
             <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-            <TextBox x:Name="SearchBox" Style="{StaticResource UpperBox}" Width="320" Height="32"
+            <TextBox x:Name="SearchBox" Style="{StaticResource UpperBox}" Width="320" Height="34"
+                     Tag="Name, barcode, or category" Margin="0,0,12,4"
                      VerticalContentAlignment="Center"
                      TextChanged="SearchBox_TextChanged"
                      KeyDown="SearchBox_KeyDown"/>
-        </DockPanel>
+            <Button x:Name="ReceiveStockButton" Content="Receive Stock" Height="34"
+                    MinWidth="100" Margin="4,0,4,4" Click="ReceiveStockButton_Click"/>
+            <Button x:Name="EditButton" Height="34" MinWidth="0" Padding="12,0"
+                    Margin="4,0,4,4" Click="EditButton_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE70F;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                               FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="Edit" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="DeactivateButton" Content="Deactivate" Height="34"
+                    MinWidth="90" Margin="4,0,4,4" Click="DeactivateButton_Click"/>
+            <Button x:Name="AddButton" Height="34" MinWidth="0" Padding="12,0"
+                    Margin="4,0,4,4" Background="#2878BD" Foreground="White"
+                    Click="AddButton_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE710;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                               FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="Add Product" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </WrapPanel>
 
         <TextBlock x:Name="CountText" DockPanel.Dock="Bottom" Foreground="Gray" Margin="0,8,0,0"/>
 

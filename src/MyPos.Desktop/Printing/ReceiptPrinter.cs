@@ -54,9 +54,40 @@ public static class ReceiptPrinter
     public static string BuildPreviewText(Sale sale, ReceiptOptions opt, bool reprint = false) => string.Join(Environment.NewLine, BuildLines(sale, opt, reprint).Select(l => l.Text.Length >= opt.Width ? l.Text : l.Align == ReceiptAlign.Center ? new string(' ', (opt.Width - l.Text.Length) / 2) + l.Text : l.Align == ReceiptAlign.Right ? new string(' ', opt.Width - l.Text.Length) + l.Text : l.Text));
     public static byte[] BuildEpsonBytes(Sale sale, ReceiptOptions opt, bool reprint = false)
     {
-        var b = new List<byte>(); void Raw(params byte[] x) => b.AddRange(x); Raw(0x1B, 0x40);
-        foreach (var line in BuildLines(sale, opt, reprint)) { Raw(0x1B, 0x61, (byte)line.Align); Raw(0x1B, 0x45, (byte)(line.Bold ? 1 : 0)); Raw(0x1D, 0x21, (byte)(line.Big ? 0x11 : 0)); b.AddRange(Encoding.ASCII.GetBytes(line.Text)); Raw(0x0A); }
-        Raw(0x1B, 0x64, 3); Raw(0x1D, 0x56, 1); return b.ToArray();
+        var bytes = new List<byte>();
+        void Raw(params byte[] data) => bytes.AddRange(data);
+
+        Raw(0x1B, 0x40);
+        foreach (var line in BuildLines(sale, opt, reprint))
+        {
+            Raw(0x1B, 0x61, (byte)line.Align);
+            Raw(0x1B, 0x45, (byte)(line.Bold ? 1 : 0));
+            Raw(0x1D, 0x21, (byte)(line.Big ? 0x11 : 0));
+            bytes.AddRange(Encoding.ASCII.GetBytes(line.Text));
+            Raw(0x0A);
+        }
+
+        if (opt.ShowQr && sale.SaleNumber != 0)
+            AddQr(bytes, QrPayload(sale));
+
+        Raw(0x1B, 0x64, 3);
+        Raw(0x1D, 0x56, 1);
+        return bytes.ToArray();
+    }
+
+    public static string QrPayload(Sale sale) =>
+        $"MYPOS|{sale.BranchId:N}|{sale.SaleNumber}|{sale.SaleDate:yyyyMMddHHmmss}|{sale.TotalAmount:0.00}";
+
+    private static void AddQr(List<byte> bytes, string payload)
+    {
+        var data = Encoding.ASCII.GetBytes(payload);
+        var length = data.Length + 3;
+        bytes.AddRange(new byte[] { 0x1B, 0x61, 0x01 });
+        bytes.AddRange(new byte[] { 0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00 });
+        bytes.AddRange(new byte[] { 0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x05 });
+        bytes.AddRange(new byte[] { 0x1D, 0x28, 0x6B, (byte)(length & 0xFF), (byte)(length >> 8), 0x31, 0x50, 0x30 });
+        bytes.AddRange(data);
+        bytes.AddRange(new byte[] { 0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30, 0x0A });
     }
     private static string Trunc(string value, int width) => value.Length <= width ? value : value[..width];
     private static IEnumerable<string> Wrap(string value, int width) { value = value.Trim(); while (value.Length > width) { yield return value[..width]; value = value[width..].TrimStart(); } if (value.Length > 0) yield return value; }

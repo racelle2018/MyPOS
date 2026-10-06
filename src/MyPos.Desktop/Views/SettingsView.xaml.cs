@@ -29,6 +29,14 @@ public partial class SettingsView : UserControl
         BackupCopyFolderBox.Text = AppSettings.Get("BackupCopyFolder", "");
         RefreshBackupStatus();
         LoadPrinters();
+        foreach (var box in new[] { CompanyNameBox, CompanyAddressBox, CompanyTinBox,
+                     BranchNameBox, AccrBox, MinBox, SnBox, LowStockBox, BackupCopyFolderBox })
+            box.TextChanged += (_, _) => SavedFeedbackText.Text = "Unsaved changes";
+        foreach (var combo in new[] { WidthBox, PrintModeBox, PrinterBox })
+            combo.SelectionChanged += (_, _) => SavedFeedbackText.Text = "Unsaved changes";
+        ReceiptsEnabledBox.Checked += (_, _) => SavedFeedbackText.Text = "Unsaved changes";
+        ReceiptsEnabledBox.Unchecked += (_, _) => SavedFeedbackText.Text = "Unsaved changes";
+        LowStockBox.TextChanged += (_, _) => LowStockErrorText.Text = "";
     }
 
     private void LoadPrinters()
@@ -59,11 +67,13 @@ public partial class SettingsView : UserControl
     {
         if (!int.TryParse(LowStockBox.Text.Trim(), out var threshold) || threshold < 0)
         {
-            MessageBox.Show("Low-stock threshold must be a whole number (0 or more).", "MyPos",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            LowStockErrorText.Text = "Enter a whole number (0 or more).";
+            SavedFeedbackText.Text = "Settings were not saved.";
+            LowStockBox.BringIntoView();
             LowStockBox.Focus();
             return;
         }
+        LowStockErrorText.Text = "";
 
         var changed = new List<string>();
         void Set(string key, string value)
@@ -97,7 +107,9 @@ public partial class SettingsView : UserControl
             App.Db.SaveChanges();
         }
 
-        MessageBox.Show("Settings saved.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Information);
+        SavedFeedbackText.Text = changed.Count == 0
+            ? "No changes to save."
+            : "Settings saved. New sales and prints use the updated values.";
     }
 
     private async void BackupButton_Click(object sender, RoutedEventArgs e)

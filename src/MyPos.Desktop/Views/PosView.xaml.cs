@@ -25,8 +25,8 @@ public partial class PosView : UserControl
     private Dictionary<string, string> _customerAddresses = new(StringComparer.OrdinalIgnoreCase);
     private List<Product> _filtered = new();
     private string? _lastAutoAddress;
-
-    public event EventHandler? ShiftRequested;
+    private Sale? _saleAwaitingPrint;
+    private bool _hasOpenShift;
 
     public bool HasItems => _cart.Count > 0;
     public int CartCount => _cart.Count;
@@ -65,7 +65,16 @@ public partial class PosView : UserControl
         LoadCustomers();
         RefreshProducts();
         RefreshTotals();
+        UpdateShiftStatus();
         SearchBox.Focus();
+    }
+
+    private void PosView_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Keep the transaction fields and at least one product row visible on short desktops.
+        SaleDetailsTitle.Visibility = e.NewSize.Height < 470
+            ? Visibility.Collapsed
+            : Visibility.Visible;
     }
 
     // ---------- header (date / invoice / customer) ----------
@@ -82,7 +91,6 @@ public partial class PosView : UserControl
             var branch = App.Db.Branches.First(b => b.Id == _branchId);
             InvoiceBox.Text = $"AUTO {branch.NextReceiptNumber:D6}";
             InvoiceBox.IsEnabled = false;
-            InvoiceBox.Background = new SolidColorBrush(Color.FromRgb(0xEE, 0xF2, 0xF7));
             InvoiceBox.ToolTip = "System receipts are enabled. This sale will receive " +
                                 $"receipt R{branch.NextReceiptNumber:D6}. Turn off Print System Receipts " +
                                 "in Settings to enter a manual OR number.";
@@ -91,8 +99,7 @@ public partial class PosView : UserControl
         {
             InvoiceBox.Text = "";
             InvoiceBox.IsEnabled = true;
-            InvoiceBox.Background = new SolidColorBrush(Color.FromRgb(0xFE, 0xF9, 0xC3));
-            InvoiceBox.ToolTip = "Enter the manual receipt / OR number issued for this sale.";
+            InvoiceBox.ToolTip = "Enter OR number issued for this sale.";
         }
     }
 
@@ -116,25 +123,51 @@ public partial class PosView : UserControl
     private void UpdateShiftStatus()
     {
         var open = new ShiftService(App.Db).GetOpenShift();
-        ShiftBanner.Visibility = Visibility.Visible;
-        OpenShiftButton.Visibility = open == null ? Visibility.Visible : Visibility.Collapsed;
-        ShiftBanner.Background = new SolidColorBrush(open == null
-            ? Color.FromRgb(0xFE, 0xF3, 0xC7)
-            : Color.FromRgb(0xEC, 0xFD, 0xF5));
-        ShiftBanner.BorderBrush = new SolidColorBrush(open == null
-            ? Color.FromRgb(0xF5, 0x9E, 0x0B)
-            : Color.FromRgb(0x34, 0xD3, 0x99));
-        ShiftStatusText.Text = open == null
-            ? "No shift is open. Open one before taking payment."
-            : $"Shift open · {App.Db.Users.Find(open.UserId)?.Username ?? "Cashier"} · {open.OpenedAt:g}";
+        _hasOpenShift = open != null;
+        PayButton.IsEnabled = _hasOpenShift && _cart.Count > 0;
+        ShiftPrompt.Visibility = open == null ? Visibility.Visible : Visibility.Collapsed;
+        PayButton.ToolTip = open == null ? "Open a shift before taking payment."
+            : _cart.Count == 0 ? "Add a product to the current sale."
+            : null;
     }
 
-    private void OpenShiftButton_Click(object sender, RoutedEventArgs e) => ShiftRequested?.Invoke(this, EventArgs.Empty);
+    private void OpenShiftButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (new ShiftService(App.Db).HasOpenShift)
+        {
+            UpdateShiftStatus();
+            return;
+        }
+
+        var dialog = new ShiftOpenDialog { Owner = Window.GetWindow(this) };
+        if (dialog.ShowDialog() != true)
+        {
+            SearchBox.Focus();
+            return;
+        }
+
+        try
+        {
+            new ShiftService(App.Db).OpenShift(_branchId, App.CurrentUser!.Id, dialog.OpeningFloat);
+            UpdateShiftStatus();
+            Status("Shift opened. Ready to take payment.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            UpdateShiftStatus();
+            MessageBox.Show(ex.Message, "Shift not opened", MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+        SearchBox.Focus();
+    }
 
     private void UpdateHeldCount()
     {
         var count = new HeldSaleService(App.Db).ListActive(_branchId).Count;
-        RecallButton.Content = count == 0 ? "Recall (F6)" : $"Recall (F6) · {count}";
+        RecallButton.Content = count == 0 ? "Recall" : $"Recall {Math.Min(count, 9)}{(count > 9 ? "+" : "")}";
+        RecallButton.ToolTip = count == 0
+            ? "Recall a held sale (F6)"
+            : $"Recall a held sale (F6) · {count} waiting";
     }
 
     private PaymentMethod SelectedMethod => (PayModeBox.SelectedItem as string) switch
@@ -179,34 +212,25 @@ public partial class PosView : UserControl
         RefreshTotals();
     }
 
-    private void QtyPlus_Click(object sender, RoutedEventArgs e)
+    private void EditSelectedQuantity()
     {
-        if (sender is FrameworkElement { DataContext: CartLineVM line })
+        if (!CartGrid.IsKeyboardFocusWithin || CartGrid.SelectedItem is not CartLineVM line)
         {
-            if (line.Qty + 1 > line.StockAvailable)
-            { Status($"{line.Name} — stock limit reached ({line.StockAvailable:0.##})"); return; }
-            line.Qty += 1;
-            RefreshTotals();
+            Status("Select an item in Current sale first.");
+            return;
         }
-    }
 
-    private void QtyMinus_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: CartLineVM line })
+        var dialog = new QuantityEditDialog(line.Name, line.Qty, line.StockAvailable)
         {
-            if (line.Qty <= 1) _cart.Remove(line);
-            else line.Qty -= 1;
-            RefreshTotals();
-        }
-    }
-
-    private void RemoveLine_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: CartLineVM line })
+            Owner = Window.GetWindow(this)
+        };
+        if (dialog.ShowDialog() == true)
         {
-            _cart.Remove(line);
+            line.Qty = dialog.Quantity;
             RefreshTotals();
+            Status($"Quantity updated: {line.Name} × {line.Qty:0.##}");
         }
+        CartGrid.Focus();
     }
 
     private void ClearCart()
@@ -226,9 +250,7 @@ public partial class PosView : UserControl
         CustomerNameBox.Text = "";
         AddressBox.Text = "";
         _lastAutoAddress = null;
-        InvoiceErrorText.Text = "";
-        SeniorIdErrorText.Text = "";
-        SeniorIdBox.Text = "";
+        DiscountErrorText.Text = "";
         DiscountKindBox.SelectedIndex = 0;
         PayModeBox.SelectedIndex = 0;
         TypeBox.SelectedIndex = 0;
@@ -253,9 +275,9 @@ public partial class PosView : UserControl
             AddressBox.Text,
             SelectedMethod,
             SelectedOrderType,
-            IsSeniorSale ? DiscountKind.SeniorPwd : DiscountBox.IsEnabled ? DiscountKind.Regular : DiscountKind.None,
+            IsSeniorSale ? DiscountKind.SeniorPwd : DiscountKindBox.SelectedIndex == 1 ? DiscountKind.Regular : DiscountKind.None,
             ParseDiscount(),
-            SeniorIdBox.Text);
+            IsSeniorSale ? DiscountBox.Text.Trim() : null);
         ResetSaleDraft();
         UpdateHeldCount();
         Status($"Held - {(string.IsNullOrWhiteSpace(held.CustomerName) ? "WALK-IN" : held.CustomerName)} ({count} item(s))");
@@ -289,6 +311,15 @@ public partial class PosView : UserControl
             return;
         }
 
+        if (skipped > 0 || reduced > 0)
+        {
+            var warning = $"Current stock has changed: {skipped} unavailable item(s) will be skipped and " +
+                          $"{reduced} item quantity/quantities will be reduced. Recall the available items?";
+            if (MessageBox.Show(warning, "Review held sale", MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                return;
+        }
+
         var draft = dialog.SelectedDraft;
         ResetSaleDraft();
         foreach (var line in restored) _cart.Add(line);
@@ -298,8 +329,8 @@ public partial class PosView : UserControl
         PayModeBox.SelectedIndex = Math.Max(0, (int)draft.PaymentMethod - 1);
         TypeBox.SelectedIndex = Math.Max(0, (int)draft.OrderType - 1);
         DiscountKindBox.SelectedIndex = (int)draft.DiscountKind;
-        DiscountBox.Text = draft.DiscountAmount > 0 ? draft.DiscountAmount.ToString("0.##") : "";
-        SeniorIdBox.Text = draft.SeniorIdNumber ?? "";
+        DiscountBox.Text = IsSeniorSale ? draft.SeniorIdNumber ?? ""
+            : draft.DiscountAmount > 0 ? draft.DiscountAmount.ToString("0.##") : "";
         RefreshTotals();
         new HeldSaleService(App.Db).CompleteRecall(draft.Id, App.CurrentUser!.Id);
         UpdateHeldCount();
@@ -316,32 +347,56 @@ public partial class PosView : UserControl
         var r = SaleCalculator.Compute(lines, ParseDiscount(), _vatRate, kind);
 
         GrossText.Text = $"₱{r.Gross:N2}";
+        DiscountSummaryText.Text = $"−₱{r.Discount:N2}";
+        DiscountBreakdown.Visibility = r.Discount > 0 ? Visibility.Visible : Visibility.Collapsed;
         NetText.Text = $"₱{r.Net:N2}";
         VatText.Text = $"₱{r.Vat:N2}";
         TotalText.Text = $"₱{r.Total:N2}";
         ItemCountText.Text = _cart.Sum(l => l.Qty).ToString("0.##");
-        PayButton.IsEnabled = _cart.Count > 0;
+        CartSummaryText.Text = $"{_cart.Count} {(_cart.Count == 1 ? "line" : "lines")} · {ItemCountText.Text} items";
+        CartEmptyHint.Visibility = _cart.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        PayButton.IsEnabled = _hasOpenShift && _cart.Count > 0;
+        PayButton.ToolTip = !_hasOpenShift ? "Open a shift before taking payment."
+            : _cart.Count == 0 ? "Add a product to the current sale."
+            : null;
     }
 
     private decimal ParseDiscount()
-        => decimal.TryParse(DiscountBox.Text.Trim(), out var d) && d > 0 ? d : 0;
+        => DiscountKindBox.SelectedIndex == 1 &&
+           decimal.TryParse(DiscountBox.Text.Trim(), out var d) && d > 0 ? d : 0;
 
-    private void DiscountBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshTotals();
+    private void DiscountBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (DiscountErrorText != null) DiscountErrorText.Text = "";
+        if (DiscountKindBox != null && GrossText != null) RefreshTotals();
+    }
 
     private void DiscountKindBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (DiscountBox == null || SeniorIdBox == null) return;
-        DiscountBox.IsEnabled = DiscountKindBox.SelectedIndex == 1;
-        SeniorIdBox.IsEnabled = IsSeniorSale;
-        SeniorIdBox.Background = IsSeniorSale ? new SolidColorBrush(Color.FromRgb(0xFE, 0xF9, 0xC3)) : Brushes.White;
-        if (IsSeniorSale) DiscountBox.Text = "";
+        if (DiscountBox == null || DiscountDetailLabel == null || DiscountErrorText == null) return;
+        DiscountBox.Text = "";
+        DiscountBox.IsEnabled = DiscountKindBox.SelectedIndex is 1 or 2;
+        DiscountBox.TextAlignment = DiscountKindBox.SelectedIndex == 1
+            ? TextAlignment.Right : TextAlignment.Left;
+        DiscountDetailLabel.Text = DiscountKindBox.SelectedIndex switch
+        {
+            1 => "DISCOUNT AMOUNT",
+            2 => "SC/PWD ID *",
+            _ => "DISCOUNT DETAIL"
+        };
+        DiscountBox.Tag = DiscountKindBox.SelectedIndex switch
+        {
+            1 => "Amount in pesos",
+            2 => "Required Senior/PWD ID",
+            _ => "Choose a discount type first"
+        };
+        DiscountErrorText.Text = "";
         RefreshTotals();
     }
 
     private void InvoiceBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (_sanitizingInvoice || !InvoiceBox.IsEnabled) return;
-        InvoiceErrorText.Text = "";
 
         var clean = string.Concat(InvoiceBox.Text.Where(c => char.IsLetterOrDigit(c) || c == '-'));
         if (clean != InvoiceBox.Text)
@@ -358,11 +413,11 @@ public partial class PosView : UserControl
 
         InvoiceBox.BorderBrush = duplicate
             ? new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26))
-            : new SolidColorBrush(Color.FromRgb(0xCB, 0xD5, 0xE1));
+            : (Brush)FindResource("UiBorderBrush");
         InvoiceBox.BorderThickness = duplicate ? new Thickness(2) : new Thickness(1);
         InvoiceBox.ToolTip = duplicate
-            ? $"Invoice '{clean}' was already used. Check the next number in your booklet."
-            : "Enter the manual receipt / OR number issued for this sale.";
+            ? $"Invoice '{clean}' was already used."
+            : "Enter OR number issued for this sale.";
     }
 
     private void DiscountBox_KeyDown(object sender, KeyEventArgs e)
@@ -390,6 +445,7 @@ public partial class PosView : UserControl
 
         _filtered = products.OrderBy(p => p.Name).ToList();
         ProductsGrid.ItemsSource = _filtered;
+        ProductsEmptyHint.Visibility = _filtered.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshProducts();
@@ -431,10 +487,11 @@ public partial class PosView : UserControl
 
     private void ProductsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (ProductsGrid.SelectedItem is Product p)
-        {
+        // A double-click on a header, scrollbar or empty space must not add the
+        // previously selected product. Only an actual product row is actionable.
+        if (e.OriginalSource is DependencyObject source &&
+            ItemsControl.ContainerFromElement(ProductsGrid, source) is DataGridRow { Item: Product p })
             AddAndReset(p);
-        }
     }
 
     private void AddAndReset(Product product)
@@ -465,7 +522,6 @@ public partial class PosView : UserControl
         if (!ReceiptsEnabled && string.IsNullOrWhiteSpace(InvoiceBox.Text))
         {
             Status("Invoice / OR number is required");
-            InvoiceErrorText.Text = "Required before payment";
             InvoiceBox.BorderBrush = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
             InvoiceBox.BorderThickness = new Thickness(2);
             InvoiceBox.Focus();
@@ -478,14 +534,21 @@ public partial class PosView : UserControl
         }
 
         var kind = IsSeniorSale ? DiscountKind.SeniorPwd : DiscountKind.None;
-        if (kind == DiscountKind.SeniorPwd && string.IsNullOrWhiteSpace(SeniorIdBox.Text))
+        if (kind == DiscountKind.SeniorPwd && string.IsNullOrWhiteSpace(DiscountBox.Text))
         {
             Status("Senior/PWD ID number is required");
-            SeniorIdErrorText.Text = "Required for SC/PWD sale";
-            SeniorIdBox.Focus();
+            DiscountErrorText.Text = "Required for SC/PWD sale";
+            DiscountBox.Focus();
             return;
         }
-        SeniorIdErrorText.Text = "";
+        if (DiscountKindBox.SelectedIndex == 1 && ParseDiscount() <= 0)
+        {
+            Status("Enter a valid discount amount");
+            DiscountErrorText.Text = "Enter an amount greater than zero";
+            DiscountBox.Focus();
+            return;
+        }
+        DiscountErrorText.Text = "";
 
         var lines = _cart.Select(l => new SaleCalculator.Line(l.Price, l.Qty, l.UnitCost, l.IsVatExempt)).ToList();
         var discount = ParseDiscount();
@@ -494,7 +557,7 @@ public partial class PosView : UserControl
         if (discount > calc.Gross) { Status("Discount exceeds the subtotal"); return; }
 
         var method = SelectedMethod;
-        var dlg = new PaymentDialog(calc.Total, method);
+        var dlg = new PaymentDialog(calc.Total, method) { Owner = Window.GetWindow(this) };
         if (dlg.ShowDialog() != true) { SearchBox.Focus(); return; }
 
         // Receipt type: system receipts print their own number; otherwise the
@@ -523,7 +586,7 @@ public partial class PosView : UserControl
                 AddressBox.Text,
                 SelectedOrderType,
                 kind,
-                IsSeniorSale ? SeniorIdBox.Text : null);
+                IsSeniorSale ? DiscountBox.Text.Trim() : null);
 
         }
         catch (InvalidOperationException ex)
@@ -541,21 +604,41 @@ public partial class PosView : UserControl
                (sale.ReceiptNumber != null ? $" - {sale.ReceiptNumber}" : ""));
 
         var printed = !ReceiptsEnabled || ReceiptPrinting.TryPrint(sale, reprint: false);
-        new SaleCompleteDialog(sale, ReceiptsEnabled, printed).ShowDialog();
-        if (ReceiptsEnabled && !printed)
+        var completion = new SaleCompleteDialog(sale, ReceiptsEnabled, printed);
+        completion.ShowDialog();
+        if (ReceiptsEnabled && !completion.ReceiptPrinted)
         {
-            Status($"Sale #{sale.SaleNumber} saved; receipt printing failed. Use View Receipt to retry.");
-            new ReceiptPreviewDialog(sale, false,
-                "Sale saved. Automatic printing failed; check the printer and retry below.").ShowDialog();
+            _saleAwaitingPrint = sale;
+            PrintFailureText.Text = $"Sale #{sale.SaleNumber} was saved, but its receipt was not printed. Check the printer and retry.";
+            PrintFailureBanner.Visibility = Visibility.Visible;
+            Status($"Sale #{sale.SaleNumber} saved; receipt not printed.");
+        }
+        else if (_saleAwaitingPrint?.Id == sale.Id)
+        {
+            _saleAwaitingPrint = null;
+            PrintFailureBanner.Visibility = Visibility.Collapsed;
         }
         SearchBox.Focus();
+    }
+
+    private void RetryReceiptButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_saleAwaitingPrint == null) return;
+        var preview = new ReceiptPreviewDialog(_saleAwaitingPrint, false,
+            "Sale already saved. This action prints its receipt only; it will not charge the customer again.");
+        preview.ShowDialog();
+        if (!preview.PrintedSuccessfully) return;
+        Status($"Receipt printed for sale #{_saleAwaitingPrint.SaleNumber}");
+        _saleAwaitingPrint = null;
+        PrintFailureBanner.Visibility = Visibility.Collapsed;
     }
 
     // ---------- hotkeys ----------
 
     private void UserControl_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.F2) { e.Handled = true; Pay(); }
+        if (e.Key == Key.F1) { e.Handled = true; EditSelectedQuantity(); }
+        else if (e.Key == Key.F2) { e.Handled = true; Pay(); }
         else if (e.Key == Key.F3) { e.Handled = true; HoldCart(); }
         else if (e.Key == Key.F4) { e.Handled = true; ClearCart(); }
         else if (e.Key == Key.F6) { e.Handled = true; RecallHeld(); }
@@ -565,12 +648,13 @@ public partial class PosView : UserControl
             SearchBox.Focus();
             e.Handled = true;
         }
-        // Delete removes a cart row — but NOT while typing in the discount box
+        // Delete removes a selected cart row, never text in another input field.
         else if (e.Key == Key.Delete && CartGrid.IsKeyboardFocusWithin
                  && CartGrid.SelectedItem is CartLineVM line)
         {
             _cart.Remove(line);
             RefreshTotals();
+            Status($"Removed: {line.Name}");
             e.Handled = true;
         }
     }
@@ -579,6 +663,7 @@ public partial class PosView : UserControl
     private void ClearButton_Click(object sender, RoutedEventArgs e) => ClearCart();
 
     private void Status(string message) => StatusText.Text = message;
+
 }
 
 /// <summary>One row in the cart. Qty changes notify the UI in place (selection preserved).</summary>

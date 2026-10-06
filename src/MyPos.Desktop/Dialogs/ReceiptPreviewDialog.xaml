@@ -3,6 +3,8 @@
         <TextBlock x:Name="WarningText" DockPanel.Dock="Top" Foreground="#DC2626"
                    FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10"
                    Visibility="Collapsed"/>
+        <TextBlock DockPanel.Dock="Top" Text="Preview is approximate. Verify paper output on the selected printer."
+                   Style="{StaticResource FieldHint}" Margin="0,0,0,8"/>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="0,10,0,0">
             <Button x:Name="PrintButton" Content="Print" Width="90" Height="34"

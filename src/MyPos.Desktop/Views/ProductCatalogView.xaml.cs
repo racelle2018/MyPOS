@@ -55,6 +55,7 @@ public partial class ProductCatalogView : UserControl
                 : "No products yet — add your first product";
         }
         DeactivateButton.Content = Selected != null && !Selected.IsActive ? "Activate" : "Deactivate";
+        UpdateSelectionActions();
     }
 
     private void ReselectAndFocus(Guid productId)
@@ -154,7 +155,16 @@ public partial class ProductCatalogView : UserControl
     }
 
     private void ProductsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        => DeactivateButton.Content = Selected != null && !Selected.IsActive ? "Activate" : "Deactivate";
+        => UpdateSelectionActions();
+
+    private void UpdateSelectionActions()
+    {
+        var selected = Selected;
+        ReceiveStockButton.IsEnabled = selected != null;
+        EditButton.IsEnabled = selected != null;
+        DeactivateButton.IsEnabled = selected != null;
+        DeactivateButton.Content = selected is { IsActive: false } ? "Activate" : "Deactivate";
+    }
 }
 
 public sealed class ProductRowVM
@@ -168,6 +178,8 @@ public sealed class ProductRowVM
     public decimal CostPrice => Product.CostPrice;
     public decimal Price => Product.Price;
     public decimal StockQty => Product.StockQty;
+    public string StockLevelText => StockQty <= 0 ? "OUT" :
+        StockQty <= CurrentSettings.LowStockThreshold ? "LOW" : "OK";
     public string ActiveText => Product.IsActive ? "ACTIVE" : "OFF";
     public Brush ActiveBrush => Product.IsActive ? Brushes.ForestGreen : Brushes.SlateGray;
 }

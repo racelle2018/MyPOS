@@ -8,18 +8,8 @@
         <Border DockPanel.Dock="Top" Background="White" BorderBrush="#E2E8F0"
                 BorderThickness="1" CornerRadius="2" Padding="12,8" Margin="0,0,0,10">
             <StackPanel>
-                <DockPanel>
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                        <Button x:Name="VoidButton" Content="Void Sale" Width="90" Height="32"
-                                Margin="4,0,0,0" Background="#DC2626" Foreground="White"
-                                BorderBrush="#DC2626" FontWeight="SemiBold" Click="VoidButton_Click"/>
-                        <Button x:Name="ExportButton" Content="Export CSV" Width="100" Height="32"
-                                Margin="12,0,0,0" Click="ExportButton_Click"/>
-                        <Button x:Name="PrintButton" Content="Print" Width="80" Height="32"
-                                Margin="4,0,0,0" Background="#2878BD" Foreground="White"
-                                FontWeight="SemiBold" Click="PrintButton_Click"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,6">
                         <Button x:Name="PrevDayButton" Content="‹" Width="36" Height="34"
                                 FontSize="16" Margin="0,0,4,0" Click="PrevDayButton_Click"
                                 ToolTip="Previous day"/>
@@ -32,24 +22,33 @@
                         <Button x:Name="TodayButton" Content="Today" Width="70" Height="34"
                                 Margin="10,0,0,0" Click="TodayButton_Click"/>
                     </StackPanel>
-                </DockPanel>
-                <UniformGrid Columns="6" Margin="0,14,0,0">
-                    <Border BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="10,2"><StackPanel><TextBlock Text="TOTAL SALES" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="TotalSalesText" Text="₱0.00" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
-                    <Border BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="10,2"><StackPanel><TextBlock Text="NET SALES" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="NetSalesText" Text="₱0.00" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
-                    <Border BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="10,2"><StackPanel><TextBlock Text="VAT" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="VatText" Text="₱0.00" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
-                    <Border BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="10,2"><StackPanel><TextBlock Text="TRANSACTIONS" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="CountText" Text="0" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
-                    <Border BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="10,2"><StackPanel><TextBlock Text="AVG. SALE" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="AvgText" Text="₱0.00" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
-                    <Border Padding="10,2"><StackPanel><TextBlock Text="VOIDS" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="VoidsText" Text="0" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
-                </UniformGrid>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <Button x:Name="VoidButton" Content="Void Sale" Width="90" Height="34"
+                                Margin="0,0,8,0" Background="#DC2626" Foreground="White"
+                                BorderBrush="#DC2626" FontWeight="SemiBold" Click="VoidButton_Click"/>
+                        <Button x:Name="ExportButton" Content="Export CSV" Width="100" Height="34"
+                                Margin="0,0,8,0" Click="ExportButton_Click"/>
+                        <Button x:Name="PrintButton" Content="Print" Width="80" Height="34"
+                                Style="{StaticResource PrimaryButton}" Click="PrintButton_Click"/>
+                    </StackPanel>
+                </WrapPanel>
+                <WrapPanel Margin="0,8,0,0">
+                    <Border Width="155" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="8,3" Margin="0,0,0,5"><StackPanel><TextBlock Text="TOTAL SALES" Foreground="#475569" FontSize="11"/><TextBlock x:Name="TotalSalesText" Text="₱0.00" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
+                    <Border Width="155" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="8,3" Margin="0,0,0,5"><StackPanel><TextBlock Text="NET SALES" Foreground="#475569" FontSize="11"/><TextBlock x:Name="NetSalesText" Text="₱0.00" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
+                    <Border Width="135" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="8,3" Margin="0,0,0,5"><StackPanel><TextBlock Text="VAT" Foreground="#475569" FontSize="11"/><TextBlock x:Name="VatText" Text="₱0.00" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
+                    <Border Width="145" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="8,3" Margin="0,0,0,5"><StackPanel><TextBlock Text="TRANSACTIONS" Foreground="#475569" FontSize="11"/><TextBlock x:Name="CountText" Text="0" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
+                    <Border Width="155" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="8,3" Margin="0,0,0,5"><StackPanel><TextBlock Text="AVG. SALE" Foreground="#475569" FontSize="11"/><TextBlock x:Name="AvgText" Text="₱0.00" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
+                    <Border Width="135" Padding="8,3" Margin="0,0,0,5"><StackPanel><TextBlock Text="VOIDS" Foreground="#475569" FontSize="11"/><TextBlock x:Name="VoidsText" Text="0" FontSize="15" FontWeight="Bold"/></StackPanel></Border>
+                </WrapPanel>
                 <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0"
                         Padding="10,6" Margin="-16,10,-16,-12">
-                    <StackPanel Orientation="Horizontal">
+                    <WrapPanel>
                         <TextBlock Text="RECEIPTS —" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,10,0"/>
                         <TextBlock Text="System:" Foreground="#64748B"/><TextBlock x:Name="SystemReceiptsText" Margin="4,0,16,0" FontWeight="SemiBold"/>
                         <TextBlock Text="Manual OR:" Foreground="#64748B"/><TextBlock x:Name="ManualReceiptsText" Margin="4,0,16,0" FontWeight="SemiBold"/>
                         <TextBlock Text="Missing:" Foreground="#64748B"/><TextBlock x:Name="MissingReceiptsText" Margin="4,0,0,0" FontWeight="SemiBold"/>
                         <TextBlock x:Name="MissingHint" Text=" — INVESTIGATE: SALES WITHOUT RECEIPTS" Foreground="#DC2626" FontWeight="SemiBold" Visibility="Collapsed"/>
-                    </StackPanel>
+                    </WrapPanel>
                 </Border>
             </StackPanel>
         </Border>
@@ -58,24 +57,26 @@
                       behaviors:DataGridBehaviors.DeselectOnOutsideClick="True"
                       CanUserAddRows="False" SelectionMode="Single" HeadersVisibility="Column"
                       RowHeaderWidth="0" BorderThickness="1" BorderBrush="#E2E8F0"
-                      Background="White" MouseDoubleClick="SalesGrid_MouseDoubleClick">
+                      Background="White" MouseDoubleClick="SalesGrid_MouseDoubleClick"
+                      SelectionChanged="SalesGrid_SelectionChanged">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Sale #" Binding="{Binding SaleNumber}" Width="60"/>
-                    <DataGridTextColumn Header="Time" Binding="{Binding TimeText}" Width="90"/>
-                    <DataGridTextColumn Header="Invoice / OR No." Binding="{Binding ReceiptNumber}" Width="120"/>
-                    <DataGridTextColumn Header="Customer" Width="150"><DataGridTextColumn.Binding><Binding Path="CustomerName" Converter="{StaticResource UpperText}"/></DataGridTextColumn.Binding></DataGridTextColumn>
-                    <DataGridTextColumn Header="Pay Mode" Binding="{Binding PayModeText}" Width="80"/>
-                    <DataGridTextColumn Header="Gross" ElementStyle="{StaticResource RightCell}" Binding="{Binding GrossAmount, StringFormat=₱{0:N2}}" Width="90"/>
-                    <DataGridTextColumn Header="Discount" ElementStyle="{StaticResource RightCell}" Binding="{Binding DiscountAmount, StringFormat=₱{0:N2}}" Width="85"/>
-                    <DataGridTextColumn Header="Total" ElementStyle="{StaticResource RightCell}" Binding="{Binding TotalAmount, StringFormat=₱{0:N2}}" Width="90"/>
-                    <DataGridTextColumn Header="VAT" ElementStyle="{StaticResource RightCell}" Binding="{Binding VatAmount, StringFormat=₱{0:N2}}" Width="80"/>
-                    <DataGridTextColumn Header="Net" ElementStyle="{StaticResource RightCell}" Binding="{Binding NetAmount, StringFormat=₱{0:N2}}" Width="90"/>
-                    <DataGridTextColumn Header="Voided" Binding="{Binding VoidedText}" Width="60"/>
+                    <DataGridTextColumn Header="Sale #" Binding="{Binding SaleNumber}" Width="60" ElementStyle="{StaticResource GridCellText}"/>
+                    <DataGridTextColumn Header="Time" Binding="{Binding TimeText}" Width="90" ElementStyle="{StaticResource GridCellText}"/>
+                    <DataGridTextColumn Header="Invoice / OR No." Binding="{Binding ReceiptNumber}" Width="120" ElementStyle="{StaticResource GridCellText}"/>
+                    <DataGridTextColumn Header="Customer" Width="150" ElementStyle="{StaticResource GridCellText}"><DataGridTextColumn.Binding><Binding Path="CustomerName" Converter="{StaticResource UpperText}"/></DataGridTextColumn.Binding></DataGridTextColumn>
+                    <DataGridTextColumn Header="Pay Mode" Binding="{Binding PayModeText}" Width="80" ElementStyle="{StaticResource GridCellText}"/>
+                    <DataGridTextColumn Header="Gross" ElementStyle="{StaticResource RightCell}" Binding="{Binding GrossAmount, StringFormat=₱{0:N2}}" Width="SizeToCells" MinWidth="90"/>
+                    <DataGridTextColumn Header="Discount" ElementStyle="{StaticResource RightCell}" Binding="{Binding DiscountAmount, StringFormat=₱{0:N2}}" Width="SizeToCells" MinWidth="85"/>
+                    <DataGridTextColumn Header="Total" ElementStyle="{StaticResource RightCell}" Binding="{Binding TotalAmount, StringFormat=₱{0:N2}}" Width="SizeToCells" MinWidth="90"/>
+                    <DataGridTextColumn Header="VAT" ElementStyle="{StaticResource RightCell}" Binding="{Binding VatAmount, StringFormat=₱{0:N2}}" Width="SizeToCells" MinWidth="80"/>
+                    <DataGridTextColumn Header="Net" ElementStyle="{StaticResource RightCell}" Binding="{Binding NetAmount, StringFormat=₱{0:N2}}" Width="SizeToCells" MinWidth="90"/>
+                    <DataGridTextColumn Header="Voided" Binding="{Binding VoidedText}" Width="60" ElementStyle="{StaticResource GridCellText}"/>
                 </DataGrid.Columns>
             </DataGrid>
             <TextBlock x:Name="ReportEmptyHint" Text="No sales recorded for this date"
-                       Foreground="#94A3B8" FontSize="14" HorizontalAlignment="Center"
-                       VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed"/>
+                       Foreground="{StaticResource UiMutedBrush}" FontSize="14" HorizontalAlignment="Center"
+                       VerticalAlignment="Center" TextWrapping="Wrap" Margin="12"
+                       IsHitTestVisible="False" Visibility="Collapsed"/>
         </Grid>
     </DockPanel>
 </UserControl>

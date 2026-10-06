@@ -20,10 +20,10 @@
         </Border>
         <DataGrid x:Name="ItemsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Item" Binding="{Binding ProductName}" Width="*"/>
-                <DataGridTextColumn Header="Qty" Binding="{Binding Qty}" Width="60"/>
-                <DataGridTextColumn Header="Price" Binding="{Binding UnitPrice, StringFormat=₱{0:N2}}" Width="90"/>
-                <DataGridTextColumn Header="Amount" Binding="{Binding LineGross, StringFormat=₱{0:N2}}" Width="100"/>
+                <DataGridTextColumn Header="Item" Binding="{Binding ProductName}" Width="*" ElementStyle="{StaticResource GridCellText}"/>
+                <DataGridTextColumn Header="Qty" Binding="{Binding Qty}" Width="60" ElementStyle="{StaticResource GridCellText}"/>
+                <DataGridTextColumn Header="Price" Binding="{Binding UnitPrice, StringFormat=₱{0:N2}}" Width="90" ElementStyle="{StaticResource GridCellText}"/>
+                <DataGridTextColumn Header="Amount" Binding="{Binding LineGross, StringFormat=₱{0:N2}}" Width="100" ElementStyle="{StaticResource GridCellText}"/>
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>

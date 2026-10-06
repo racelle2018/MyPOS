@@ -4,9 +4,8 @@
         Title="Session Locked" Width="450" SizeToContent="Height"
         MaxHeight="620" WindowStartupLocation="CenterOwner"
         WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
-        Background="#F4F7FB">
-    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1"
-            CornerRadius="12" Padding="32" Margin="14">
+        Background="White">
+    <Border Background="White" CornerRadius="12" Padding="32">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
@@ -24,6 +23,7 @@
 
                 <TextBlock Text="Password" FontWeight="SemiBold"/>
                 <PasswordBox x:Name="PasswordBox" Height="42" Margin="0,6,0,4"
+                             AutomationProperties.Name="Password to unlock session"
                              PasswordChanged="PasswordBox_OnPasswordChanged"
                              PreviewKeyDown="PasswordBox_OnPreviewKeyDown"
                              KeyDown="PasswordBox_OnKeyDown"/>

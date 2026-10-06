@@ -38,7 +38,11 @@ public partial class UserManagementView : UserControl
     private void UsersGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateToggleButton();
 
     private void UpdateToggleButton()
-        => ToggleActiveButton.Content = Selected != null && !Selected.User.IsActive ? "Activate" : "Deactivate";
+    {
+        EditButton.IsEnabled = Selected != null;
+        ToggleActiveButton.IsEnabled = Selected != null && Selected.User.Id != App.CurrentUser?.Id;
+        ToggleActiveButton.Content = Selected is { User.IsActive: false } ? "Activate" : "Deactivate";
+    }
 
     private void AddButton_Click(object sender, RoutedEventArgs e)
     {

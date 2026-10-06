@@ -28,7 +28,8 @@ public partial class ShiftView : UserControl
         {
             var totals = service.GetShiftTotals(open.Id);
             StatusHeader.Text = "SHIFT OPEN";
-            StatusDetail.Text = $"Opened {open.OpenedAt:ddd, MMM d h:mm tt} · opening float ₱{open.OpeningFloat:N2}";
+            var cashier = App.Db.Users.Find(open.UserId)?.Username ?? "Cashier";
+            StatusDetail.Text = $"{cashier} · opened {open.OpenedAt:ddd, MMM d h:mm tt} · opening float ₱{open.OpeningFloat:N2}";
             CashSalesText.Text = $"₱{totals.CashSales:N2}"; NonCashText.Text = $"₱{totals.NonCashSales:N2}";
             CashInText.Text = $"₱{totals.CashIn:N2}"; CashOutText.Text = $"₱{totals.CashOut:N2}";
             TxnText.Text = totals.TransactionCount.ToString();

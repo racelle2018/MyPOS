@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <!-- Login-specific adjustments on top of the app-wide Material theme. -->
+
+    <!-- SmartHint uses this theme brush behind its floating label, not TextBox.Background. -->
+    <SolidColorBrush x:Key="MaterialDesign.Brush.Background" Color="White"/>
+
+    <Style TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+    </Style>
+
+    <Style x:Key="LoginMaterialTextBox" TargetType="TextBox"
+           BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+        <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+        <Setter Property="Width" Value="280"/>
+        <Setter Property="Height" Value="48"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
+        <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="0"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="materialDesign:HintAssist.Background" Value="White"/>
+    </Style>
+    <Style x:Key="LoginMaterialPasswordBox" TargetType="PasswordBox"
+           BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
+        <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+        <Setter Property="Width" Value="280"/>
+        <Setter Property="Height" Value="48"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
+        <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="0"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="materialDesign:HintAssist.Background" Value="White"/>
+    </Style>
+    <Style x:Key="LoginMaterialButton" TargetType="Button"
+           BasedOn="{StaticResource MaterialDesignFlatMidBgButton}">
+        <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="0"/>
+        <Setter Property="Background" Value="{StaticResource UiAccentBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+</ResourceDictionary>

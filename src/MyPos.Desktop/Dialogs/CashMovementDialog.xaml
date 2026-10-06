@@ -6,18 +6,25 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="24">
             <TextBlock Text="CASH IN / OUT" FontSize="16" FontWeight="Bold"/>
-            <ComboBox x:Name="TypeBox" Margin="0,14,0,8" Height="32">
+            <TextBlock Text="Movement type" FontWeight="SemiBold" Margin="0,14,0,4"/>
+            <ComboBox x:Name="TypeBox" Margin="0,0,0,10" Height="38"
+                      AutomationProperties.Name="Cash movement type">
                 <ComboBoxItem Content="Cash In"/>
                 <ComboBoxItem Content="Cash Out"/>
             </ComboBox>
-            <TextBox x:Name="AmountBox" Height="34" Tag="Amount"/>
-            <TextBox x:Name="ReasonBox" Height="50" Margin="0,8" TextWrapping="Wrap"
+            <TextBlock Text="Amount (₱)" FontWeight="SemiBold" Margin="0,0,0,4"/>
+            <TextBox x:Name="AmountBox" Height="40" Tag="Amount"
+                     AutomationProperties.Name="Cash movement amount"/>
+            <TextBlock Text="Reason" FontWeight="SemiBold" Margin="0,10,0,4"/>
+            <TextBox x:Name="ReasonBox" Height="60" Margin="0,0,0,8" TextWrapping="Wrap"
                      VerticalContentAlignment="Top" Padding="10,7"
-                     Tag="Reason for cash movement"/>
+                     Tag="Reason for cash movement"
+                     AutomationProperties.Name="Cash movement reason"/>
             <TextBlock x:Name="ErrorText" Foreground="#DC2626" TextWrapping="Wrap"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Cancel" IsCancel="True" Width="80" Margin="0,0,8,0"/>
-                <Button Content="Save" IsDefault="True" Width="80" Click="SaveButton_Click"/>
+                <Button Content="Save" IsDefault="True" Width="80"
+                        Style="{StaticResource PrimaryButton}" Click="SaveButton_Click"/>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

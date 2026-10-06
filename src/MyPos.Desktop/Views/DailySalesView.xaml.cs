@@ -20,6 +20,7 @@ public partial class DailySalesView : UserControl
     {
         InitializeComponent();
         _branchId = App.Db.Branches.OrderBy(b => b.CreatedAt).First().Id;
+        VoidButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         DatePick.SelectedDate = DateTime.Today;
     }
 
@@ -29,18 +30,8 @@ public partial class DailySalesView : UserControl
         SalesGrid.ItemsSource = _report.Sales.Select(s => new SaleRowVM(s)).ToList();
         ReportEmptyHint.Visibility = _report.Sales.Count == 0
             ? Visibility.Visible : Visibility.Collapsed;
-        TotalSalesText.Text = $"₱{_report.TotalSales:N2}";
-        NetSalesText.Text = $"₱{_report.NetSales:N2}";
-        VatText.Text = $"₱{_report.Vat:N2}";
-        CountText.Text = _report.TransactionCount.ToString();
-        AvgText.Text = $"₱{_report.AverageSale:N2}";
-        SystemReceiptsText.Text = $"SYSTEM: {_report.SystemReceipts}";
-        ManualReceiptsText.Text = $"MANUAL OR: {_report.ManualReceipts}";
-        MissingReceiptsText.Text = $"MISSING: {_report.MissingReceipts}";
-        MissingReceiptsText.Foreground = _report.MissingReceipts > 0
-            ? new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26))
-            : new SolidColorBrush(Color.FromRgb(0x92, 0x40, 0x0E));
-        VoidsText.Text = $"VOIDS: {_report.VoidCount} (₱{_report.VoidTotal:N2})";
+        UpdateSummary();
+        UpdateActions();
     }
 
     private void UpdateSummary()
@@ -63,6 +54,18 @@ public partial class DailySalesView : UserControl
             ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    private void SalesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => UpdateActions();
+
+    private void UpdateActions()
+    {
+        var hasSales = _report?.Sales.Count > 0;
+        ExportButton.IsEnabled = hasSales;
+        PrintButton.IsEnabled = hasSales;
+        VoidButton.IsEnabled = Permissions.IsAdmin &&
+            SalesGrid.SelectedItem is SaleRowVM { Sale.IsVoided: false };
+    }
+
     private void TodayButton_Click(object sender, RoutedEventArgs e)
         => DatePick.SelectedDate = DateTime.Today;
 
@@ -77,7 +80,6 @@ public partial class DailySalesView : UserControl
         if (DatePick.SelectedDate is DateTime date)
         {
             LoadDate(date);
-            UpdateSummary();
         }
     }
 
@@ -163,7 +165,7 @@ public partial class DailySalesView : UserControl
             PageWidth = 1123,
             PageHeight = 794,
             PagePadding = new Thickness(40, 30, 40, 30),
-            FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+            FontFamily = (System.Windows.Media.FontFamily)FindResource("UiFontFamily"),
             FontSize = 9,
             ColumnWidth = double.PositiveInfinity
         };

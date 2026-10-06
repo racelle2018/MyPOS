@@ -18,8 +18,8 @@ public partial class ReportsView : UserControl
     private void SetActive(Button active)
     {
         foreach (var button in new[] { DailyToggleButton, AuditToggleButton })
-        { button.Background = Brushes.White; button.Foreground = new SolidColorBrush(Color.FromRgb(0x0F, 0x17, 0x2A)); }
-        active.Background = new SolidColorBrush(Color.FromRgb(0x0F, 0x17, 0x2A)); active.Foreground = Brushes.White;
+        { button.Background = Brushes.White; button.Foreground = (Brush)FindResource("UiTextBrush"); }
+        active.Background = (Brush)FindResource("UiAccentBrush"); active.Foreground = Brushes.White;
     }
     private void DailyToggle_Click(object sender, RoutedEventArgs e) => ShowDaily();
     private void AuditToggle_Click(object sender, RoutedEventArgs e) => ShowAudit();

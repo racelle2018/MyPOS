@@ -23,9 +23,19 @@ public partial class HeldSalesDialog : Window
     {
         _held = new HeldSaleService(App.Db).ListActive(_branchId);
         HeldGrid.ItemsSource = _held.Select(held => new HeldRowVM(held)).ToList();
+        EmptyHint.Visibility = _held.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        UpdateActions();
     }
 
     private HeldSale? Selected => (HeldGrid.SelectedItem as HeldRowVM)?.Held;
+    private void HeldGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        => UpdateActions();
+
+    private void UpdateActions()
+    {
+        RecallButton.IsEnabled = Selected != null;
+        DiscardButton.IsEnabled = Selected != null;
+    }
     private void RecallButton_Click(object sender, RoutedEventArgs e) => RecallSelected();
     private void HeldGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e) => RecallSelected();
     private void RecallSelected()

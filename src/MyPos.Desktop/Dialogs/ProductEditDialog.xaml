@@ -53,8 +53,8 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Cancel" Width="90" Height="34" Margin="0,0,8,0" IsCancel="True"/>
-            <Button Content="Save" Width="90" Height="34" Background="#2878BD"
-                    Foreground="White" IsDefault="True" Click="SaveButton_Click"/>
+            <Button Content="Save" Width="90" Height="34" Style="{StaticResource PrimaryButton}"
+                    IsDefault="True" Click="SaveButton_Click"/>
         </StackPanel>
       </StackPanel>
     </ScrollViewer>

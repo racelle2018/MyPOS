@@ -8,12 +8,18 @@ public partial class ReceiptPreviewDialog : Window
 {
     private readonly Sale _sale;
     private readonly bool _reprint;
+    public bool PrintedSuccessfully { get; private set; }
 
     public ReceiptPreviewDialog(Sale sale, bool reprint = false, string? warning = null)
     {
         InitializeComponent();
         _sale = sale;
         _reprint = reprint;
+        if (reprint)
+        {
+            Title = "Receipt Reprint";
+            PrintButton.Content = "Reprint";
+        }
         ReceiptText.Text = ReceiptPrinting.BuildPreviewText(sale, reprint);
         if (ReceiptPrinting.LoadOptions(sale).ShowQr && sale.SaleNumber != 0)
         {
@@ -31,6 +37,7 @@ public partial class ReceiptPreviewDialog : Window
     {
         if (ReceiptPrinting.TryPrint(_sale, _reprint))
         {
+            PrintedSuccessfully = true;
             PrintButton.IsEnabled = false;
             PrintButton.Content = "PRINTED";
         }

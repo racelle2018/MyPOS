@@ -32,7 +32,7 @@ This is a code-and-test inventory, not a claim that every screen, printer, or co
 - Senior/PWD discount: statutory computation (VAT-exempt AND 20% off the net), SC/PWD ID capture, no stacking with regular discounts
 - Held sales: park (F3) / recall (F6) with SQLite persistence, stock clamping on recall, explicit discard, and audit events. Automatic expiry is not implemented.
 - User management: create/edit, roles (Admin/Cashier), password reset, activate/deactivate (never delete — identities own history), username rename with audit trail, self-lockout protection (can't demote/deactivate yourself), last-login tracking, inactive-user filter
-- Session safety: logout cart-discard warning, 5-minute idle lock (password resume, switch-user flow, no Alt+F4), F12 manual lock, unlock-failure auditing
+- Session safety: logout cart-discard warning, 30-minute idle lock (password resume, switch-user flow, no Alt+F4), F12 manual lock, unlock-failure auditing
 - Settings: store details, BIR accreditation fields, receipt mode + printer type + printer dropdown + paper width, low-stock threshold, backup-now button, test print
 - Hardening: EF migrations (schema self-upgrades), SQLite WAL + lock timeout, rotating Serilog logs, automatic SQLite backups (`VACUUM INTO`, checked on a 12h schedule), optional second backup copy, staged restore, and global crash handling. Automatic backup retention is not implemented.
 
@@ -78,9 +78,9 @@ MyPos.slnx
 
 ## 5. UI/UX Design System
 
-- **Direction:** keep MyPos light and task-focused. The VS Code reference informs navigation density and hierarchy, not a dark-theme requirement. The current WPF app uses MahApps.Metro's Light.Blue resources with local, readable styling.
+- **Direction:** keep MyPos light and task-focused. The VS Code reference informs navigation density and hierarchy, not a dark-theme requirement. The current WPF app uses Material Design in XAML's light theme with local, readable styling.
 - **Palette:** window background `#F4F7FB`, light surfaces, blue accent `#2878BD`, muted blue-gray borders, and restrained status colors. Receipt-mode yellow remains a distinct signal.
-- **Global styles in `App.xaml`:** `MyPosButton`/`PrimaryButton`/`HeaderButton`, TextBox and PasswordBox, ComboBox, DatePicker/Calendar, and DataGrid. Controls use compact sizing and 6px corners; TextBox watermarks come from `Tag` through MahApps' watermark property. DataGrid selection is pale blue, with a subtler unfocused state and no black focus box.
+- **Global styles in `App.xaml`:** `MyPosButton`/`PrimaryButton`/`HeaderButton`, TextBox and PasswordBox, ComboBox, DatePicker/Calendar, and DataGrid. Controls use compact sizing and 6px corners; TextBox hints come from `Tag` through Material Design's `HintAssist.Hint`. DataGrid selection is pale blue, with a subtler unfocused state and no black focus box.
 - **Style/converter keys:** `RightCell` (right-align money columns), `UpperBox` (uppercase entry where required), `StockBrushConverter` (threshold-aware), `UpperTextConverter`. There is no `UpperCell` style in the current resources.
 - **Icons:** Segoe Fluent Icons / Segoe MDL2 Assets (built into Win10/11, zero packages)
 - **Attached behaviors:** `DataGridBehaviors.DeselectOnOutsideClick` handles click-away selection clearing where enabled.
@@ -145,7 +145,7 @@ MyPos.slnx
 1. **Keep the test suite green.** As checked on 2026-10-04, 20 tests pass (17 Core, 3 Desktop); the count should grow as behavior is added.
 2. **Never use float for money.** Never edit/delete sales or journal entries. Always audit security-relevant actions.
 3. **Always `ToList()` before in-memory filtering** of EF queries with decimals (SQLite TEXT storage).
-4. **New UI screens:** follow the light MahApps-based `App.xaml` styles, use `RightCell` on money columns, provide empty states and clear focus behavior, and check layouts at different window sizes and display scaling. Keep XAML and C# readable; do not minify.
+4. **New UI screens:** follow the light Material Design-based `App.xaml` styles, use `RightCell` on money columns, provide empty states and clear focus behavior, and check layouts at different window sizes and display scaling. Keep XAML and C# readable; do not minify.
 5. **Permission checks at the action, not just hidden buttons.** Cashier-visible features: selling, receive stock, held sales, shift. Admin-only: products CRUD, voids, users, settings, audit log, reports.
 6. **New schema changes = EF migrations** (`dotnet ef migrations add X --project src/MyPos.Core --startup-project src/MyPos.Desktop`), commit the Migrations folder, and let the app apply them. Preserve the existing one-time legacy-database baseline path; do not add ad hoc ALTER statements for new changes.
 7. **Money display:** `₱{0:N2}`, right-aligned. Uppercase for product/sale data.

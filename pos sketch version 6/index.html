@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyPos POS — sketch version 6</title>
+  <style>
+    :root { --blue:#2878bd; --canvas:#f4f7fb; --ink:#243247; --muted:#64748b; --line:#d7e1ea; --pale:#eaf1f7; }
+    * { box-sizing:border-box; }
+    html,body { height:100%; margin:0; }
+    body { background:var(--canvas); color:var(--ink); font:13px "Wix Madefor Text","Segoe UI",sans-serif; }
+    .window { height:100vh; display:flex; flex-direction:column; }
+    .titlebar { height:29px; flex:none; display:flex; justify-content:space-between; align-items:center; padding:0 14px; background:#fff; }
+    .window-buttons { display:flex; gap:36px; color:#526071; font-size:16px; }
+    .shell { flex:1; min-height:0; display:grid; grid-template-columns:58px minmax(0,1fr); }
+    .rail { display:flex; flex-direction:column; align-items:center; gap:8px; padding:9px 5px 25px; background:#fff; border-right:1px solid var(--line); }
+    .badge { display:grid; place-items:center; width:40px; height:40px; margin-bottom:2px; border-radius:50%; background:var(--blue); color:#fff; font-size:19px; font-weight:700; }
+    .rail-item { display:grid; place-items:center; width:47px; height:45px; border:1px solid var(--line); border-radius:6px; color:#334155; font:19px "Segoe UI Symbol",sans-serif; }
+    .rail-item.active { color:var(--blue); background:#eaf3fb; border-color:#b6d5eb; }
+    .rail-spacer { flex:1; }
+    .app { display:flex; flex-direction:column; min-height:0; min-width:0; }
+    .app-header { height:40px; flex:none; display:flex; justify-content:space-between; align-items:center; padding:0 18px; background:var(--blue); color:#fff; font-size:15px; font-weight:700; }
+    .app-header .user { font-size:12px; font-weight:400; }
+    .content-scroll { flex:1; min-height:0; display:flex; padding:10px 14px 8px; overflow:auto; }
+    .workspace { flex:1; min-width:0; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.04fr); gap:12px; }
+    .left { min-height:0; display:flex; flex-direction:column; gap:11px; }
+    .panel { background:#fff; border:1px solid var(--line); border-radius:8px; }
+    h2 { margin:0; font-size:14px; line-height:18px; }
+
+    .details { flex:none; min-height:246px; padding:12px 17px; }
+    .details h2 { margin-bottom:9px; }
+    .header-fields { display:grid; grid-template-columns:213px 145px minmax(0,1fr); gap:9px 12px; }
+    .field { min-width:0; }
+    .field label { display:block; margin-bottom:4px; color:#526071; font-size:11px; line-height:13px; }
+    .field label.caps { font-weight:700; letter-spacing:.02em; }
+    .input { display:flex; align-items:center; justify-content:space-between; gap:8px; height:33px; min-width:0; padding:0 12px; overflow:hidden; white-space:nowrap; border:1px solid #c8d8e8; border-radius:5px; background:#fff; color:#263850; }
+    .input.hint { color:#8794a3; }
+    .input.invoice { background:#eaf3fb; color:#8291a1; }
+    .input.disabled { background:#eef2f6; border-color:#d5dee7; color:#9aa7b3; }
+    .arrow { color:var(--muted); }
+    .name,.address { grid-column:1 / -1; }
+    .name .input,.address .input { height:36px; }
+    .discount-row { grid-column:1 / -1; display:grid; grid-template-columns:203px minmax(0,1fr); gap:12px; }
+    .discount-state,.field label.discount-state { display:none; }
+    body.discount .no-discount { display:none; }
+    body.discount .discount-state { display:initial; }
+    body.discount .input.discount-state { display:flex; }
+    body.discount .field label.discount-state { display:block; }
+
+    .products { flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 16px 13px; overflow:hidden; }
+    .panel-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    .panel-heading span { color:var(--muted); font-size:11px; white-space:nowrap; }
+    .product-search { height:38px; flex:none; display:flex; align-items:center; gap:11px; padding:0 13px; margin-bottom:10px; border:1px solid #c9d7e3; border-radius:5px; background:#fff; color:#8794a3; }
+    .product-search .magnify { color:var(--muted); font:19px "Segoe UI Symbol",sans-serif; }
+    .table { width:100%; min-width:0; border-collapse:collapse; table-layout:fixed; }
+    .table th { height:34px; padding:0 11px; background:var(--pale); color:#334155; font-size:11px; text-align:left; }
+    .table td { height:32px; padding:0 11px; border-bottom:1px solid #e3eaf1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:12px; }
+    .number { text-align:right!important; }
+    .zero { color:#c93d3d; font-weight:700; }
+    .strong { font-weight:700; }
+
+    .current { min-height:0; display:flex; flex-direction:column; padding:14px 16px 11px; }
+    .cart-rows { flex:1; min-height:0; overflow-y:auto; }
+    .cart-rows .table td { height:37px; }
+    .qty { display:inline-flex; align-items:center; justify-content:space-around; width:60px; height:29px; border:1px solid #cbd8e4; border-radius:5px; }
+    .qty b { color:var(--blue); font-size:15px; font-weight:400; }
+    .remove { color:#d34a4a; font-size:16px; }
+    .current-footer { flex:none; display:flex; flex-direction:column; gap:9px; padding-top:10px; }
+
+    /* Full-width, compact summary uses the space formerly empty beside the card. */
+    .summary { flex:none; padding:10px 15px; border-radius:7px; background:var(--blue); color:#fff; }
+    .summary-main { min-height:64px; display:grid; grid-template-columns:minmax(150px,1.5fr) minmax(95px,1fr) minmax(85px,.9fr) minmax(68px,.7fr); align-items:center; gap:10px; }
+    .summary-main .total-block { min-width:0; }
+    .summary-main .kicker { font-size:11px; font-weight:700; }
+    .summary-main .amount { margin-top:1px; font-size:30px; line-height:35px; font-weight:700; white-space:nowrap; }
+    .summary-main .metric { display:flex; flex-direction:column; align-items:flex-end; min-width:0; white-space:nowrap; }
+    .summary-main .metric span { color:#d9eefc; font-size:10px; }
+    .summary-main .metric strong { margin-top:6px; font-size:14px; }
+    .summary-extra { display:none; justify-content:flex-end; gap:25px; padding-top:8px; margin-top:8px; border-top:1px solid #8fc6ec; font-size:11px; }
+    .summary-extra span { color:#d9eefc; }
+    .summary-extra strong { margin-left:6px; color:#fff; }
+    body.discount .summary-extra { display:flex; }
+
+    .sale-actions { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.45fr); gap:8px; padding:8px; border:1px solid #c5d5e4; border-radius:7px; background:var(--pale); }
+    .action { display:flex; align-items:center; justify-content:center; min-width:0; height:39px; border:1px solid #c9d7e3; border-radius:5px; background:#fff; white-space:nowrap; }
+    .action.pay { border-color:var(--blue); background:var(--blue); color:#fff; font-size:14px; font-weight:700; }
+    .status { height:22px; flex:none; display:flex; justify-content:space-between; align-items:center; gap:10px; padding:0 15px; background:var(--pale); color:#526071; font-size:11px; }
+    .app-footer { height:24px; flex:none; display:flex; justify-content:space-between; align-items:center; padding:0 14px; background:var(--blue); color:#fff; font-size:11px; }
+
+    @media (max-width:900px) {
+      .content-scroll { display:block; padding:8px 9px; }
+      .workspace { display:flex; flex-direction:column; gap:9px; }
+      .left { display:contents; }
+      .details { min-height:0; padding:10px 12px 12px; }
+      .details h2 { margin-bottom:8px; font-size:12px; }
+      .header-fields { grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px 10px; }
+      .invoice-field,.paymode,.delivery { grid-column:span 2; }
+      .name,.address { grid-column:span 3; }
+      .discount-row { grid-column:1 / -1; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; }
+      .discount-row .discount-type { grid-column:span 2; }
+      .discount-row .discount-detail { grid-column:span 4; }
+      .field label { margin-bottom:4px; font-size:10px; }
+      .input { height:29px; padding:0 10px; font-size:11px; }
+      .name .input,.address .input { height:32px; }
+      .products { height:272px; flex:none; padding:10px 12px; }
+      .current { height:345px; flex:none; padding:10px 12px; }
+      body.discount .current { height:375px; }
+      .panel-heading { margin-bottom:7px; }
+      .panel-heading h2 { font-size:12px; }
+      .panel-heading span { font-size:10px; }
+      .product-search { height:33px; margin-bottom:8px; font-size:11px; }
+      .table th { height:27px; font-size:10px; }
+      .table td,.cart-rows .table td { height:34px; font-size:11px; }
+      .summary-main { min-height:94px; grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:auto auto; gap:5px 12px; }
+      .summary-main .total-block { grid-column:1 / -1; }
+      .summary-main .amount { font-size:27px; line-height:29px; }
+      .summary-main .metric { align-items:flex-start; }
+      .summary-main .metric strong { margin-top:2px; font-size:12px; }
+      .summary-extra { justify-content:flex-start; }
+      .sale-actions { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:34px 34px; }
+      .action { height:34px; font-size:11px; }
+      .action.pay { font-size:12px; }
+      .status { font-size:10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar"><strong>▣ MyPos</strong><div class="window-buttons"><span>−</span><span>□</span><span>×</span></div></div>
+    <div class="shell">
+      <aside class="rail" aria-label="Sketch of navigation rail"><div class="badge">M</div><div class="rail-item active">▣</div><div class="rail-item">◇</div><div class="rail-item">▥</div><div class="rail-item">◷</div><div class="rail-item">♙</div><div class="rail-item">⚙</div><div class="rail-spacer"></div><div class="rail-item">♙</div><div class="rail-item">⇥</div></aside>
+      <main class="app">
+        <header class="app-header"><span>New Sale</span><span class="user">Racelle Horca (Admin)</span></header>
+        <div class="content-scroll" id="contentScroll">
+          <div class="workspace">
+            <div class="left">
+              <section class="details panel">
+                <h2>Sale details</h2>
+                <div class="header-fields">
+                  <div class="field invoice-field"><label>Invoice #*</label><div class="input invoice">Required receipt number</div></div>
+                  <div class="field paymode"><label>Pay Mode</label><div class="input">Cash <span class="arrow">⌄</span></div></div>
+                  <div class="field delivery"><label>Delivery / Type</label><div class="input">Walk-in <span class="arrow">⌄</span></div></div>
+                  <div class="field name"><div class="input hint">Name</div></div>
+                  <div class="field address"><div class="input hint">Address</div></div>
+                  <div class="discount-row">
+                    <div class="field discount-type"><label class="caps">DISCOUNT TYPE</label><div class="input no-discount">None <span class="arrow">⌄</span></div><div class="input discount-state">Amount <span class="arrow">⌄</span></div></div>
+                    <div class="field discount-detail"><label class="caps no-discount">DISCOUNT DETAIL</label><label class="caps discount-state">DISCOUNT AMOUNT</label><div class="input disabled no-discount">Disabled until discount type is chosen</div><div class="input discount-state">₱10.00</div></div>
+                  </div>
+                </div>
+              </section>
+              <section class="products panel">
+                <div class="panel-heading"><h2>Products</h2><span>Double-click / Enter to add</span></div>
+                <div class="product-search"><span class="magnify">⌕</span>Scan barcode or search product</div>
+                <table class="table" aria-label="Illustrative products"><colgroup><col style="width:18%"><col style="width:47%"><col style="width:23%"><col style="width:12%"></colgroup>
+                  <thead><tr><th>Product Code</th><th>Description</th><th class="number">Price</th><th class="number">Stock</th></tr></thead>
+                  <tbody><tr><td>A100</td><td>ABSOLUTE 100ML</td><td class="number">₱35.00</td><td class="number">42</td></tr><tr><td>C3010</td><td>CANON PIXMA G3010</td><td class="number">₱7,895.00</td><td class="number">3</td></tr><tr><td>C4770</td><td>CANON PIXMA G4770</td><td class="number">₱13,080.00</td><td class="number">8</td></tr><tr><td>G-RTX5</td><td>GIGABYTE GEFORCE 8GB</td><td class="number">₱19,980.00</td><td class="number zero">0</td></tr><tr><td>N-V15</td><td>NITRO V15 NOTEBOOK</td><td class="number">₱45,980.00</td><td class="number zero">0</td></tr></tbody>
+                </table>
+              </section>
+            </div>
+            <section class="current panel">
+              <div class="panel-heading"><h2>Current sale</h2><span>1 line · 2 items</span></div>
+              <div class="cart-rows">
+                <table class="table" aria-label="Illustrative current sale"><colgroup><col style="width:13%"><col style="width:33%"><col style="width:14%"><col style="width:17%"><col style="width:18%"><col style="width:5%"></colgroup>
+                  <thead><tr><th>Code</th><th>Description</th><th>QTY</th><th class="number">Price</th><th class="number">Line Amount</th><th></th></tr></thead>
+                  <tbody><tr><td>A100</td><td>ABSOLUTE 100ML</td><td><span class="qty"><b>−</b>2<b>+</b></span></td><td class="number">₱35.00</td><td class="number strong">₱70.00</td><td class="remove">×</td></tr></tbody>
+                </table>
+              </div>
+              <div class="current-footer">
+                <div class="summary" aria-label="Illustrative total amount">
+                  <div class="summary-main">
+                    <div class="total-block"><div class="kicker">TOTAL AMOUNT</div><div class="amount"><span class="no-discount">₱70.00</span><span class="discount-state">₱60.00</span></div></div>
+                    <div class="metric"><span>Net before VAT</span><strong class="no-discount">₱62.50</strong><strong class="discount-state">₱53.57</strong></div>
+                    <div class="metric"><span>VAT (12%)</span><strong class="no-discount">₱7.50</strong><strong class="discount-state">₱6.43</strong></div>
+                    <div class="metric"><span>No. of items</span><strong>2</strong></div>
+                  </div>
+                  <div class="summary-extra"><div><span>Subtotal</span><strong>₱70.00</strong></div><div><span>Discount</span><strong>−₱10.00</strong></div></div>
+                </div>
+                <div class="sale-actions"><div class="action">Hold (F3)</div><div class="action">Recall (F6)</div><div class="action">Clear (F4)</div><div class="action pay">✓&nbsp; Pay (F2)</div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+        <div class="status"><span>Ready for the next scan</span><span>Monday, October 5, 2026 · 3:17:33 PM</span></div>
+        <div class="app-footer"><span>New Sale</span><span>MyPos 1.0.0</span></div>
+      </main>
+    </div>
+  </div>
+  <script>
+    if (location.hash.includes('discount')) document.body.classList.add('discount');
+    if (location.hash.includes('sale')) requestAnimationFrame(() => { document.getElementById('contentScroll').scrollTop = 10000; });
+  </script>
+</body>
+</html>

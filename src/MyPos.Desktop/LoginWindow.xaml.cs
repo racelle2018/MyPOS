@@ -32,14 +32,14 @@ public partial class LoginWindow : Window
 
     private void LoginButton_Click(object sender, RoutedEventArgs e)
     {
-        ErrorText.Text = "";
-
         var username = UsernameBox.Text.Trim();
         var password = PasswordBox.Password;
 
         if (username.Length == 0 || password.Length == 0)
         {
-            ErrorText.Text = "Enter your username and password.";
+            ShowLoginWarning("Enter your username and password.");
+            if (username.Length == 0) UsernameBox.Focus();
+            else PasswordBox.Focus();
             return;
         }
 
@@ -58,15 +58,17 @@ public partial class LoginWindow : Window
             });
             App.Db.SaveChanges();
 
-            ErrorText.Text = "Invalid username or password.";
             PasswordBox.Clear();
+            ShowLoginWarning("Invalid username or password.");
             PasswordBox.Focus();
             return;
         }
 
         if (!user.IsActive)
         {
-            ErrorText.Text = "This account has been disabled.";
+            PasswordBox.Clear();
+            ShowLoginWarning("This account has been disabled.");
+            PasswordBox.Focus();
             return;
         }
 
@@ -89,5 +91,20 @@ public partial class LoginWindow : Window
         App.CurrentUser = user;
         new MainWindow().Show();
         Close();
+    }
+
+    private void ShowLoginWarning(string message)
+    {
+        MessageBox.Show(this, message, "Sign-in warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    private void UsernameBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+
+    }
+
+    private void UsernameBox_TextChanged_1(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+
     }
 }

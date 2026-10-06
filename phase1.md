@@ -10,7 +10,7 @@ Still requiring acceptance before a live rollout: exercise the actual barcode sc
 
 ## What is already in place
 
-The app has a POS cart, product catalog, daily sales and audit views, users and roles, shift cash control, held sales, senior/PWD discounts, receipt preview, thermal and regular printing, and SQLite migrations. A five-minute idle lock and an automatic backup check also exist. The current automated tests focus on the core sale service and database seed; they do not exercise the WPF checkout, shift reconciliation, receipt rendering, or restore workflows.
+The app has a POS cart, product catalog, daily sales and audit views, users and roles, shift cash control, held sales, senior/PWD discounts, receipt preview, thermal and regular printing, and SQLite migrations. A 30-minute idle lock and an automatic backup check also exist. The current automated tests focus on the core sale service and database seed; they do not exercise the WPF checkout, shift reconciliation, receipt rendering, or restore workflows.
 
 ## P0 — correct transaction and recovery risks first
 

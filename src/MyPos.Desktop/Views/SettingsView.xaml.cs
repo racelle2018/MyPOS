@@ -63,6 +63,17 @@ public partial class SettingsView : UserControl
         PrinterBox.SelectedItem = current;
     }
 
+    private void SettingsSections_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var stacked = e.NewSize.Width < 900;
+        SettingsSections.ColumnDefinitions[1].Width = stacked
+            ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+        Grid.SetRow(RightSettings, stacked ? 1 : 0);
+        Grid.SetColumn(RightSettings, stacked ? 0 : 1);
+        LeftSettings.Margin = stacked ? new Thickness(0) : new Thickness(0, 0, 6, 0);
+        RightSettings.Margin = stacked ? new Thickness(0) : new Thickness(6, 0, 0, 0);
+    }
+
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         if (!int.TryParse(LowStockBox.Text.Trim(), out var threshold) || threshold < 0)

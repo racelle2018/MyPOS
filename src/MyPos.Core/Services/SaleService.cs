@@ -35,6 +35,7 @@ public class SaleService
         using var tx = _db.Database.BeginTransaction();
 
         var product = _db.Products.First(p => p.Id == productId);
+        _db.Entry(product).Reload();
 
         // Weighted average cost — recalculated on every receipt
         var newQty = product.StockQty + qty;
@@ -69,7 +70,8 @@ public class SaleService
         decimal tendered = 0, PaymentMethod method = PaymentMethod.Cash, string? reference = null,
         ReceiptType receiptType = ReceiptType.None, string? manualReceiptNumber = null,
         string? customerName = null, string? customerAddress = null,
-        OrderType orderType = OrderType.WalkIn, DiscountKind discountKind = DiscountKind.None, string? seniorIdNumber = null)
+        OrderType orderType = OrderType.WalkIn, DiscountKind discountKind = DiscountKind.None,
+        string? seniorIdNumber = null, decimal? expectedTotal = null)
     {
         if (lines is not { Count: > 0 }) throw new InvalidOperationException("Cart is empty.");
         customerName = string.IsNullOrWhiteSpace(customerName) ? null : customerName.Trim().ToUpperInvariant();
@@ -85,10 +87,12 @@ public class SaleService
         using var tx = _db.Database.BeginTransaction();
 
         var branch = _db.Branches.First(b => b.Id == branchId);
+        _db.Entry(branch).Reload();
 
         // 1) Load products fresh, validate stock
         var ids = lines.Select(l => l.ProductId).ToList();
         var products = _db.Products.Where(p => ids.Contains(p.Id)).ToDictionary(p => p.Id);
+        foreach (var product in products.Values) _db.Entry(product).Reload();
 
         var prepared = new List<PreparedLine>();
         foreach (var line in lines)
@@ -129,6 +133,8 @@ public class SaleService
         var calc = SaleCalculator.Compute(
             prepared.Select(x => new SaleCalculator.Line(x.Product.Price, x.Qty, x.Product.CostPrice, x.Product.IsVatExempt)).ToList(),
             discount, vatRate, discountKind);
+        if (expectedTotal.HasValue && calc.Total != expectedTotal.Value)
+            throw new InvalidOperationException("The sale total changed while payment was open. Review the cart and try Pay again.");
         if (discount > calc.Gross) throw new InvalidOperationException("Discount exceeds sale amount.");
         if (tendered < calc.Total) throw new InvalidOperationException("Tendered amount is less than the total.");
         var total = calc.Total;

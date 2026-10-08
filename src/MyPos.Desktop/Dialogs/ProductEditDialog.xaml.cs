@@ -1,4 +1,5 @@
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
 using MyPos.Desktop.Controls;
 using MyPos.Core.Entities;
 
@@ -15,22 +16,25 @@ public partial class ProductEditDialog : Window
         if (!Permissions.IsAdmin)
             throw new UnauthorizedAccessException("Only administrators may add or edit products.");
 
-        _editing = editing;
+        // Catalog rows are read without tracking so edits from other instances
+        // are visible. Resolve the tracked entity only when the edit starts.
+        _editing = editing == null ? null : App.Db.Products.First(p => p.Id == editing.Id);
+        if (_editing != null) App.Db.Entry(_editing).Reload();
 
         LoadCategoryChoices();
         LoadUnitChoices();
 
-        if (editing != null)
+        if (_editing != null)
         {
             Title = "Edit product";
             TitleText.Text = "Edit product";
-            NameBox.Text = editing.Name;
-            BarcodeBox.Text = editing.Barcode ?? "";
-            CategoryBox.Text = editing.Category;
-            UnitBox.Text = editing.Unit;
-            CostBox.Text = editing.CostPrice.ToString("0.####");
-            PriceBox.Text = editing.Price.ToString("0.####");
-            VatExemptBox.IsChecked = editing.IsVatExempt;
+            NameBox.Text = _editing.Name;
+            BarcodeBox.Text = _editing.Barcode ?? "";
+            CategoryBox.Text = _editing.Category;
+            UnitBox.Text = _editing.Unit;
+            CostBox.Text = _editing.CostPrice.ToString("0.####");
+            PriceBox.Text = _editing.Price.ToString("0.####");
+            VatExemptBox.IsChecked = _editing.IsVatExempt;
         }
         else
         {
@@ -39,7 +43,7 @@ public partial class ProductEditDialog : Window
             UnitBox.Text = "PC";   // most common default
         }
 
-        NameBox.Focus();
+        BarcodeBox.Focus();
     }
 
     private void LoadCategoryChoices()
@@ -95,7 +99,7 @@ public partial class ProductEditDialog : Window
 
         if (barcode.Length > 0)
         {
-            var taken = App.Db.Products.ToList()
+            var taken = App.Db.Products.AsNoTracking().ToList()
                 .Any(p => p.Barcode == barcode && p.Id != _editing?.Id);
             if (taken) { Fail($"Barcode '{barcode}' is already used by another product."); return; }
         }

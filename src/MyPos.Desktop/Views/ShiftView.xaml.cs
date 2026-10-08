@@ -10,6 +10,16 @@ public partial class ShiftView : UserControl
 {
     public ShiftView() { InitializeComponent(); Load(); }
 
+    private void ShiftLayout_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var compact = e.NewSize.Width < 950;
+        ShiftTotals.Columns = compact ? 3 : 6;
+        Grid.SetRow(ShiftActions, compact ? 1 : 0);
+        Grid.SetColumn(ShiftActions, compact ? 0 : 1);
+        Grid.SetColumnSpan(ShiftActions, compact ? 2 : 1);
+        ShiftActions.HorizontalAlignment = compact ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+    }
+
     private void Load()
     {
         var service = new ShiftService(App.Db);
@@ -37,6 +47,9 @@ public partial class ShiftView : UserControl
         }
         var users = App.Db.Users.ToDictionary(u => u.Id, u => u.Username);
         ShiftsGrid.ItemsSource = App.Db.CashShifts.OrderByDescending(s => s.OpenedAt).Take(15).ToList().Select(s => new ShiftRowVM(s, users.GetValueOrDefault(s.UserId) ?? "—")).ToList();
+        var count = ShiftsGrid.Items.Count;
+        CountText.Text = $"{count} recent shift{(count == 1 ? "" : "s")}";
+        EmptyHint.Visibility = count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OpenShiftButton_Click(object sender, RoutedEventArgs e) { var d = new ShiftOpenDialog(); if (d.ShowDialog() == true) { new ShiftService(App.Db).OpenShift(App.Db.Branches.OrderBy(b => b.CreatedAt).First().Id, App.CurrentUser!.Id, d.OpeningFloat); Load(); } }

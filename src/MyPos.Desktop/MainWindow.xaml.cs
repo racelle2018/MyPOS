@@ -1,8 +1,8 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Input;
-using System.Windows.Interop;
 using MyPos.Desktop.Controls;
 using MyPos.Desktop.Views;
 
@@ -12,12 +12,11 @@ public partial class MainWindow : Window
 {
     private readonly PosView _posView = new();
     private readonly IdleSessionGuard _idleGuard;
+    private bool _loggingOut;
 
     public MainWindow()
     {
         InitializeComponent();
-        SourceInitialized += (_, _) =>
-            ((HwndSource)PresentationSource.FromVisual(this)).AddHook(MaximizeToWorkArea);
         WelcomeText.Text = $"{App.CurrentUser?.FullName} ({App.CurrentUser?.Role})";
         SettingsButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         NavUsersButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
@@ -105,7 +104,7 @@ public partial class MainWindow : Window
 
     private void LogoutButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!ConfirmDiscardCart()) return;
+        if (!ConfirmDiscardCart("Logging out")) return;
         LogoutNow();
     }
 
@@ -114,119 +113,28 @@ public partial class MainWindow : Window
         _idleGuard.LockNow();
     }
 
-    private void MinimizeWindowButton_Click(object sender, RoutedEventArgs e)
-        => WindowState = WindowState.Minimized;
-
-    private void MaximizeWindowButton_Click(object sender, RoutedEventArgs e)
+    protected override void OnClosing(CancelEventArgs e)
     {
-        WindowState = WindowState == WindowState.Maximized
-            ? WindowState.Normal
-            : WindowState.Maximized;
-        UpdateMaximizeButton();
+        if (!_loggingOut && !ConfirmDiscardCart("Closing MyPos"))
+            e.Cancel = true;
+        base.OnClosing(e);
     }
 
-    protected override void OnStateChanged(EventArgs e)
-    {
-        base.OnStateChanged(e);
-        UpdateMaximizeButton();
-    }
-
-    private void UpdateMaximizeButton()
-    {
-        if (MaximizeWindowButton is null) return;
-        var maximized = WindowState == WindowState.Maximized;
-        MaximizeWindowButton.Content = maximized ? "\uE923" : "\uE922";
-        MaximizeWindowButton.ToolTip = maximized ? "Restore" : "Maximize";
-        System.Windows.Automation.AutomationProperties.SetName(
-            MaximizeWindowButton, maximized ? "Restore window" : "Maximize window");
-    }
-
-    private static IntPtr MaximizeToWorkArea(IntPtr hwnd, int message,
-        IntPtr wParam, IntPtr lParam, ref bool handled)
-    {
-        if (message != 0x0024) return IntPtr.Zero; // WM_GETMINMAXINFO
-
-        var monitor = NativeWindowBounds.MonitorFromWindow(hwnd, 2); // nearest monitor
-        var info = new NativeWindowBounds.MonitorInfo
-        {
-            Size = System.Runtime.InteropServices.Marshal.SizeOf<NativeWindowBounds.MonitorInfo>()
-        };
-        if (monitor == IntPtr.Zero || !NativeWindowBounds.GetMonitorInfo(monitor, ref info))
-            return IntPtr.Zero;
-
-        var limits = System.Runtime.InteropServices.Marshal
-            .PtrToStructure<NativeWindowBounds.MinMaxInfo>(lParam);
-        limits.MaxPosition.X = info.WorkArea.Left - info.MonitorArea.Left;
-        limits.MaxPosition.Y = info.WorkArea.Top - info.MonitorArea.Top;
-        limits.MaxSize.X = info.WorkArea.Right - info.WorkArea.Left;
-        limits.MaxSize.Y = info.WorkArea.Bottom - info.WorkArea.Top;
-        System.Runtime.InteropServices.Marshal.StructureToPtr(limits, lParam, false);
-        handled = true;
-        return IntPtr.Zero;
-    }
-
-    private void CloseWindowButton_Click(object sender, RoutedEventArgs e)
-        => Close();
-
-    private bool ConfirmDiscardCart()
+    private bool ConfirmDiscardCart(string action)
     {
         if (!_posView.HasItems) return true;
 
         var result = MessageBox.Show(
-            $"This sale has {_posView.CartCount} item(s). Logging out will discard the current sale. Continue?",
+            $"This sale has {_posView.CartCount} item(s). {action} will discard the current sale. Continue?",
             "Discard current sale?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         return result == MessageBoxResult.Yes;
     }
 
     private void LogoutNow()
     {
+        _loggingOut = true;
         App.CurrentUser = null;
         new LoginWindow().Show();
         Close();
     }
-}
-
-internal static class NativeWindowBounds
-{
-    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-    internal struct Point
-    {
-        public int X;
-        public int Y;
-    }
-
-    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-    internal struct Rect
-    {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
-    }
-
-    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-    internal struct MinMaxInfo
-    {
-        public Point Reserved;
-        public Point MaxSize;
-        public Point MaxPosition;
-        public Point MinTrackSize;
-        public Point MaxTrackSize;
-    }
-
-    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-    internal struct MonitorInfo
-    {
-        public int Size;
-        public Rect MonitorArea;
-        public Rect WorkArea;
-        public int Flags;
-    }
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    internal static extern IntPtr MonitorFromWindow(IntPtr hwnd, int flags);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
-    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
-    internal static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
 }

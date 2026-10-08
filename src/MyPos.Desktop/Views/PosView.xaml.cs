@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Microsoft.EntityFrameworkCore;
 using MyPos.Core.Entities;
 using MyPos.Core.Services;
 using MyPos.Desktop.Controls;
@@ -21,9 +22,11 @@ public partial class PosView : UserControl
     private readonly decimal _vatRate;
     private bool ReceiptsEnabled => AppSettings.Get("ReceiptIssuanceEnabled", "false") == "true";
     private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly DispatcherTimer _productRefreshTimer = new() { Interval = TimeSpan.FromSeconds(3) };
     private bool _sanitizingInvoice;
     private Dictionary<string, string> _customerAddresses = new(StringComparer.OrdinalIgnoreCase);
     private List<Product> _filtered = new();
+    private List<Product> _lastActiveProducts = new();
     private string? _lastAutoAddress;
     private Sale? _saleAwaitingPrint;
     private bool _hasOpenShift;
@@ -44,10 +47,17 @@ public partial class PosView : UserControl
         UpdateInvoiceBoxState();
         Loaded += (_, _) =>
         {
+            RefreshProducts();
             UpdateInvoiceBoxState();
             UpdateShiftStatus();
             UpdateHeldCount();
             _clock.Start();
+            _productRefreshTimer.Start();
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+            {
+                if (IsLoaded && IsVisible)
+                    Keyboard.Focus(InvoiceBox.IsEnabled ? InvoiceBox : CustomerNameBox);
+            });
         };
 
         PayModeBox.ItemsSource = new[] { "Cash", "Card", "GCash", "Maya", "Bank" };
@@ -57,16 +67,20 @@ public partial class PosView : UserControl
         DiscountKindBox.SelectedIndex = 0;
 
         _clock.Tick += (_, _) => UpdateClock();
+        _productRefreshTimer.Tick += (_, _) => RefreshProducts(onlyIfChanged: true);
         UpdateClock();
         _clock.Start();
-        Unloaded += (_, _) => _clock.Stop();
+        Unloaded += (_, _) =>
+        {
+            _clock.Stop();
+            _productRefreshTimer.Stop();
+        };
 
         CartGrid.ItemsSource = _cart;
         LoadCustomers();
         RefreshProducts();
         RefreshTotals();
         UpdateShiftStatus();
-        SearchBox.Focus();
     }
 
     private void PosView_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -190,6 +204,14 @@ public partial class PosView : UserControl
 
     private void AddToCart(Product p)
     {
+        var latest = App.Db.Products.AsNoTracking().FirstOrDefault(product => product.Id == p.Id);
+        if (latest is not { IsActive: true })
+        {
+            RefreshProducts();
+            Status("This product is no longer available.");
+            return;
+        }
+        p = latest;
         var line = _cart.FirstOrDefault(l => l.ProductId == p.Id);
         if (line == null)
         {
@@ -291,7 +313,7 @@ public partial class PosView : UserControl
         UpdateHeldCount();
         if (!recalled || dialog.RecalledCart == null || dialog.SelectedDraft == null) return;
         var ids = dialog.RecalledCart.Select(line => line.ProductId).ToList();
-        var products = App.Db.Products.Where(p => ids.Contains(p.Id)).ToDictionary(p => p.Id);
+        var products = App.Db.Products.AsNoTracking().Where(p => ids.Contains(p.Id)).ToDictionary(p => p.Id);
         var restored = new List<CartLineVM>();
         var skipped = 0;
         var reduced = 0;
@@ -431,10 +453,17 @@ public partial class PosView : UserControl
 
     // ---------- search & products ----------
 
-    private void RefreshProducts()
+    private void RefreshProducts(bool onlyIfChanged = false)
     {
+        // AsNoTracking bypasses this window's long-lived EF identity cache, so
+        // another running instance's edits become visible without a restart.
+        var products = App.Db.Products.AsNoTracking().Where(p => p.IsActive)
+            .OrderBy(p => p.Id).ToList();
+        if (onlyIfChanged && ProductCatalogSnapshot.Same(_lastActiveProducts, products)) return;
+        _lastActiveProducts = products;
+
         var term = SearchBox.Text.Trim();
-        var products = App.Db.Products.Where(p => p.IsActive).ToList();
+        var selectedId = (ProductsGrid.SelectedItem as Product)?.Id;
 
         if (term.Length > 0)
         {
@@ -445,6 +474,8 @@ public partial class PosView : UserControl
 
         _filtered = products.OrderBy(p => p.Name).ToList();
         ProductsGrid.ItemsSource = _filtered;
+        if (selectedId.HasValue)
+            ProductsGrid.SelectedItem = _filtered.FirstOrDefault(p => p.Id == selectedId);
         ProductsEmptyHint.Visibility = _filtered.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -505,6 +536,56 @@ public partial class PosView : UserControl
 
     // ---------- pay ----------
 
+    private bool SynchronizeCartBeforePay()
+    {
+        var ids = _cart.Select(line => line.ProductId).ToList();
+        var products = App.Db.Products.AsNoTracking()
+            .Where(product => ids.Contains(product.Id))
+            .ToDictionary(product => product.Id);
+        var selectedId = (CartGrid.SelectedItem as CartLineVM)?.ProductId;
+        var priceChanged = false;
+
+        for (var i = 0; i < _cart.Count; i++)
+        {
+            var line = _cart[i];
+            if (!products.TryGetValue(line.ProductId, out var product) || !product.IsActive)
+            {
+                MessageBox.Show($"{line.Name} is no longer active. Remove it from the cart before payment.",
+                    "Product changed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+            if (product.StockQty < line.Qty)
+            {
+                MessageBox.Show($"Only {product.StockQty:0.##} of {product.Name} remain. Adjust its quantity before payment.",
+                    "Stock changed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+            if (line.Price == product.Price && line.UnitCost == product.CostPrice &&
+                line.IsVatExempt == product.IsVatExempt && line.StockAvailable == product.StockQty &&
+                line.Name == product.Name && line.ItemCode == (product.Barcode ?? "—"))
+                continue;
+
+            priceChanged |= line.Price != product.Price || line.IsVatExempt != product.IsVatExempt;
+            var replacement = new CartLineVM(product) { Qty = line.Qty };
+            replacement.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName is nameof(CartLineVM.Qty) or nameof(CartLineVM.LineTotal))
+                    RefreshTotals();
+            };
+            _cart[i] = replacement;
+        }
+
+        if (selectedId.HasValue)
+            CartGrid.SelectedItem = _cart.FirstOrDefault(line => line.ProductId == selectedId);
+        RefreshTotals();
+        if (!priceChanged) return true;
+
+        Status("A product price changed. Review the new total before paying.");
+        MessageBox.Show("A product price or VAT setting changed. The cart total has been updated. Review it, then press Pay again.",
+            "Price changed", MessageBoxButton.OK, MessageBoxImage.Information);
+        return false;
+    }
+
     private void Pay()
     {
         var shiftService = new ShiftService(App.Db);
@@ -518,6 +599,7 @@ public partial class PosView : UserControl
         InvoiceBox.BorderThickness = new Thickness(1);
 
         if (_cart.Count == 0) { Status("Cart is empty"); return; }
+        if (!SynchronizeCartBeforePay()) return;
 
         if (!ReceiptsEnabled && string.IsNullOrWhiteSpace(InvoiceBox.Text))
         {
@@ -586,7 +668,8 @@ public partial class PosView : UserControl
                 AddressBox.Text,
                 SelectedOrderType,
                 kind,
-                IsSeniorSale ? DiscountBox.Text.Trim() : null);
+                IsSeniorSale ? DiscountBox.Text.Trim() : null,
+                expectedTotal: calc.Total);
 
         }
         catch (InvalidOperationException ex)

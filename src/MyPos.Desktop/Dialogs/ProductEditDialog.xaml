@@ -7,13 +7,13 @@
       <StackPanel Margin="24">
         <TextBlock x:Name="TitleText" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
 
-        <TextBlock Text="Product Description *"/>
-        <TextBox x:Name="NameBox" Style="{StaticResource UpperBox}" Height="34"
-                 Tag="Product name" Margin="0,4,0,12"/>
-
         <TextBlock Text="Barcode (optional — must be unique)"/>
         <TextBox x:Name="BarcodeBox" Style="{StaticResource UpperBox}" Height="34"
                  Tag="Scan or type barcode" Margin="0,4,0,12"/>
+
+        <TextBlock Text="Product Description *"/>
+        <TextBox x:Name="NameBox" Style="{StaticResource UpperBox}" Height="34"
+                 Tag="Product name" Margin="0,4,0,12"/>
 
         <Grid Margin="0,0,0,12">
             <Grid.ColumnDefinitions>

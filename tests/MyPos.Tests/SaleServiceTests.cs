@@ -255,4 +255,46 @@ public class SaleServiceTests
         Assert.Empty(s.Db.Sales);
         Assert.Empty(s.Db.JournalEntries.Where(e => e.SourceType == "Sale").ToList());
     }
+
+    [Fact]
+    public void Sale_reloads_price_changed_by_another_context_before_charging()
+    {
+        using var s = new Setup();
+        var id = s.AddProduct("Coffee", 100m, 50m, 10m);
+        var options = new DbContextOptionsBuilder<MyPosDbContext>()
+            .UseSqlite(s.Db.Database.GetDbConnection()).Options;
+        using (var admin = new MyPosDbContext(options))
+        {
+            admin.Products.Single(p => p.Id == id).Price = 120m;
+            admin.SaveChanges();
+        }
+
+        var error = Assert.Throws<InvalidOperationException>(() => s.Svc.PostSale(
+            s.BranchId, s.CashierId, new List<CartLine> { new(id, 1m) },
+            tendered: 120m, expectedTotal: 100m));
+
+        Assert.Contains("total changed", error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(s.Db.Sales);
+        Assert.Equal(120m, s.Db.Products.Find(id)!.Price);
+    }
+
+    [Fact]
+    public void Sale_reloads_stock_changed_by_another_context()
+    {
+        using var s = new Setup();
+        var id = s.AddProduct("Coffee", 100m, 50m, 10m);
+        var options = new DbContextOptionsBuilder<MyPosDbContext>()
+            .UseSqlite(s.Db.Database.GetDbConnection()).Options;
+        using (var admin = new MyPosDbContext(options))
+        {
+            admin.Products.Single(p => p.Id == id).StockQty = 1m;
+            admin.SaveChanges();
+        }
+
+        Assert.Throws<InvalidOperationException>(() => s.Svc.PostSale(
+            s.BranchId, s.CashierId, new List<CartLine> { new(id, 2m) }, tendered: 200m));
+
+        Assert.Empty(s.Db.Sales);
+        Assert.Equal(1m, s.Db.Products.Find(id)!.StockQty);
+    }
 }

@@ -7,6 +7,7 @@
   <ItemGroup>
     <Resource Include="Assets\Fonts\*.ttf" />
     <None Update="Assets\Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="Assets\Fonts\INTER-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

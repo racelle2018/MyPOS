@@ -15,23 +15,44 @@ public partial class DailySalesView : UserControl
 {
     private readonly Guid _branchId;
     private DailySalesReport? _report;
+    private bool _compactSalesHeader;
 
     public DailySalesView()
     {
         InitializeComponent();
         _branchId = App.Db.Branches.OrderBy(b => b.CreatedAt).First().Id;
         VoidButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+        DatePick.DisplayDateEnd = DateTime.Today;
         DatePick.SelectedDate = DateTime.Today;
+        Loaded += (_, _) =>
+        {
+            DatePick.DisplayDateEnd = DateTime.Today;
+            UpdateDateNavigation();
+        };
     }
 
     private void LoadDate(DateTime date)
     {
         _report = new ReportService(App.Db).GetDailySales(date, _branchId);
         SalesGrid.ItemsSource = _report.Sales.Select(s => new SaleRowVM(s)).ToList();
+        TableStatusText.Text = $"{_report.Sales.Count} sale{(_report.Sales.Count == 1 ? "" : "s")}";
         ReportEmptyHint.Visibility = _report.Sales.Count == 0
             ? Visibility.Visible : Visibility.Collapsed;
         UpdateSummary();
         UpdateActions();
+    }
+
+    private void SalesHeader_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var compact = e.NewSize.Width < 900;
+        if (compact == _compactSalesHeader) return;
+
+        _compactSalesHeader = compact;
+        Grid.SetRow(SalesActions, compact ? 1 : 0);
+        Grid.SetColumn(SalesActions, compact ? 0 : 1);
+        Grid.SetColumnSpan(SalesActions, compact ? 2 : 1);
+        SalesActions.HorizontalAlignment = compact
+            ? HorizontalAlignment.Left : HorizontalAlignment.Right;
     }
 
     private void UpdateSummary()
@@ -62,25 +83,86 @@ public partial class DailySalesView : UserControl
         var hasSales = _report?.Sales.Count > 0;
         ExportButton.IsEnabled = hasSales;
         PrintButton.IsEnabled = hasSales;
+        ReprintReceiptButton.IsEnabled =
+            SalesGrid.SelectedItem is SaleRowVM row && CanReprintReceipt(row.Sale);
         VoidButton.IsEnabled = Permissions.IsAdmin &&
             SalesGrid.SelectedItem is SaleRowVM { Sale.IsVoided: false };
     }
 
+    private void ReprintReceiptButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (SalesGrid.SelectedItem is not SaleRowVM row || !CanReprintReceipt(row.Sale))
+            return;
+
+        var preview = new ReceiptPreviewDialog(row.Sale, reprint: true,
+            warning: "This is a copy of an existing system receipt. It will not create a new sale or payment.")
+        { Owner = Window.GetWindow(this) };
+        preview.ShowDialog();
+        if (!preview.PrintedSuccessfully) return;
+
+        App.Db.AuditLogs.Add(new AuditLog
+        {
+            Date = DateTime.Now,
+            UserId = App.CurrentUser?.Id,
+            Action = "ReceiptReprint",
+            EntityName = "Sale",
+            EntityId = row.Sale.Id,
+            Details = $"Sale #{row.Sale.SaleNumber} - {row.Sale.ReceiptNumber}"
+        });
+        App.Db.SaveChanges();
+    }
+
+    private static bool CanReprintReceipt(Sale sale) =>
+        !sale.IsVoided && sale.ReceiptType == ReceiptType.System &&
+        !string.IsNullOrWhiteSpace(sale.ReceiptNumber);
+
     private void TodayButton_Click(object sender, RoutedEventArgs e)
-        => DatePick.SelectedDate = DateTime.Today;
+    {
+        DatePick.DisplayDateEnd = DateTime.Today;
+        if (DatePick.SelectedDate?.Date == DateTime.Today)
+            LoadDate(DateTime.Today); // Also acts as a refresh for today's sales.
+        else
+            DatePick.SelectedDate = DateTime.Today;
+    }
+
+    private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        => LoadDate(DatePick.SelectedDate ?? DateTime.Today);
 
     private void PrevDayButton_Click(object sender, RoutedEventArgs e)
-        => DatePick.SelectedDate = (DatePick.SelectedDate ?? DateTime.Today).AddDays(-1);
+    {
+        var date = (DatePick.SelectedDate ?? DateTime.Today).Date;
+        if (date > DateTime.MinValue.Date)
+            DatePick.SelectedDate = date.AddDays(-1);
+    }
 
     private void NextDayButton_Click(object sender, RoutedEventArgs e)
-        => DatePick.SelectedDate = (DatePick.SelectedDate ?? DateTime.Today).AddDays(1);
+    {
+        var date = (DatePick.SelectedDate ?? DateTime.Today).Date;
+        if (date < DateTime.Today)
+            DatePick.SelectedDate = date.AddDays(1);
+    }
 
     private void DatePick_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (NextDayButton == null) return;
+        DatePick.DisplayDateEnd = DateTime.Today;
+        if (DatePick.SelectedDate?.Date > DateTime.Today)
+        {
+            DatePick.SelectedDate = DateTime.Today;
+            return;
+        }
+        UpdateDateNavigation();
         if (DatePick.SelectedDate is DateTime date)
         {
             LoadDate(date);
         }
+    }
+
+    private void UpdateDateNavigation()
+    {
+        var date = DatePick.SelectedDate?.Date ?? DateTime.Today;
+        PrevDayButton.IsEnabled = date > DateTime.MinValue.Date;
+        NextDayButton.IsEnabled = date < DateTime.Today;
     }
 
     private void VoidButton_Click(object sender, RoutedEventArgs e)

@@ -4,55 +4,89 @@
              xmlns:behaviors="clr-namespace:MyPos.Desktop.Controls"
              xmlns:converters="clr-namespace:MyPos.Desktop.Converters"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:app="clr-namespace:MyPos.Desktop">
+             xmlns:app="clr-namespace:MyPos.Desktop"
+             FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12">
     <UserControl.Resources>
         <converters:StockBrushConverter x:Key="StockBrush"/>
         <converters:UpperTextConverter x:Key="UpperText"/>
+        <Style x:Key="ProductToolbarButton" TargetType="Button"
+               BasedOn="{StaticResource ReportChromeButton}">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Margin" Value="0,5,5,5"/>
+        </Style>
+        <Style x:Key="ProductColumnHeader" TargetType="DataGridColumnHeader"
+               BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
+            <Setter Property="Background" Value="#EEF0F1"/>
+            <Setter Property="BorderBrush" Value="#CDD1D4"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="Padding" Value="6,3"/>
+        </Style>
     </UserControl.Resources>
-    <DockPanel Margin="12">
-        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+    <Border Margin="8,6,8,8" BorderBrush="#CDD1D4" BorderThickness="1"
+            Background="White">
+    <DockPanel Background="White">
+        <Border DockPanel.Dock="Top" Background="#EEF0F1" BorderBrush="#CDD1D4"
+                BorderThickness="0,0,0,1" Padding="6,3">
+        <Grid x:Name="ToolbarGrid"
+              SizeChanged="ToolbarGrid_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Search products" VerticalAlignment="Center" Margin="0,0,10,6"/>
-            <TextBox x:Name="SearchBox" Grid.Column="1" Style="{StaticResource UpperBox}"
-                     Height="34" MinWidth="180" Tag="Name, barcode, or category"
-                     Margin="0,0,0,6" VerticalContentAlignment="Center"
-                     TextChanged="SearchBox_TextChanged" KeyDown="SearchBox_KeyDown"/>
-            <WrapPanel Grid.Row="1" Grid.ColumnSpan="2">
-            <Button x:Name="ReceiveStockButton" Content="Receive Stock" Height="34"
-                    MinWidth="100" Margin="0,0,8,4" Click="ReceiveStockButton_Click"
+            <Grid x:Name="SearchPanel" Margin="0,0,10,0">
+                <TextBox x:Name="SearchBox" Style="{StaticResource UpperBox}"
+                         Height="28" Margin="0,5,0,5" FontSize="14" Padding="34,0,10,0"
+                         Tag="Search barcode, product, or category"
+                         materialDesign:HintAssist.Hint="{Binding Tag, RelativeSource={RelativeSource Self}}"
+                         VerticalContentAlignment="Center"
+                         TextChanged="SearchBox_TextChanged" KeyDown="SearchBox_KeyDown"/>
+                <materialDesign:PackIcon Kind="Magnify" Width="17" Height="17"
+                                         HorizontalAlignment="Left" VerticalAlignment="Center"
+                                         Margin="12,0,0,0" Foreground="{StaticResource UiMutedBrush}"
+                                         IsHitTestVisible="False"/>
+            </Grid>
+            <WrapPanel x:Name="ActionsPanel" Grid.Column="1"
+                       HorizontalAlignment="Right" VerticalAlignment="Center">
+            <Button x:Name="ReceiveStockButton" Content="Receive Stock"
+                    Style="{StaticResource ProductToolbarButton}" Click="ReceiveStockButton_Click"
                     ToolTip="Select a product to receive stock" ToolTipService.ShowOnDisabled="True"/>
-            <Button x:Name="EditButton" Height="34" MinWidth="0" Padding="12,0"
-                    Margin="0,0,8,4" Click="EditButton_Click"
+            <Button x:Name="EditButton" Style="{StaticResource ProductToolbarButton}"
+                    Click="EditButton_Click"
                     ToolTip="Select a product to edit" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16"
+                    <materialDesign:PackIcon Kind="Pencil" Width="14" Height="14"
                                              VerticalAlignment="Center"/>
-                    <TextBlock Text="Edit" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Edit" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button x:Name="DeactivateButton" Content="Deactivate" Height="34"
-                    MinWidth="90" Margin="0,0,8,4" Click="DeactivateButton_Click"
+            <Button x:Name="DeactivateButton" Content="Deactivate"
+                    Style="{StaticResource ProductToolbarButton}" Click="DeactivateButton_Click"
                     ToolTip="Select a product to activate or deactivate" ToolTipService.ShowOnDisabled="True"/>
-            <Button x:Name="AddButton" Height="34" MinWidth="0" Padding="12,0"
-                    Margin="0,0,8,4" Style="{StaticResource PrimaryButton}"
+            <Button x:Name="AddButton" Style="{StaticResource ProductToolbarButton}"
+                    Margin="0,5,0,5" Foreground="{StaticResource UiAccentBrush}"
+                    BorderBrush="{StaticResource UiAccentBrush}"
                     Click="AddButton_Click">
                 <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="Plus" Width="16" Height="16"
+                    <materialDesign:PackIcon Kind="Plus" Width="14" Height="14"
                                              VerticalAlignment="Center"/>
-                    <TextBlock Text="Add Product" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Add Product" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
             </WrapPanel>
         </Grid>
+        </Border>
 
-        <TextBlock x:Name="CountText" DockPanel.Dock="Bottom" Foreground="Gray" Margin="0,8,0,0"/>
+        <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4"
+                BorderThickness="0,1,0,0" Padding="8,3">
+            <TextBlock x:Name="CountText" FontSize="11"
+                       Foreground="{StaticResource UiMutedBrush}"/>
+        </Border>
 
         <Grid>
         <DataGrid x:Name="ProductsGrid" AutoGenerateColumns="False" IsReadOnly="True"
@@ -61,12 +95,15 @@
                   HeadersVisibility="Column" RowHeaderWidth="0"
                   GridLinesVisibility="None"
                   BorderThickness="0" Background="White"
+                  FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12"
+                  RowHeight="28" ColumnHeaderHeight="26"
+                  ColumnHeaderStyle="{StaticResource ProductColumnHeader}"
                   CanUserResizeColumns="True" SelectionChanged="ProductsGrid_SelectionChanged">
             <DataGrid.Columns>
+                <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="130" ElementStyle="{StaticResource GridCellText}"/>
                 <DataGridTextColumn Header="Product Description" Width="*" ElementStyle="{StaticResource GridCellText}">
                     <DataGridTextColumn.Binding><Binding Path="Name" Converter="{StaticResource UpperText}"/></DataGridTextColumn.Binding>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="130" ElementStyle="{StaticResource GridCellText}"/>
                 <DataGridTextColumn Header="Category" Width="110" ElementStyle="{StaticResource GridCellText}">
                     <DataGridTextColumn.Binding><Binding Path="Category" Converter="{StaticResource UpperText}"/></DataGridTextColumn.Binding>
                 </DataGridTextColumn>
@@ -91,7 +128,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Stock Level" Binding="{Binding StockLevelText}"
                                     Width="90" ElementStyle="{StaticResource GridCellText}"/>
-                <DataGridTemplateColumn Header="Status" Width="70">
+                <DataGridTemplateColumn Header="Status" Width="90">
                     <DataGridTemplateColumn.CellTemplate><DataTemplate>
                         <TextBlock Text="{Binding ActiveText}" FontWeight="SemiBold">
                             <TextBlock.Style>
@@ -105,8 +142,9 @@
             </DataGrid.Columns>
         </DataGrid>
             <TextBlock x:Name="EmptyHint" Text="No products yet — add your first product"
-                       Foreground="{StaticResource UiMutedBrush}" FontSize="14" HorizontalAlignment="Center"
+                       Foreground="{StaticResource UiMutedBrush}" FontSize="13" HorizontalAlignment="Center"
                        VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed"/>
         </Grid>
     </DockPanel>
+    </Border>
 </UserControl>

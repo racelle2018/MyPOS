@@ -90,6 +90,7 @@ public class BackupAndReceiptTests
         Assert.Contains("OFFICIAL RECEIPT", systemText);
         Assert.Contains("DATE: 10/04/26", systemText);
         Assert.Contains("AMOUNT DUE", systemText);
+        Assert.Contains("*** REPRINT ***", ReceiptPrinter.BuildPreviewText(sale, options, reprint: true));
 
         var bytes = ReceiptPrinter.BuildEpsonBytes(sale, options);
         Assert.Contains(bytes, value => value == 0x1D);

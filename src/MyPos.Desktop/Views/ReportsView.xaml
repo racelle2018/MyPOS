@@ -1,12 +1,58 @@
-<UserControl x:Class="MyPos.Desktop.Views.ReportsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <DockPanel>
-        <Border DockPanel.Dock="Top" Background="#EAF1F7" Padding="10,6"
-                BorderBrush="#B8C7D8" BorderThickness="0,0,0,1">
+<UserControl x:Class="MyPos.Desktop.Views.ReportsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource ReportInterFontFamily}">
+    <UserControl.Resources>
+        <Style x:Key="ReportTabButton" TargetType="Button">
+            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
+            <Setter Property="Background" Value="#E3E7EA"/>
+            <Setter Property="Padding" Value="11,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource MyPosFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border x:Name="TabChrome" Background="{TemplateBinding Background}"/>
+                            <Border x:Name="ActiveEdge" Height="2" VerticalAlignment="Top"
+                                    Background="{StaticResource UiAccentBrush}" Visibility="Collapsed"/>
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabChrome" Property="Background" Value="#F1F3F4"/>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Active">
+                                <Setter TargetName="TabChrome" Property="Background" Value="White"/>
+                                <Setter TargetName="ActiveEdge" Property="Visibility" Value="Visible"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <DockPanel Background="#EEF0F1" Margin="8,6,8,8">
+        <Border DockPanel.Dock="Top" Background="#CDD1D4"
+                BorderBrush="#CDD1D4" BorderThickness="1,1,1,0"
+                Padding="5,4,5,0">
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="DailyToggleButton" Content="Daily Sales" Height="30" Padding="14,0" Margin="0,0,6,0" Click="DailyToggle_Click"/>
-                <Button x:Name="AuditToggleButton" Content="Audit Log" Height="30" Padding="14,0" Click="AuditToggle_Click"/>
+                <Button x:Name="DailyToggleButton" Content="Daily Sales" Height="27"
+                        Margin="0,0,2,0" Style="{StaticResource ReportTabButton}"
+                        Click="DailyToggle_Click"/>
+                <Button x:Name="AuditToggleButton" Content="Audit Log" Height="27"
+                        Style="{StaticResource ReportTabButton}"
+                        Click="AuditToggle_Click"/>
             </StackPanel>
         </Border>
-        <ContentControl x:Name="ReportHost"/>
+        <Border BorderBrush="#CDD1D4" BorderThickness="1,0,1,1"
+                Background="White">
+            <ContentControl x:Name="ReportHost"/>
+        </Border>
     </DockPanel>
 </UserControl>

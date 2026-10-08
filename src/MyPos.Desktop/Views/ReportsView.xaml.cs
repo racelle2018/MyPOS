@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace MyPos.Desktop.Views;
 
@@ -18,8 +17,7 @@ public partial class ReportsView : UserControl
     private void SetActive(Button active)
     {
         foreach (var button in new[] { DailyToggleButton, AuditToggleButton })
-        { button.Background = Brushes.White; button.Foreground = (Brush)FindResource("UiTextBrush"); }
-        active.Background = (Brush)FindResource("UiAccentBrush"); active.Foreground = Brushes.White;
+            button.Tag = button == active ? "Active" : null;
     }
     private void DailyToggle_Click(object sender, RoutedEventArgs e) => ShowDaily();
     private void AuditToggle_Click(object sender, RoutedEventArgs e) => ShowAudit();

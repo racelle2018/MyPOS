@@ -2,53 +2,11 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="MyPos" Height="680" Width="1120" MinWidth="760" MinHeight="480"
         WindowStartupLocation="CenterScreen" WindowState="Maximized"
-        WindowStyle="None" ResizeMode="CanResize"
+        WindowStyle="SingleBorderWindow" ResizeMode="CanResize"
         Background="{StaticResource UiBackgroundBrush}">
-    <shell:WindowChrome.WindowChrome>
-        <shell:WindowChrome CaptionHeight="30" ResizeBorderThickness="6"
-                            GlassFrameThickness="0" CornerRadius="0"
-                            UseAeroCaptionButtons="False"/>
-    </shell:WindowChrome.WindowChrome>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Background="White">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="MyPos" Foreground="{StaticResource UiTextBrush}"
-                       FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"
-                       Margin="12,0,0,0"/>
-            <Button x:Name="MinimizeWindowButton" Grid.Column="1" Content="&#xE921;"
-                    FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="11"
-                    Width="46" Height="30" MinWidth="0" MinHeight="0" Padding="0"
-                    Background="Transparent" BorderThickness="0" ToolTip="Minimize"
-                    AutomationProperties.Name="Minimize window"
-                    shell:WindowChrome.IsHitTestVisibleInChrome="True"
-                    Click="MinimizeWindowButton_Click"/>
-            <Button x:Name="MaximizeWindowButton" Grid.Column="2" Content="&#xE923;"
-                    FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="11"
-                    Width="46" Height="30" MinWidth="0" MinHeight="0" Padding="0"
-                    Background="Transparent" BorderThickness="0" ToolTip="Restore"
-                    AutomationProperties.Name="Restore window"
-                    shell:WindowChrome.IsHitTestVisibleInChrome="True"
-                    Click="MaximizeWindowButton_Click"/>
-            <Button x:Name="CloseWindowButton" Grid.Column="3" Content="&#xE8BB;"
-                    FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="11"
-                    Width="46" Height="30" MinWidth="0" MinHeight="0" Padding="0" BorderThickness="0" ToolTip="Close"
-                    AutomationProperties.Name="Close window"
-                    shell:WindowChrome.IsHitTestVisibleInChrome="True"
-                    Click="CloseWindowButton_Click"/>
-        </Grid>
-        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="58" />
                 <ColumnDefinition Width="*" />
@@ -145,6 +103,5 @@
 
                 <ContentControl x:Name="ScreenHost" />
             </DockPanel>
-        </Grid>
     </Grid>
 </Window>

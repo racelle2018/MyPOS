@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
+using Microsoft.EntityFrameworkCore;
 using MyPos.Core.Entities;
 using MyPos.Desktop.Dialogs;
 
@@ -9,6 +11,9 @@ namespace MyPos.Desktop.Views;
 
 public partial class ProductCatalogView : UserControl
 {
+    private readonly DispatcherTimer _productRefreshTimer = new() { Interval = TimeSpan.FromSeconds(3) };
+    private List<Product> _lastProducts = new();
+
     public ProductCatalogView()
     {
         InitializeComponent();
@@ -21,16 +26,33 @@ public partial class ProductCatalogView : UserControl
             DeactivateButton.Visibility = Visibility.Collapsed;
         }
 
-        LoadProducts();
-        SearchBox.Focus();
+        LoadProducts(selectFirstIfNone: true);
+        _productRefreshTimer.Tick += (_, _) => LoadProducts(onlyIfChanged: true);
+        Loaded += (_, _) =>
+        {
+            LoadProducts();
+            _productRefreshTimer.Start();
+            // The constructor runs before ScreenHost attaches this view. Defer
+            // keyboard focus until the visible layout has finished loading.
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+            {
+                if (IsLoaded && IsVisible)
+                    Keyboard.Focus(SearchBox);
+            });
+        };
+        Unloaded += (_, _) => _productRefreshTimer.Stop();
     }
 
     private Product? Selected => (ProductsGrid.SelectedItem as ProductRowVM)?.Product;
 
-    private void LoadProducts()
+    private void LoadProducts(bool onlyIfChanged = false, bool selectFirstIfNone = false)
     {
+        var products = App.Db.Products.AsNoTracking().OrderBy(p => p.Id).ToList();
+        if (onlyIfChanged && ProductCatalogSnapshot.Same(_lastProducts, products)) return;
+        _lastProducts = products;
+
         var term = SearchBox.Text.Trim();
-        var products = App.Db.Products.ToList();
+        var selectedId = Selected?.Id;
 
         if (term.Length > 0)
         {
@@ -43,6 +65,10 @@ public partial class ProductCatalogView : UserControl
         var list = products.OrderByDescending(p => p.IsActive).ThenBy(p => p.Name).ToList();
         var rows = list.Select(p => new ProductRowVM(p)).ToList();
         ProductsGrid.ItemsSource = rows;
+        if (selectedId.HasValue)
+            ProductsGrid.SelectedItem = rows.FirstOrDefault(r => r.Product.Id == selectedId);
+        else if (selectFirstIfNone && rows.Count > 0)
+            ProductsGrid.SelectedItem = rows[0];
 
         CountText.Text = rows.Count == 0
             ? "No products match."
@@ -56,6 +82,18 @@ public partial class ProductCatalogView : UserControl
         }
         DeactivateButton.Content = Selected != null && !Selected.IsActive ? "Activate" : "Deactivate";
         UpdateSelectionActions();
+    }
+
+    private void ToolbarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Keep the search and actions together on desktop; stack the actions
+        // below the search before either side becomes cramped.
+        var stacked = e.NewSize.Width < 800;
+        Grid.SetRow(ActionsPanel, stacked ? 1 : 0);
+        Grid.SetColumn(ActionsPanel, stacked ? 0 : 1);
+        Grid.SetColumnSpan(ActionsPanel, stacked ? 2 : 1);
+        ActionsPanel.Margin = stacked ? new Thickness(0, 8, 0, 0) : new Thickness(0);
+        SearchPanel.Margin = stacked ? new Thickness(0) : new Thickness(0, 0, 10, 0);
     }
 
     private void ReselectAndFocus(Guid productId)
@@ -88,7 +126,8 @@ public partial class ProductCatalogView : UserControl
     private void AddButton_Click(object sender, RoutedEventArgs e)
     {
         if (!Permissions.RequireAdmin("add products")) return;
-        if (new ProductEditDialog(null).ShowDialog() == true) LoadProducts();
+        if (new ProductEditDialog(null).ShowDialog() == true)
+            LoadProducts(selectFirstIfNone: true);
     }
 
     private void EditButton_Click(object sender, RoutedEventArgs e) => EditSelected();
@@ -128,13 +167,15 @@ public partial class ProductCatalogView : UserControl
     {
         if (!Permissions.RequireAdmin("change products")) return;
 
-        var p = Selected;
-        if (p == null)
+        var selected = Selected;
+        if (selected == null)
         {
             MessageBox.Show("Select a product first.", "MyPos",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
+        var p = App.Db.Products.First(product => product.Id == selected.Id);
+        App.Db.Entry(p).Reload();
 
         var confirm = MessageBox.Show(p.IsActive
             ? $"Deactivate '{p.Name}'?\nIt disappears from the catalog, but sales history stays intact."
@@ -180,6 +221,6 @@ public sealed class ProductRowVM
     public decimal StockQty => Product.StockQty;
     public string StockLevelText => StockQty <= 0 ? "OUT" :
         StockQty <= CurrentSettings.LowStockThreshold ? "LOW" : "OK";
-    public string ActiveText => Product.IsActive ? "ACTIVE" : "OFF";
+    public string ActiveText => Product.IsActive ? "ACTIVE" : "DISABLED";
     public Brush ActiveBrush => Product.IsActive ? Brushes.ForestGreen : Brushes.SlateGray;
 }

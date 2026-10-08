@@ -18,6 +18,13 @@ public partial class AuditLogView : UserControl
     {
         InitializeComponent();
         if (!Permissions.IsAdmin) throw new UnauthorizedAccessException("Only administrators may view the audit log.");
+        FromPick.DisplayDateEnd = DateTime.Today;
+        ToPick.DisplayDateEnd = DateTime.Today;
+        Loaded += (_, _) =>
+        {
+            FromPick.DisplayDateEnd = DateTime.Today;
+            ToPick.DisplayDateEnd = DateTime.Today;
+        };
         LoadFilterChoices();
         SetRange(DateTime.Today.AddDays(-6), DateTime.Today);
     }
@@ -41,6 +48,8 @@ public partial class AuditLogView : UserControl
 
     private void LoadLogs()
     {
+        FromPick.DisplayDateEnd = DateTime.Today;
+        ToPick.DisplayDateEnd = DateTime.Today;
         if (FromPick.SelectedDate > ToPick.SelectedDate)
         {
             RangeErrorText.Text = "The start date must be on or before the end date.";
@@ -55,7 +64,8 @@ public partial class AuditLogView : UserControl
         RangeErrorText.Text = "";
         EmptyHint.Text = "No audit entries match these filters";
         var from = FromPick.SelectedDate?.Date ?? DateTime.MinValue;
-        var toExclusive = ToPick.SelectedDate?.Date.AddDays(1) ?? DateTime.MaxValue;
+        var toExclusive = ToPick.SelectedDate is DateTime to && to.Date < DateTime.MaxValue.Date
+            ? to.Date.AddDays(1) : DateTime.MaxValue;
         var users = App.Db.Users.ToDictionary(user => user.Id, user => user.Username);
         var logs = App.Db.AuditLogs.Where(log => log.Date >= from && log.Date < toExclusive).OrderByDescending(log => log.Date).ToList();
         var rows = logs.Select(log => new AuditRowVM(log, users.GetValueOrDefault(log.UserId ?? Guid.Empty))).ToList();
@@ -71,6 +81,7 @@ public partial class AuditLogView : UserControl
     private void FilterCombo_SelectionChanged(object sender, SelectionChangedEventArgs e) { if (!_loading) LoadLogs(); }
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => LoadLogs();
     private void TodayButton_Click(object sender, RoutedEventArgs e) => SetRange(DateTime.Today, DateTime.Today);
+    private void RefreshButton_Click(object sender, RoutedEventArgs e) => LoadLogs();
     private void WeekButton_Click(object sender, RoutedEventArgs e) => SetRange(DateTime.Today.AddDays(-6), DateTime.Today);
     private void MonthButton_Click(object sender, RoutedEventArgs e) => SetRange(DateTime.Today.AddDays(-29), DateTime.Today);
     private void AllButton_Click(object sender, RoutedEventArgs e) => SetRange(null, null);

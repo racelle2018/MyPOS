@@ -14,7 +14,17 @@ public partial class UserManagementView : UserControl
         if (!Permissions.IsAdmin) throw new UnauthorizedAccessException("Only administrators may manage users.");
         LoadUsers();
         UsersGrid.MouseDoubleClick += (_, _) => { if (Selected != null) EditButton_Click(this, new RoutedEventArgs()); };
-        SearchBox.Focus();
+        Loaded += (_, _) => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input,
+            () => { if (IsLoaded && IsVisible) System.Windows.Input.Keyboard.Focus(SearchBox); });
+    }
+
+    private void ToolbarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var stacked = e.NewSize.Width < 850;
+        Grid.SetRow(ActionsPanel, stacked ? 1 : 0);
+        Grid.SetColumn(ActionsPanel, stacked ? 0 : 1);
+        Grid.SetColumnSpan(ActionsPanel, stacked ? 2 : 1);
+        SearchPanel.Margin = stacked ? new Thickness(0) : new Thickness(0, 0, 10, 0);
     }
 
     private UserRowVM? Selected => UsersGrid.SelectedItem as UserRowVM;

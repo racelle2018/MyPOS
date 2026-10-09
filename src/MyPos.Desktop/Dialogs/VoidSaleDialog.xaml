@@ -2,10 +2,17 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Void Sale" Width="420" SizeToContent="Height" MaxHeight="650"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Style="{DynamicResource DialogWindow}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/DialogChrome.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel Margin="24">
-        <TextBlock Text="VOID SALE" FontSize="16" FontWeight="Bold" Foreground="#DC2626"/>
+      <StackPanel Margin="16">
+        <TextBlock Text="VOID SALE" FontSize="14" FontWeight="SemiBold" Foreground="#DC2626"/>
         <TextBlock x:Name="SaleInfoText" Foreground="#475569" Margin="0,8,0,16" TextWrapping="Wrap"/>
         <TextBlock Text="Reason for voiding * (required, recorded in the audit log)"/>
         <TextBox x:Name="ReasonBox" Height="60" Margin="0,4,0,12" TextWrapping="Wrap"
@@ -17,8 +24,8 @@
                        TextWrapping="Wrap"/>
         </CheckBox>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Cancel" IsCancel="True" Margin="0,0,8,0"/>
-            <Button Content="Void Sale" Background="#DC2626" Foreground="White" Click="VoidButton_Click"/>
+            <Button Height="32" Content="Cancel" IsCancel="True" Margin="0,5,8,5"/>
+            <Button Height="32" Content="Void Sale" Style="{StaticResource DialogDangerButton}" Click="VoidButton_Click"/>
         </StackPanel>
       </StackPanel>
     </ScrollViewer>

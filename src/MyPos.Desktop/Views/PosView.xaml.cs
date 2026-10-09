@@ -56,7 +56,7 @@ public partial class PosView : UserControl
             Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
             {
                 if (IsLoaded && IsVisible)
-                    Keyboard.Focus(InvoiceBox.IsEnabled ? InvoiceBox : CustomerNameBox);
+                    Keyboard.Focus(SearchBox);
             });
         };
 
@@ -178,10 +178,8 @@ public partial class PosView : UserControl
     private void UpdateHeldCount()
     {
         var count = new HeldSaleService(App.Db).ListActive(_branchId).Count;
-        RecallButton.Content = count == 0 ? "Recall" : $"Recall {Math.Min(count, 9)}{(count > 9 ? "+" : "")}";
-        RecallButton.ToolTip = count == 0
-            ? "Recall a held sale (F6)"
-            : $"Recall a held sale (F6) · {count} waiting";
+        RecallLabel.Text = count == 0 ? "Recall (F6)"
+            : $"Recall {Math.Min(count, 9)}{(count > 9 ? "+" : "")} (F6)";
     }
 
     private PaymentMethod SelectedMethod => (PayModeBox.SelectedItem as string) switch
@@ -435,7 +433,7 @@ public partial class PosView : UserControl
 
         InvoiceBox.BorderBrush = duplicate
             ? new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26))
-            : (Brush)FindResource("UiBorderBrush");
+            : (Brush)FindResource("PosInputBorderBrush");
         InvoiceBox.BorderThickness = duplicate ? new Thickness(2) : new Thickness(1);
         InvoiceBox.ToolTip = duplicate
             ? $"Invoice '{clean}' was already used."
@@ -595,7 +593,7 @@ public partial class PosView : UserControl
             Status("No open shift - open one before selling (Shift button)");
             return;
         }
-        InvoiceBox.BorderBrush = new SolidColorBrush(Color.FromRgb(0xCB, 0xD5, 0xE1));
+        InvoiceBox.BorderBrush = (Brush)FindResource("PosInputBorderBrush");
         InvoiceBox.BorderThickness = new Thickness(1);
 
         if (_cart.Count == 0) { Status("Cart is empty"); return; }

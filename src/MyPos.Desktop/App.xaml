@@ -356,6 +356,7 @@
         <!-- Dense, readable register tables. -->
 
         <Style TargetType="DataGridColumnHeader">
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="#334155"/>
             <Setter Property="Background" Value="{StaticResource UiAccentSoftBrush}"/>
@@ -415,6 +416,8 @@
         <SolidColorBrush x:Key="{x:Static DataGrid.FocusBorderBrushKey}" Color="#2878BD"/>
 
         <Style TargetType="DataGrid" BasedOn="{StaticResource MaterialDesignDataGrid}">
+            <Setter Property="controls:DataGridBehaviors.ScrollBarSpansHeader" Value="True"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
             <Setter Property="RowHeight" Value="30"/>
             <Setter Property="ColumnHeaderHeight" Value="32"/>

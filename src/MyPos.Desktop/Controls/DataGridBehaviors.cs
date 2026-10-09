@@ -19,6 +19,39 @@ namespace MyPos.Desktop.Controls;
 /// </summary>
 public static class DataGridBehaviors
 {
+    public static readonly DependencyProperty ScrollBarSpansHeaderProperty =
+        DependencyProperty.RegisterAttached("ScrollBarSpansHeader", typeof(bool),
+            typeof(DataGridBehaviors), new PropertyMetadata(false, OnScrollBarSpansHeaderChanged));
+
+    public static bool GetScrollBarSpansHeader(DataGrid grid)
+        => (bool)grid.GetValue(ScrollBarSpansHeaderProperty);
+
+    public static void SetScrollBarSpansHeader(DataGrid grid, bool value)
+        => grid.SetValue(ScrollBarSpansHeaderProperty, value);
+
+    private static void OnScrollBarSpansHeaderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not DataGrid grid) return;
+        grid.Loaded -= AlignHeaderScrollBar;
+        if ((bool)e.NewValue) grid.Loaded += AlignHeaderScrollBar;
+        if (grid.IsLoaded) AlignHeaderScrollBar(grid, new RoutedEventArgs());
+    }
+
+    private static void AlignHeaderScrollBar(object sender, RoutedEventArgs e)
+    {
+        if (sender is not DataGrid grid) return;
+        grid.ApplyTemplate();
+        if (grid.Template?.FindName("DG_ScrollViewer", grid) is not ScrollViewer viewer) return;
+        viewer.ApplyTemplate();
+        if (viewer.Template?.FindName("PART_VerticalScrollBar", viewer) is not ScrollBar scrollbar) return;
+
+        // Material's header corner is unused. Span it without touching the
+        // content viewport, native scroll bindings, or row virtualization.
+        var spansHeader = GetScrollBarSpansHeader(grid);
+        Grid.SetRow(scrollbar, spansHeader ? 0 : 1);
+        Grid.SetRowSpan(scrollbar, spansHeader ? 2 : 1);
+    }
+
     public static readonly DependencyProperty DeselectOnOutsideClickProperty =
         DependencyProperty.RegisterAttached(
             "DeselectOnOutsideClick",

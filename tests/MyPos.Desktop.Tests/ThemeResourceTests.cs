@@ -193,22 +193,22 @@ public class ThemeResourceTests
                     AssertTextInputFits(invoice);
                     foreach (var (fieldName, expectedHint) in new[]
                     {
-                        ("CustomerNameBox", "Customer Name"),
-                        ("AddressBox", "Customer Address")
+                        ("CustomerNameBox", "Enter customer name"),
+                        ("AddressBox", "Enter customer address")
                     })
                     {
                         var field = Assert.IsType<TextBox>(pos.FindName(fieldName));
-                        Assert.Equal(42, field.Height);
+                        Assert.Equal(invoice.Height, field.Height);
                         Assert.True(field.Margin.Top >= 0);
                         Assert.Equal(expectedHint, HintAssist.GetHint(field));
-                        Assert.True(HintAssist.GetIsFloating(field));
+                        Assert.False(HintAssist.GetIsFloating(field));
                         Assert.Equal(CharacterCasing.Upper, field.CharacterCasing);
                         AssertTextInputFits(field);
                         var fieldHint = Assert.IsType<SmartHint>(field.Template.FindName("Hint", field));
                         fieldHint.ApplyTemplate();
-                        Assert.True(fieldHint.UseFloating);
+                        Assert.False(fieldHint.UseFloating);
                         Assert.Equal(Colors.White,
-                            Assert.IsType<SolidColorBrush>(HintAssist.GetBackground(field)).Color);
+                            Assert.IsType<SolidColorBrush>(field.Background).Color);
                     }
                     AssertPosLayoutFits(pos, 1366, 768);
                     AssertPosLayoutFits(pos, 1093, 614); // 1366x768 at 125% scaling
@@ -221,6 +221,18 @@ public class ThemeResourceTests
                         Assert.IsType<TextBlock>(pos.FindName("SaleDetailsTitle")).Visibility);
                     AssertPosLayoutFits(pos, 840, 460);
                     AssertPosLayoutFits(pos, 720, 460);
+                    foreach (var gridName in new[] { "ProductsGrid", "CartGrid" })
+                    {
+                        var grid = Assert.IsType<DataGrid>(pos.FindName(gridName));
+                        grid.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent, grid));
+                        var viewer = Assert.IsType<ScrollViewer>(grid.Template.FindName("DG_ScrollViewer", grid));
+                        var scrollbar = Assert.IsType<System.Windows.Controls.Primitives.ScrollBar>(
+                            viewer.Template.FindName("PART_VerticalScrollBar", viewer));
+                        Assert.Equal(0, Grid.GetRow(scrollbar));
+                        Assert.Equal(2, Grid.GetRowSpan(scrollbar));
+                    }
+                    foreach (var fieldName in new[] { "SearchBox", "DiscountBox" })
+                        AssertTextInputFits(Assert.IsType<TextBox>(pos.FindName(fieldName)));
                     var loadedCart = Assert.IsType<DataGrid>(pos.FindName("CartGrid"));
                     var originalCartItems = loadedCart.ItemsSource;
                     loadedCart.ItemsSource = Enumerable.Range(0, 100)
@@ -233,7 +245,7 @@ public class ThemeResourceTests
                     AssertPosLayoutFits(pos, 911, 395);
                     discountBreakdown.Visibility = Visibility.Collapsed;
                     loadedCart.ItemsSource = originalCartItems;
-                    Assert.Equal("PN/ SKU", Assert.IsType<DataGrid>(pos.FindName("ProductsGrid")).Columns[0].Header);
+                    Assert.Equal("Product Code", Assert.IsType<DataGrid>(pos.FindName("ProductsGrid")).Columns[0].Header);
                     Assert.True(Assert.IsType<Border>(pos.FindName("ProductsPanel"))
                         .IsAncestorOf(Assert.IsType<TextBox>(pos.FindName("SearchBox"))));
                     Assert.True(Assert.IsType<Border>(pos.FindName("CartArea"))
@@ -306,6 +318,19 @@ public class ThemeResourceTests
                     Assert.True(Assert.IsType<Button>(productCatalog.FindName("ReceiveStockButton")).IsEnabled);
                     Assert.True(Assert.IsType<Button>(productCatalog.FindName("EditButton")).IsEnabled);
                     Assert.True(Assert.IsType<Button>(productCatalog.FindName("DeactivateButton")).IsEnabled);
+                    var refreshSearch = Assert.IsType<TextBox>(productCatalog.FindName("SearchBox"));
+                    refreshSearch.Text = "TEST-FIRST";
+                    firstProduct.Price = 25m;
+                    firstProduct.StockQty = 30m;
+                    db.SaveChanges();
+                    Assert.IsType<Button>(productCatalog.FindName("RefreshButton"))
+                        .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    Assert.Equal("TEST-FIRST", refreshSearch.Text);
+                    var refreshedProduct = Assert.IsType<ProductRowVM>(selectedProductGrid.SelectedItem);
+                    Assert.Equal(firstProduct.Id, refreshedProduct.Product.Id);
+                    Assert.Equal(25m, refreshedProduct.Price);
+                    Assert.Equal(30m, refreshedProduct.StockQty);
+                    refreshSearch.Clear();
                     var dailySales = new DailySalesView();
                     Assert.Contains("#Inter", dailySales.FontFamily.Source);
                     var reportDate = Assert.IsType<DatePicker>(dailySales.FindName("DatePick"));
@@ -570,6 +595,15 @@ public class ThemeResourceTests
                     {
                         Assert.Same(sharedRowStyle, grid.RowStyle);
                         Assert.Same(sharedCellStyle, grid.CellStyle);
+                        Assert.Equal(12, grid.FontSize);
+                        grid.ApplyTemplate();
+                        grid.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent, grid));
+                        var viewer = Assert.IsType<ScrollViewer>(grid.Template.FindName("DG_ScrollViewer", grid));
+                        viewer.ApplyTemplate();
+                        var scrollbar = Assert.IsType<System.Windows.Controls.Primitives.ScrollBar>(
+                            viewer.Template.FindName("PART_VerticalScrollBar", viewer));
+                        Assert.Equal(0, Grid.GetRow(scrollbar));
+                        Assert.Equal(2, Grid.GetRowSpan(scrollbar));
                         Assert.All(grid.Columns.OfType<System.Windows.Controls.DataGridTextColumn>(),
                             column => Assert.NotNull(column.ElementStyle));
                     }
@@ -612,7 +646,7 @@ public class ThemeResourceTests
                     Assert.Contains("#Inter", catalogGrid.FontFamily.Source);
                     Assert.Equal(28, catalogGrid.RowHeight);
                     Assert.Equal(26, catalogGrid.ColumnHeaderHeight);
-                    Assert.Equal("Barcode", catalogGrid.Columns[0].Header);
+                    Assert.Equal("Product Code", catalogGrid.Columns[0].Header);
                     Assert.Equal("Product Description", catalogGrid.Columns[1].Header);
                     Assert.Equal("ACTIVE", new ProductRowVM(new Product { IsActive = true }).ActiveText);
                     Assert.Equal("DISABLED", new ProductRowVM(new Product { IsActive = false }).ActiveText);
@@ -620,7 +654,7 @@ public class ThemeResourceTests
                     var actions = Assert.IsType<WrapPanel>(productCatalog.FindName("ActionsPanel"));
                     Assert.Equal(1, Grid.GetColumn(actions));
                     Assert.Equal(0, Grid.GetRow(actions));
-                    Assert.Equal(4, actions.Children.Count);
+                    Assert.Equal(5, actions.Children.Count);
                     Assert.All(actions.Children.OfType<Button>(), button => Assert.Equal(28, button.Height));
                     Assert.All(actions.Children.OfType<Button>(), button =>
                     {
@@ -676,6 +710,40 @@ public class ThemeResourceTests
                     Assert.Equal("2", Assert.IsType<TextBox>(quantityEditor.FindName("QuantityBox")).Text);
                     Assert.Contains("3", Assert.IsType<TextBlock>(quantityEditor.FindName("StockText")).Text);
                     quantityEditor.Close();
+                    var previewSale = new Sale { SaleNumber = 0, TotalAmount = 112m, ChangeAmount = 8m };
+                    var branchId = db.Branches.First().Id;
+                    var shiftService = new ShiftService(db);
+                    if (!shiftService.HasOpenShift) shiftService.OpenShift(branchId, admin.Id, 100m);
+                    var dialogs = new Window[]
+                    {
+                        new CashMovementDialog(), new ChangeInitialPasswordDialog(admin),
+                        new HeldSalesDialog(branchId), new LockWindow(admin, 2),
+                        new PaymentDialog(112m, PaymentMethod.Cash), new ProductEditDialog(null),
+                        new QuantityEditDialog("TEST PRODUCT", 2m, 3m),
+                        new ReceiptPreviewDialog(previewSale),
+                        new ReceiveStockDialog(new Product { Name = "TEST PRODUCT", StockQty = 30 }),
+                        new ReportPrintPreviewWindow(new System.Windows.Documents.FlowDocument()),
+                        new SaleCompleteDialog(previewSale, false, false), new SaleDetailDialog(previewSale),
+                        new ShiftCloseDialog(), new ShiftOpenDialog(), new UserEditDialog(null),
+                        new VoidSaleDialog(previewSale)
+                    };
+                    foreach (var dialog in dialogs)
+                    {
+                        if (dialog is LockWindow) Assert.Null(dialog.FindName("ErrorText"));
+                        Assert.Contains("#Inter", dialog.FontFamily.Source);
+                        var content = Assert.IsAssignableFrom<FrameworkElement>(dialog.Content);
+                        var contentWidth = Math.Min(dialog.Width - 32, 1000);
+                        content.Measure(new Size(contentWidth, 550));
+                        content.Arrange(new Rect(0, 0, contentWidth, 550));
+                        content.UpdateLayout();
+                        Assert.True(content.ActualWidth <= contentWidth + 1);
+                        if (dialog is SaleDetailDialog or HeldSalesDialog)
+                        {
+                            var tableName = dialog is SaleDetailDialog ? "ItemsGrid" : "HeldGrid";
+                            Assert.Equal(12, Assert.IsType<DataGrid>(dialog.FindName(tableName)).FontSize);
+                        }
+                        if (dialog is not LockWindow) dialog.Close();
+                    }
                 }
                 finally
                 {
@@ -752,6 +820,12 @@ public class ThemeResourceTests
         Assert.Equal(0, Grid.GetRow(cart));
         Assert.Equal(1, Grid.GetColumn(cart));
         var actions = Assert.IsType<Grid>(pos.FindName("SaleActions"));
+        var recall = Assert.IsType<Button>(pos.FindName("RecallButton"));
+        var recallLabel = Assert.IsType<TextBlock>(pos.FindName("RecallLabel"));
+        Assert.Contains("(F6)", recallLabel.Text);
+        Assert.Null(recall.ToolTip);
+        Assert.True(recallLabel.ActualWidth <= recall.ActualWidth + 1);
+        Assert.True(recallLabel.ActualHeight <= recall.ActualHeight);
         AssertInside(actions, cart, width, height);
         AssertInside(Assert.IsType<Button>(pos.FindName("PayButton")), cart, width, height);
         AssertInside(Assert.IsType<DataGrid>(pos.FindName("ProductsGrid")), productsPanel, width, height);

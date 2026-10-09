@@ -5,22 +5,68 @@
              xmlns:converters="clr-namespace:MyPos.Desktop.Converters"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="MyPos.Desktop.Views.PosView"
+             FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12"
              SizeChanged="PosView_SizeChanged"
              PreviewKeyDown="UserControl_PreviewKeyDown" d:DesignWidth="1276.55" d:DesignHeight="542.05">
     <UserControl.Resources>
         <converters:UpperTextConverter x:Key="UpperText"/>
         <SolidColorBrush x:Key="MaterialDesign.Brush.Background" Color="White"/>
-        <Style x:Key="PosFloatingBox" TargetType="{x:Type TextBox}" BasedOn="{StaticResource UpperBox}">
-            <Setter Property="Height" Value="42"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <SolidColorBrush x:Key="PosInputBorderBrush" Color="#CDD1D4"/>
+        <Style x:Key="PosInput" TargetType="TextBox" BasedOn="{StaticResource UpperBox}">
+            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="White"/>
-            <Setter Property="materialDesign:HintAssist.Hint" Value="{Binding Tag, RelativeSource={RelativeSource Mode=Self}}"/>
-            <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
-            <Setter Property="materialDesign:HintAssist.Background" Value="White"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PosInputBorderBrush}"/>
+            <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
         </Style>
-        <Style x:Key="InvoiceHoverToolTipBox" TargetType="{x:Type TextBox}" BasedOn="{StaticResource UpperBox}">
+        <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
+            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PosInputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
+            <Setter Property="Padding" Value="8,0"/>
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource ReportChromeButton}">
+            <Setter Property="Margin" Value="0,5,0,5"/>
+        </Style>
+        <Style x:Key="PosPayButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource UiAccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource UiAccentBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsEnabled" Value="True"/>
+                        <Condition Property="IsMouseOver" Value="True"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="RowHeight" Value="28"/>
+            <Setter Property="ColumnHeaderHeight" Value="26"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="#EEF0F1"/>
+            <Setter Property="BorderBrush" Value="#CDD1D4"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="Padding" Value="6,3"/>
+        </Style>
+        <Style x:Key="InvoiceHoverToolTipBox" TargetType="{x:Type TextBox}" BasedOn="{StaticResource PosInput}">
             <Setter Property="ToolTipService.IsEnabled" Value="False"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
@@ -30,9 +76,9 @@
         </Style>
     </UserControl.Resources>
 
-    <DockPanel Margin="8">
+    <DockPanel Margin="8,6,8,8">
         <!-- Only the product and current-sale lists scroll; the POS chrome stays fixed. -->
-        <Border DockPanel.Dock="Bottom" Background="#EAF1F7" BorderBrush="#B8C7D8"
+        <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4"
                 BorderThickness="0,1,0,0" Padding="8,4" Margin="0,6,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -41,8 +87,8 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock x:Name="StatusText" Foreground="#334155" FontSize="12"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                <TextBlock x:Name="DateTimeText" Grid.Column="1" FontSize="13"
-                           FontWeight="SemiBold" Foreground="#334155"/>
+                <TextBlock x:Name="DateTimeText" Grid.Column="1" FontSize="12"
+                           Foreground="{StaticResource UiMutedBrush}"/>
             </Grid>
         </Border>
 
@@ -75,10 +121,10 @@
                     </Grid.RowDefinitions>
 
                     <Border x:Name="SaleDetailsPanel" Grid.Row="0" Background="White"
-                                BorderBrush="#D8E2EC" BorderThickness="1" CornerRadius="8"
+                                BorderBrush="#CDD1D4" BorderThickness="1"
                                 Padding="12,6" Margin="0,0,0,6">
                         <StackPanel>
-                            <TextBlock x:Name="SaleDetailsTitle" Text="Sale details" FontSize="14" FontWeight="SemiBold"
+                            <TextBlock x:Name="SaleDetailsTitle" Text="Sale details" FontSize="12" FontWeight="SemiBold"
                                            Foreground="#1F2937" Margin="0,0,0,4"/>
                             <Grid x:Name="HeaderFields">
                                 <Grid.RowDefinitions>
@@ -105,38 +151,45 @@
                                                  Style="{StaticResource InvoiceHoverToolTipBox}"
                                                  materialDesign:HintAssist.Hint="Enter invoice / OR number"
                                                  materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
-                                                 TextChanged="InvoiceBox_TextChanged" FontSize="14"/>
+                                                 TextChanged="InvoiceBox_TextChanged"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
                                     <TextBlock FontSize="11" FontWeight="Bold" Foreground="#526071"
                                                Margin="0,0,0,2" Text="Pay Mode"/>
-                                    <ComboBox x:Name="PayModeBox" Height="34" FontSize="14"/>
+                                    <ComboBox x:Name="PayModeBox" Height="34"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="0" Grid.Column="2">
                                     <TextBlock FontSize="11" FontWeight="Bold" Foreground="#526071"
                                                Margin="0,0,0,2" Text="Delivery / Type"/>
-                                    <ComboBox x:Name="TypeBox" Height="34" FontSize="14"/>
+                                    <ComboBox x:Name="TypeBox" Height="34"/>
                                 </StackPanel>
 
                                 <Grid x:Name="CustomerFields" Grid.Row="1" Grid.ColumnSpan="3"
-                                          Margin="0,14,0,0">
+                                          Margin="0,8,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="CustomerNameBox" Grid.Column="0"
-                                                 Margin="0,0,5,0" Style="{StaticResource PosFloatingBox}"
-                                                 Tag="Customer Name" TextChanged="CustomerNameBox_TextChanged"/>
-                                    <TextBox x:Name="AddressBox" Grid.Column="1"
-                                                 Margin="5,0,0,0" Style="{StaticResource PosFloatingBox}"
-                                                 Tag="Customer Address"/>
+                                    <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                        <TextBlock Text="Name" FontSize="11" FontWeight="Bold"
+                                                   Foreground="#526071" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="CustomerNameBox" Height="34"
+                                                 Style="{StaticResource PosInput}" Tag="Enter customer name"
+                                                 TextChanged="CustomerNameBox_TextChanged"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                        <TextBlock Text="Address" FontSize="11" FontWeight="Bold"
+                                                   Foreground="#526071" Margin="0,0,0,2"/>
+                                        <TextBox x:Name="AddressBox" Height="34"
+                                                 Style="{StaticResource PosInput}" Tag="Enter customer address"/>
+                                    </StackPanel>
                                 </Grid>
 
                                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,8,10,0">
                                     <TextBlock FontSize="11" FontWeight="Bold" Foreground="#526071"
                                                Margin="0,0,0,2" Text="DISCOUNT TYPE"/>
                                     <ComboBox x:Name="DiscountKindBox" Height="34"
-                                                  SelectionChanged="DiscountKindBox_SelectionChanged" FontSize="14">
+                                                  SelectionChanged="DiscountKindBox_SelectionChanged">
                                         <ComboBoxItem Content="NONE"/>
                                         <ComboBoxItem Content="AMOUNT"/>
                                         <ComboBoxItem Content="SENIOR/PWD"/>
@@ -148,10 +201,10 @@
                                                FontSize="11" FontWeight="Bold" Foreground="#526071"
                                                Margin="0,0,0,2"/>
                                     <TextBox x:Name="DiscountBox" Height="34" IsEnabled="False"
-                                                 Style="{StaticResource UpperBox}"
+                                                 Style="{StaticResource PosInput}"
                                                  Tag="Choose a discount type first"
                                                  KeyDown="DiscountBox_KeyDown"
-                                                 TextChanged="DiscountBox_TextChanged" FontSize="14"/>
+                                                 TextChanged="DiscountBox_TextChanged"/>
                                     <TextBlock x:Name="DiscountErrorText" Foreground="#B91C1C"
                                                    FontSize="11" TextWrapping="Wrap"/>
                                 </StackPanel>
@@ -160,7 +213,7 @@
                     </Border>
 
                     <Border x:Name="ProductsPanel" Grid.Row="1" Background="White"
-                                BorderBrush="#D8E2EC" BorderThickness="1" CornerRadius="8"
+                                BorderBrush="#CDD1D4" BorderThickness="1"
                                 Padding="10,6">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -173,21 +226,21 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Products" FontSize="14" FontWeight="SemiBold"
+                                <TextBlock Text="Products" FontSize="12" FontWeight="SemiBold"
                                                Foreground="#1F2937"/>
                                 <TextBlock Grid.Column="1" Text="Double-click / Enter to add"
                                                FontSize="11" Foreground="#64748B"
                                                VerticalAlignment="Center"/>
                             </Grid>
-                            <Grid Grid.Row="1" Margin="0,4,0,4">
-                                <TextBox x:Name="SearchBox" Height="34" FontSize="14"
-                                             Style="{StaticResource UpperBox}" Padding="34,0,10,0"
+                            <Grid Grid.Row="1" Margin="0,5,0,5">
+                                <TextBox x:Name="SearchBox" Height="28" FontSize="12"
+                                             Style="{StaticResource PosInput}" Padding="34,0,10,0"
                                              Tag="Scan barcode or search product"
                                              VerticalContentAlignment="Center"
                                              TextChanged="SearchBox_TextChanged"
                                              KeyDown="SearchBox_KeyDown"/>
-                                <TextBlock Text="&#xE721;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                               Foreground="#94A3B8" FontSize="16"
+                                <materialDesign:PackIcon Kind="Magnify"
+                                               Foreground="{StaticResource UiMutedBrush}" Width="16" Height="16"
                                                VerticalAlignment="Center" HorizontalAlignment="Left"
                                                Margin="12,0,0,0" IsHitTestVisible="False"/>
                             </Grid>
@@ -197,11 +250,11 @@
                                               HeadersVisibility="Column" RowHeaderWidth="0"
                                               ScrollViewer.VerticalScrollBarVisibility="Auto"
                                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                              BorderThickness="1" BorderBrush="#E2E8F0" Background="White"
+                                              BorderThickness="1" BorderBrush="#CDD1D4" Background="White"
                                               MouseDoubleClick="ProductsGrid_MouseDoubleClick"
-                                              KeyDown="ProductsGrid_KeyDown">
+                                              KeyDown="ProductsGrid_KeyDown" Margin="0,2,0,0">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="PN/ SKU" Binding="{Binding Barcode, TargetNullValue=—}"
+                                        <DataGridTextColumn Header="Product Code" Binding="{Binding Barcode, TargetNullValue=—}"
                                                                 ElementStyle="{StaticResource GridCellText}" Width="125"/>
                                         <DataGridTextColumn Header="Product Description" Binding="{Binding Name}"
                                                                 ElementStyle="{StaticResource GridCellText}" Width="*"/>
@@ -223,7 +276,7 @@
 
                 <!-- Right: cart, compact total and its own action buttons. -->
                 <Border x:Name="CartArea" Grid.Row="0" Grid.Column="1" Background="White"
-                            BorderBrush="#D8E2EC" BorderThickness="1" CornerRadius="8"
+                            BorderBrush="#CDD1D4" BorderThickness="1"
                             Padding="10,8" Margin="8,0,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -236,7 +289,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="CURRENT SALE" FontSize="14" FontWeight="SemiBold"
+                            <TextBlock Text="Current sale" FontSize="12" FontWeight="SemiBold"
                                            Foreground="#1F2937"/>
                             <TextBlock x:Name="CartSummaryText" Grid.Column="1"
                                            Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
@@ -249,9 +302,9 @@
                                           SelectionMode="Single" HeadersVisibility="Column" RowHeaderWidth="0"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                          BorderThickness="1" BorderBrush="#E2E8F0" Background="White">
+                                          BorderThickness="1" BorderBrush="#CDD1D4" Background="White">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="PN/ SKU" Binding="{Binding ItemCode}"
+                                    <DataGridTextColumn Header="Product Code" Binding="{Binding ItemCode}"
                                                             ElementStyle="{StaticResource GridCellText}" Width="125"/>
                                     <DataGridTextColumn Header="Product Description" ElementStyle="{StaticResource GridCellText}"
                                                             Width="*" Binding="{Binding Name, Converter={StaticResource UpperText}}"/>
@@ -266,13 +319,13 @@
                             <TextBlock x:Name="CartEmptyHint" Text="No items yet. Scan or choose a product."
                                        Foreground="#64748B" Background="White" Padding="12,6"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       TextAlignment="Center" TextWrapping="Wrap" FontStyle="Italic"
+                                       TextAlignment="Center" TextWrapping="Wrap"
                                        IsHitTestVisible="False"/>
                         </Grid>
 
                         <StackPanel Grid.Row="2" Margin="0,10,0,0">
                             <Border x:Name="TotalCard" Background="{DynamicResource UiAccentBrush}"
-                                        CornerRadius="6" Padding="10,8">
+                                        BorderBrush="{StaticResource UiAccentBrush}" BorderThickness="1" Padding="10,8">
                                 <StackPanel>
                                     <Grid x:Name="SummaryGrid">
                                         <Grid.RowDefinitions>
@@ -286,7 +339,7 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel x:Name="TotalBlock" Grid.Column="0">
                                             <TextBlock Text="TOTAL AMOUNT" FontSize="11" Foreground="White"/>
-                                            <TextBlock x:Name="TotalText" Text="₱0.00" FontSize="25"
+                                            <TextBlock x:Name="TotalText" Text="₱0.00" FontSize="22"
                                                            FontWeight="Bold" Foreground="White"/>
                                         </StackPanel>
                                         <StackPanel x:Name="NetBlock" Grid.Column="1" VerticalAlignment="Bottom">
@@ -329,7 +382,7 @@
                             <!-- Only the closed-shift state needs a prompt. Keep it beside payment. -->
                             <Border x:Name="ShiftPrompt" Background="#FFF8E8"
                                         BorderBrush="#E8C982" BorderThickness="1"
-                                        CornerRadius="6" Padding="8,4" Margin="0,6,0,0"
+                                        Padding="8,4" Margin="0,6,0,0"
                                         Visibility="Collapsed">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -347,7 +400,7 @@
                                 </Grid>
                             </Border>
 
-                            <Grid x:Name="SaleActions" Margin="0,6,0,0">
+                            <Grid x:Name="SaleActions" Margin="0,1,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="6"/>
@@ -360,16 +413,18 @@
                                 <Button x:Name="HoldButton" Grid.Column="0" Content="Hold (F3)" Height="40"
                                             MinWidth="0" Padding="0"
                                             Click="HoldButton_Click"/>
-                                <Button x:Name="RecallButton" Grid.Column="2" Content="Recall (F6)" Height="40"
+                                <Button x:Name="RecallButton" Grid.Column="2" Height="40"
                                             MinWidth="0" Padding="0"
-                                            Click="RecallButton_Click"/>
+                                            Click="RecallButton_Click">
+                                    <TextBlock x:Name="RecallLabel" Text="Recall (F6)"
+                                               TextWrapping="Wrap" TextAlignment="Center"/>
+                                </Button>
                                 <Button x:Name="ClearButton" Grid.Column="4" Content="Clear (F4)" Height="40"
                                             MinWidth="0" Padding="0"
                                             Click="ClearButton_Click"/>
                                 <Button x:Name="PayButton" Grid.Column="6" Content="Pay (F2)" Height="40"
                                             MinWidth="0" Padding="0" IsEnabled="False"
-                                            Background="{DynamicResource UiAccentBrush}" Foreground="White"
-                                            FontWeight="SemiBold" Click="PayButton_Click"/>
+                                            Style="{StaticResource PosPayButton}" Click="PayButton_Click"/>
                             </Grid>
                         </StackPanel>
                     </Grid>

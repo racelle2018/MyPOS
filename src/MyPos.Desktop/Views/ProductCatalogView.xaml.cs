@@ -112,6 +112,8 @@ public partial class ProductCatalogView : UserControl
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => LoadProducts();
 
+    private void RefreshButton_Click(object sender, RoutedEventArgs e) => LoadProducts();
+
     private void SearchBox_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape) SearchBox.Text = "";

@@ -71,8 +71,9 @@ public partial class LockWindow : Window
                 Details = "Failed session unlock attempt"
             });
             App.Db.SaveChanges();
-            ErrorText.Text = "Incorrect password.";
             PasswordBox.Clear();
+            MessageBox.Show(this, "Incorrect password. Please try again.",
+                "Unable to unlock", MessageBoxButton.OK, MessageBoxImage.Warning);
             PasswordBox.Focus();
             return;
         }

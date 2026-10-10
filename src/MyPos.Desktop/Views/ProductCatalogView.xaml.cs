@@ -134,6 +134,19 @@ public partial class ProductCatalogView : UserControl
 
     private void EditButton_Click(object sender, RoutedEventArgs e) => EditSelected();
 
+    private void ProductsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        // A cashier's ordinary double-click is selection, not a denied admin action.
+        if (!Permissions.IsAdmin || e.ChangedButton != MouseButton.Left) return;
+        if (e.OriginalSource is not DependencyObject source ||
+            ItemsControl.ContainerFromElement(ProductsGrid, source) is not DataGridRow { Item: ProductRowVM } row)
+            return; // Headers, scrollbars and empty space must never edit the previous selection.
+
+        ProductsGrid.SelectedItem = row.Item;
+        e.Handled = true;
+        EditSelected(); // Retains the central role check used by the Edit button.
+    }
+
     private void EditSelected()
     {
         if (!Permissions.RequireAdmin("edit products")) return;

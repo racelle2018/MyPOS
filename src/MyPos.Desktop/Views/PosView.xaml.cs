@@ -21,7 +21,6 @@ public partial class PosView : UserControl
     private readonly Guid _branchId;
     private readonly decimal _vatRate;
     private bool ReceiptsEnabled => AppSettings.Get("ReceiptIssuanceEnabled", "false") == "true";
-    private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly DispatcherTimer _productRefreshTimer = new() { Interval = TimeSpan.FromSeconds(3) };
     private bool _sanitizingInvoice;
     private Dictionary<string, string> _customerAddresses = new(StringComparer.OrdinalIgnoreCase);
@@ -51,7 +50,6 @@ public partial class PosView : UserControl
             UpdateInvoiceBoxState();
             UpdateShiftStatus();
             UpdateHeldCount();
-            _clock.Start();
             _productRefreshTimer.Start();
             Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
             {
@@ -66,13 +64,9 @@ public partial class PosView : UserControl
         TypeBox.SelectedIndex = 0;
         DiscountKindBox.SelectedIndex = 0;
 
-        _clock.Tick += (_, _) => UpdateClock();
         _productRefreshTimer.Tick += (_, _) => RefreshProducts(onlyIfChanged: true);
-        UpdateClock();
-        _clock.Start();
         Unloaded += (_, _) =>
         {
-            _clock.Stop();
             _productRefreshTimer.Stop();
         };
 
@@ -92,11 +86,6 @@ public partial class PosView : UserControl
     }
 
     // ---------- header (date / invoice / customer) ----------
-
-    private void UpdateClock()
-    {
-        DateTimeText.Text = DateTime.Now.ToString("dddd, MMMM d, yyyy · h:mm:ss tt");
-    }
 
     private void UpdateInvoiceBoxState()
     {
@@ -126,13 +115,27 @@ public partial class PosView : UserControl
 
     private void CustomerNameBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (NormalizeUppercase(CustomerNameBox)) return;
         if (AddressBox == null || _customerAddresses.Count == 0) return;
         if (!string.IsNullOrWhiteSpace(AddressBox.Text) && AddressBox.Text != _lastAutoAddress) return;
         var address = _customerAddresses.GetValueOrDefault(CustomerNameBox.Text.Trim());
         if (address == null) return;
         AddressBox.Text = address;
-        _lastAutoAddress = address;
+        _lastAutoAddress = AddressBox.Text;
     }
+
+    private static bool NormalizeUppercase(TextBox box)
+    {
+        var uppercase = box.Text.ToUpperInvariant();
+        if (uppercase == box.Text) return false;
+        var caret = box.CaretIndex;
+        box.Text = uppercase;
+        box.CaretIndex = Math.Min(caret, uppercase.Length);
+        return true;
+    }
+
+    private void AddressBox_TextChanged(object sender, TextChangedEventArgs e)
+        => NormalizeUppercase(AddressBox);
 
     private void UpdateShiftStatus()
     {
@@ -274,7 +277,6 @@ public partial class PosView : UserControl
         DiscountKindBox.SelectedIndex = 0;
         PayModeBox.SelectedIndex = 0;
         TypeBox.SelectedIndex = 0;
-        UpdateClock();
         LoadCustomers();     // a new customer was just created — suggest it from now on
         RefreshProducts();   // stock display refresh
         RefreshTotals();
@@ -387,6 +389,7 @@ public partial class PosView : UserControl
 
     private void DiscountBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (DiscountKindBox != null && IsSeniorSale && NormalizeUppercase(DiscountBox)) return;
         if (DiscountErrorText != null) DiscountErrorText.Text = "";
         if (DiscountKindBox != null && GrossText != null) RefreshTotals();
     }
@@ -396,6 +399,7 @@ public partial class PosView : UserControl
         if (DiscountBox == null || DiscountDetailLabel == null || DiscountErrorText == null) return;
         DiscountBox.Text = "";
         DiscountBox.IsEnabled = DiscountKindBox.SelectedIndex is 1 or 2;
+        DiscountBox.CharacterCasing = IsSeniorSale ? CharacterCasing.Upper : CharacterCasing.Normal;
         DiscountBox.TextAlignment = DiscountKindBox.SelectedIndex == 1
             ? TextAlignment.Right : TextAlignment.Left;
         DiscountDetailLabel.Text = DiscountKindBox.SelectedIndex switch
@@ -418,7 +422,7 @@ public partial class PosView : UserControl
     {
         if (_sanitizingInvoice || !InvoiceBox.IsEnabled) return;
 
-        var clean = string.Concat(InvoiceBox.Text.Where(c => char.IsLetterOrDigit(c) || c == '-'));
+        var clean = string.Concat(InvoiceBox.Text.Where(c => char.IsLetterOrDigit(c) || c == '-')).ToUpperInvariant();
         if (clean != InvoiceBox.Text)
         {
             _sanitizingInvoice = true;
@@ -434,7 +438,6 @@ public partial class PosView : UserControl
         InvoiceBox.BorderBrush = duplicate
             ? new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26))
             : (Brush)FindResource("PosInputBorderBrush");
-        InvoiceBox.BorderThickness = duplicate ? new Thickness(2) : new Thickness(1);
         InvoiceBox.ToolTip = duplicate
             ? $"Invoice '{clean}' was already used."
             : "Enter OR number issued for this sale.";
@@ -594,7 +597,6 @@ public partial class PosView : UserControl
             return;
         }
         InvoiceBox.BorderBrush = (Brush)FindResource("PosInputBorderBrush");
-        InvoiceBox.BorderThickness = new Thickness(1);
 
         if (_cart.Count == 0) { Status("Cart is empty"); return; }
         if (!SynchronizeCartBeforePay()) return;
@@ -603,7 +605,6 @@ public partial class PosView : UserControl
         {
             Status("Invoice / OR number is required");
             InvoiceBox.BorderBrush = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
-            InvoiceBox.BorderThickness = new Thickness(2);
             InvoiceBox.Focus();
             InvoiceBox.SelectAll();
             MessageBox.Show(

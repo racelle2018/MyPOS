@@ -1,7 +1,9 @@
 <Window x:Class="MyPos.Desktop.Dialogs.ReportPrintPreviewWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Print Preview — Daily Sales" Height="720" Width="1180"
+        xmlns:controls="clr-namespace:MyPos.Desktop.Controls"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Print Preview — Daily Sales" Height="720" Width="950"
         WindowStartupLocation="CenterOwner" Style="{DynamicResource DialogWindow}">
     <Window.Resources>
         <ResourceDictionary>
@@ -11,15 +13,69 @@
         </ResourceDictionary>
     </Window.Resources>
     <DockPanel Margin="16">
+        <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBlock Text="Paper size" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox x:Name="PaperSizeBox" Width="230" SelectedIndex="2"
+                      SelectionChanged="PaperSizeBox_SelectionChanged"/>
+            <TextBlock Text="Portrait" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            <TextBlock Text="Zoom" VerticalAlignment="Center" Margin="12,0,8,0"/>
+            <Button x:Name="ZoomOutButton" Content="−" Width="32" MinWidth="0" Height="28"
+                    ToolTip="Zoom out" Click="ZoomOutButton_Click"/>
+            <Slider x:Name="ZoomSlider" Width="120" Minimum="25" Maximum="300" Margin="6,0"
+                    VerticalAlignment="Center" TickFrequency="10" SmallChange="10" LargeChange="25"
+                    Value="{Binding Zoom, ElementName=DocViewer, Mode=TwoWay}"/>
+            <Button x:Name="ZoomInButton" Content="+" Width="32" MinWidth="0" Height="28"
+                    ToolTip="Zoom in" Click="ZoomInButton_Click"/>
+            <TextBox x:Name="ZoomPercentBox" Width="64" Height="28" MinHeight="28" Margin="6,5,0,5"
+                     materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                     Padding="4,2" TextAlignment="Center" VerticalContentAlignment="Center" MaxLength="5"
+                     Text="{Binding Zoom, ElementName=DocViewer, Mode=OneWay, StringFormat={}{0:0}%}"
+                     ToolTip="Zoom: 25–300%. Type a value and press Enter."
+                     AutomationProperties.Name="Zoom percentage"
+                     KeyDown="ZoomPercentBox_KeyDown" LostKeyboardFocus="ZoomPercentBox_LostKeyboardFocus"/>
+            <Button x:Name="ResetZoomButton" Content="Reset zoom" Height="28" Margin="6,5,0,5"
+                    Click="ResetZoomButton_Click"/>
+        </WrapPanel>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button Content="Close" Width="90" Height="32" Margin="0,5,8,5" IsCancel="True"/>
+            <Button Content="Save as PDF" Width="120" Height="32" Margin="0,5,8,5"
+                    Click="SavePdfButton_Click"/>
             <Button Content="Print" Width="110" Height="32" Style="{StaticResource PrimaryButton}"
                     Click="PrintButton_Click"/>
         </StackPanel>
-        <Border BorderBrush="#CDD1D4" BorderThickness="1" CornerRadius="2"
+        <Border BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" CornerRadius="2"
                 Background="#EEF0F1" Padding="8">
-            <FlowDocumentScrollViewer x:Name="DocViewer"/>
+            <controls:ReportDocumentPageViewer x:Name="DocViewer" MinZoom="25" MaxZoom="300" ZoomIncrement="10" Zoom="100">
+                <controls:ReportDocumentPageViewer.Template>
+                    <ControlTemplate TargetType="FlowDocumentPageViewer">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Previous" Height="28" Margin="4,5"
+                                        Command="NavigationCommands.PreviousPage"
+                                        CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <TextBlock VerticalAlignment="Center" Margin="8,0">
+                                    <Run Text="Page "/><Run Text="{Binding MasterPageNumber, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+                                    <Run Text=" of "/><Run Text="{Binding PageCount, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+                                </TextBlock>
+                                <Button Content="Next" Height="28" Margin="4,5"
+                                        Command="NavigationCommands.NextPage"
+                                        CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
+                            </StackPanel>
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <Border x:Name="PaperGuideBorder" Margin="12" HorizontalAlignment="Center"
+                                        VerticalAlignment="Top" Background="White"
+                                        BorderBrush="{StaticResource UiMutedBrush}"
+                                        BorderThickness="1"
+                                        SnapsToDevicePixels="True">
+                                    <DocumentPageView x:Name="PreviewPage" DocumentViewerBase.IsMasterPage="True"
+                                                      Stretch="None"/>
+                                </Border>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </ControlTemplate>
+                </controls:ReportDocumentPageViewer.Template>
+            </controls:ReportDocumentPageViewer>
         </Border>
     </DockPanel>
 </Window>

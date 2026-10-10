@@ -158,7 +158,18 @@ public static class DataGridBehaviors
     }
 
     private static DependencyObject? Parent(DependencyObject node)
-        => VisualTreeHelper.GetParent(node) ?? (node as FrameworkElement)?.Parent;
+    {
+        // Mouse events can originate from inline text (Run/Span), which is
+        // content rather than a Visual. Follow its content parent first.
+        if (node is ContentElement content)
+            return ContentOperations.GetParent(content)
+                ?? (content as FrameworkContentElement)?.Parent;
+
+        if (node is Visual or System.Windows.Media.Media3D.Visual3D)
+            return VisualTreeHelper.GetParent(node) ?? LogicalTreeHelper.GetParent(node);
+
+        return LogicalTreeHelper.GetParent(node);
+    }
 
     public static readonly DependencyProperty KeepSelectionProperty =
         DependencyProperty.RegisterAttached("KeepSelection", typeof(bool),

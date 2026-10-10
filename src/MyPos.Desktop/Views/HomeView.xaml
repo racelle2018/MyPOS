@@ -1,0 +1,55 @@
+<UserControl x:Class="MyPos.Desktop.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12">
+    <UserControl.Resources>
+        <Style x:Key="HomeAction" TargetType="Button" BasedOn="{StaticResource ReportChromeButton}">
+            <Setter Property="Width" Value="240"/>
+            <Setter Property="Height" Value="90"/>
+            <Setter Property="Margin" Value="0,5,12,5"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+    </UserControl.Resources>
+    <ScrollViewer Background="#EEF0F1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24">
+            <TextBlock x:Name="GreetingText" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            <TextBlock Text="Choose a workspace below or open a menu at the top."
+                       Foreground="{StaticResource UiMutedBrush}" Margin="0,8,0,20" TextWrapping="Wrap"/>
+            <TextBlock Text="Workspaces" FontWeight="SemiBold" Margin="0,0,0,6"/>
+            <WrapPanel>
+                <Button Style="{StaticResource HomeAction}" Tag="pos" Click="Workspace_Click">
+                    <StackPanel><materialDesign:PackIcon Kind="Cart" Width="22" Height="22" Foreground="{StaticResource UiAccentBrush}"/>
+                        <TextBlock Text="New Sale" FontWeight="SemiBold" Margin="0,5,0,3"/>
+                        <TextBlock Text="Scan products and take payment." Foreground="{StaticResource UiMutedBrush}"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource HomeAction}" Tag="products" Click="Workspace_Click">
+                    <StackPanel><materialDesign:PackIcon Kind="Package" Width="22" Height="22" Foreground="{StaticResource UiAccentBrush}"/>
+                        <TextBlock Text="Products" FontWeight="SemiBold" Margin="0,5,0,3"/>
+                        <TextBlock Text="Browse products, prices, and stock." Foreground="{StaticResource UiMutedBrush}"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource HomeAction}" Tag="reports" Click="Workspace_Click">
+                    <StackPanel><materialDesign:PackIcon Kind="ChartBar" Width="22" Height="22" Foreground="{StaticResource UiAccentBrush}"/>
+                        <TextBlock Text="Reports" FontWeight="SemiBold" Margin="0,5,0,3"/>
+                        <TextBlock Text="Review daily sales and receipts." Foreground="{StaticResource UiMutedBrush}"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource HomeAction}" Tag="shift" Click="Workspace_Click">
+                    <StackPanel><materialDesign:PackIcon Kind="ClockOutline" Width="22" Height="22" Foreground="{StaticResource UiAccentBrush}"/>
+                        <TextBlock Text="Shift" FontWeight="SemiBold" Margin="0,5,0,3"/>
+                        <TextBlock Text="Manage your shift and cash drawer." Foreground="{StaticResource UiMutedBrush}"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
+            <Border Background="White" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" Padding="12"
+                    Margin="0,20,12,0" MaxWidth="744" HorizontalAlignment="Left">
+                <TextBlock Text="Your current sale stays available when you move between pages. Use System to lock your session or log out."
+                           TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}"/>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -15,7 +15,7 @@
             <TextBlock x:Name="SubHeaderText" Foreground="#475569" Margin="0,4,0,0"/>
             <TextBlock x:Name="VoidedText" Foreground="#DC2626" FontWeight="SemiBold" Visibility="Collapsed"/>
         </StackPanel>
-        <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4" BorderThickness="1" Padding="14" Margin="0,12,0,0">
+        <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" Padding="14" Margin="0,12,0,0">
             <StackPanel>
                 <TextBlock x:Name="GrossText"/>
                 <TextBlock x:Name="DiscountText"/>

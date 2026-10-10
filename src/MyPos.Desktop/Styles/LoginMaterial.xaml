@@ -12,6 +12,7 @@
 
     <Style x:Key="LoginMaterialTextBox" TargetType="TextBox"
            BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
         <Setter Property="Width" Value="280"/>
         <Setter Property="Height" Value="48"/>
@@ -19,7 +20,7 @@
         <Setter Property="Padding" Value="12,8"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
         <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="0"/>
         <Setter Property="Background" Value="White"/>
@@ -27,6 +28,7 @@
     </Style>
     <Style x:Key="LoginMaterialPasswordBox" TargetType="PasswordBox"
            BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
+            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
         <Setter Property="Width" Value="280"/>
         <Setter Property="Height" Value="48"/>
@@ -34,7 +36,7 @@
         <Setter Property="Padding" Value="12,8"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
         <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="0"/>
         <Setter Property="Background" Value="White"/>

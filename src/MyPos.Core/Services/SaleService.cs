@@ -30,7 +30,7 @@ public class SaleService
     {
         if (qty <= 0) throw new ArgumentException("Quantity must be positive.", nameof(qty));
         if (unitCost < 0) throw new ArgumentException("Unit cost cannot be negative.", nameof(unitCost));
-        notes = notes?.Trim().ToUpperInvariant() ?? "";
+        notes = notes?.Trim() ?? "";
 
         using var tx = _db.Database.BeginTransaction();
 

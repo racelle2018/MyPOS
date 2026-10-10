@@ -16,7 +16,7 @@
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#CDD1D4"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>
         </Style>
         <Style x:Key="ShiftMetricLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11"/>
@@ -34,11 +34,11 @@
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Background" Value="#EEF0F1"/>
             <Setter Property="BorderBrush" Value="#CDD1D4"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>
             <Setter Property="Padding" Value="6,3"/>
         </Style>
     </UserControl.Resources>
-    <Border Margin="8,6,8,8" BorderBrush="#CDD1D4" BorderThickness="1" Background="White">
+    <Border Margin="8,6,8,8" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" Background="White">
         <Grid SizeChanged="ShiftLayout_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -48,7 +48,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Border Grid.Row="0" Background="#EEF0F1" BorderBrush="#CDD1D4"
-                    BorderThickness="0,0,0,1" Padding="8,3">
+                    BorderThickness="{StaticResource UiBorderBottomThickness}" Padding="8,3">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -121,7 +121,7 @@
                 </Border>
             </UniformGrid>
             <Border Grid.Row="2" Background="#EEF0F1" BorderBrush="#CDD1D4"
-                    BorderThickness="0,0,0,1" Padding="8,5">
+                    BorderThickness="{StaticResource UiBorderBottomThickness}" Padding="8,5">
                 <TextBlock Text="Recent shifts" FontWeight="SemiBold"/>
             </Border>
             <Grid Grid.Row="3">
@@ -145,7 +145,7 @@
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Grid>
             <Border Grid.Row="4" Background="#EEF0F1" BorderBrush="#CDD1D4"
-                    BorderThickness="0,1,0,0" Padding="8,3">
+                    BorderThickness="{StaticResource UiBorderTopThickness}" Padding="8,3">
                 <TextBlock x:Name="CountText" FontSize="11" Foreground="{StaticResource UiMutedBrush}"/>
             </Border>
         </Grid>

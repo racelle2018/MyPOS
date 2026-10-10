@@ -23,7 +23,8 @@ public class ShiftServiceTests
         sales.VoidSale(voidedSale.Id, user.Id, "Mistake");
         sales.PostSale(branch.Id, user.Id, new[] { new CartLine(productId, 1m) }, tendered: 50m);
         sales.PostSale(branch.Id, user.Id, new[] { new CartLine(productId, 1m) }, tendered: 50m, method: PaymentMethod.Card);
-        shifts.RecordCashMovement(user.Id, CashMovementType.CashIn, 20m, "Float added");
+        var cashIn = shifts.RecordCashMovement(user.Id, CashMovementType.CashIn, 20m, " Float added ");
+        Assert.Equal("Float added", cashIn.Reason);
         shifts.RecordCashMovement(user.Id, CashMovementType.CashOut, 10m, "Safe drop");
 
         var totals = shifts.GetShiftTotals(shift.Id);

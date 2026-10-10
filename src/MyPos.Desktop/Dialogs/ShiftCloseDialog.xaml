@@ -24,7 +24,7 @@
                      VerticalContentAlignment="Top" Padding="10,7"
                      Tag="Notes about this shift (optional)"
                      AutomationProperties.Name="Shift notes"/>
-            <Border Background="#EEF0F1" BorderBrush="#CDD1D4" BorderThickness="1" Padding="10">
+            <Border Background="#EEF0F1" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" Padding="10">
                 <StackPanel>
                     <TextBlock x:Name="FloatText" TextWrapping="Wrap"/>
                     <TextBlock x:Name="CashSalesText" TextWrapping="Wrap"/>

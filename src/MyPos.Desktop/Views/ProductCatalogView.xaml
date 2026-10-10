@@ -9,7 +9,6 @@
              FontSize="12" d:DesignWidth="1070.43">
     <UserControl.Resources>
         <converters:StockBrushConverter x:Key="StockBrush"/>
-        <converters:UpperTextConverter x:Key="UpperText"/>
         <Style x:Key="ProductToolbarButton" TargetType="{x:Type Button}"
                BasedOn="{StaticResource ReportChromeButton}">
             <Setter Property="Height" Value="28"/>
@@ -21,18 +20,18 @@
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="#EEF0F1"/>
             <Setter Property="BorderBrush" Value="#CDD1D4"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>
             <Setter Property="Padding" Value="6,3"/>
         </Style>
     </UserControl.Resources>
     <UserControl.FontFamily>
         <StaticResource ResourceKey="ReportInterFontFamily"/>
     </UserControl.FontFamily>
-    <Border Margin="8,6,8,8" BorderBrush="#CDD1D4" BorderThickness="1"
+    <Border Margin="8,6,8,8" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}"
             Background="White">
         <DockPanel Background="White">
             <Border DockPanel.Dock="Top" Background="#EEF0F1" BorderBrush="#CDD1D4"
-                BorderThickness="0,0,0,1" Padding="6,3">
+                BorderThickness="{StaticResource UiBorderBottomThickness}" Padding="6,3">
                 <Grid x:Name="ToolbarGrid"
               SizeChanged="ToolbarGrid_SizeChanged">
                     <Grid.RowDefinitions>
@@ -44,7 +43,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Grid x:Name="SearchPanel" Margin="0,0,10,0">
-                        <TextBox x:Name="SearchBox" Style="{StaticResource UpperBox}"
+                        <TextBox x:Name="SearchBox" Style="{StaticResource InputBox}"
                          Height="28" Margin="0,5,0,5" FontSize="12" Padding="34,0,10,0"
                          Tag="Search barcode, product, or category"
                          materialDesign:HintAssist.Hint="{Binding Tag, RelativeSource={RelativeSource Mode=Self}}"
@@ -90,7 +89,7 @@
             </Border>
 
             <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4"
-                BorderThickness="0,1,0,0" Padding="8,3">
+                BorderThickness="{StaticResource UiBorderTopThickness}" Padding="8,3">
                 <TextBlock x:Name="CountText" FontSize="11"
                        Foreground="{StaticResource UiMutedBrush}"/>
             </Border>
@@ -105,11 +104,12 @@
                   FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12"
                   RowHeight="28" ColumnHeaderHeight="26"
                   ColumnHeaderStyle="{StaticResource ProductColumnHeader}"
-                  CanUserResizeColumns="True" SelectionChanged="ProductsGrid_SelectionChanged">
+                  CanUserResizeColumns="True" SelectionChanged="ProductsGrid_SelectionChanged"
+                  MouseDoubleClick="ProductsGrid_MouseDoubleClick">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Product Code" Binding="{Binding Barcode}" Width="130" ElementStyle="{StaticResource GridCellText}"/>
-                        <DataGridTextColumn Header="Product Description" Width="*" ElementStyle="{StaticResource GridCellText}" Binding="{Binding Name, Converter={StaticResource UpperText}}"/>
-                        <DataGridTextColumn Header="Category" Width="150" ElementStyle="{StaticResource GridCellText}" Binding="{Binding Category, Converter={StaticResource UpperText}}"/>
+                        <DataGridTextColumn Header="Product Description" Width="*" ElementStyle="{StaticResource GridCellText}" Binding="{Binding Name}"/>
+                        <DataGridTextColumn Header="Category" Width="150" ElementStyle="{StaticResource GridCellText}" Binding="{Binding Category}"/>
                         <DataGridTextColumn Header="Unit" Binding="{Binding Unit}" Width="55" ElementStyle="{StaticResource GridCellText}"/>
                         <DataGridTextColumn x:Name="CostColumn" Header="Cost" ElementStyle="{StaticResource RightCell}"
                                     Binding="{Binding CostPrice, StringFormat=₱\{0:N2\}}" Width="90"/>

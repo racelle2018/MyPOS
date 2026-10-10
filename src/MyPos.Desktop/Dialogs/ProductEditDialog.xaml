@@ -15,11 +15,11 @@
         <TextBlock x:Name="TitleText" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,16"/>
 
         <TextBlock Text="Barcode (optional — must be unique)"/>
-        <TextBox x:Name="BarcodeBox" Style="{StaticResource UpperBox}" Height="34"
+        <TextBox x:Name="BarcodeBox" Style="{StaticResource InputBox}" Height="34" CharacterCasing="Upper"
                  Tag="Scan or type barcode" Margin="0,4,0,12"/>
 
         <TextBlock Text="Product Description *"/>
-        <TextBox x:Name="NameBox" Style="{StaticResource UpperBox}" Height="34"
+        <TextBox x:Name="NameBox" Style="{StaticResource InputBox}" Height="34" CharacterCasing="Upper"
                  Tag="Product name" Margin="0,4,0,12"/>
 
         <Grid Margin="0,0,0,12">

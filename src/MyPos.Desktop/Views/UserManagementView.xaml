@@ -14,14 +14,14 @@
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Background" Value="#EEF0F1"/>
             <Setter Property="BorderBrush" Value="#CDD1D4"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>
             <Setter Property="Padding" Value="6,3"/>
         </Style>
     </UserControl.Resources>
-    <Border Margin="8,6,8,8" BorderBrush="#CDD1D4" BorderThickness="1" Background="White">
+    <Border Margin="8,6,8,8" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" Background="White">
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="#EEF0F1" BorderBrush="#CDD1D4"
-                BorderThickness="0,0,0,1" Padding="6,3">
+                BorderThickness="{StaticResource UiBorderBottomThickness}" Padding="6,3">
         <Grid x:Name="ToolbarGrid" SizeChanged="ToolbarGrid_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -66,7 +66,7 @@
         </Grid>
         </Border>
         <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4"
-                BorderThickness="0,1,0,0" Padding="8,3">
+                BorderThickness="{StaticResource UiBorderTopThickness}" Padding="8,3">
             <TextBlock x:Name="CountText" FontSize="11" Foreground="{StaticResource UiMutedBrush}"/>
         </Border>
         <Grid>

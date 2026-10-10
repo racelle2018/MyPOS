@@ -35,7 +35,7 @@ public partial class VoidSaleDialog : Window
 
         try
         {
-            new SaleService(App.Db).VoidSale(_sale.Id, App.CurrentUser!.Id, reason.ToUpperInvariant());
+            new SaleService(App.Db).VoidSale(_sale.Id, App.CurrentUser!.Id, reason);
             DialogResult = true;
         }
         catch (InvalidOperationException ex)

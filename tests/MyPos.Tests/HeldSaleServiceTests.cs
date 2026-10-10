@@ -26,18 +26,21 @@ public class HeldSaleServiceTests
             userId,
             new List<HeldCartLine> { new(productId, "Item", null, 112m, 50m, false, 2m, 5m) },
             "Customer",
-            "OR-42",
+            "or-Ab42",
             null,
             customerAddress: "Address",
             paymentMethod: PaymentMethod.Gcash,
             orderType: OrderType.Delivery,
             discountKind: DiscountKind.SeniorPwd,
-            seniorIdNumber: "SC-123");
+            seniorIdNumber: "sc-Ab123");
 
         var lines = service.ReadCart(held.Id);
         Assert.Single(lines);
         Assert.NotNull(db.HeldSales.Find(held.Id));
-        Assert.Equal("Address", held.CustomerAddress);
+        Assert.Equal("ADDRESS", held.CustomerAddress);
+        Assert.Equal("CUSTOMER", held.CustomerName);
+        Assert.Equal("OR-AB42", held.InvoiceNumber);
+        Assert.Equal("SC-AB123", held.SeniorIdNumber);
         Assert.Equal(PaymentMethod.Gcash, held.PaymentMethod);
         Assert.Equal(DiscountKind.SeniorPwd, held.DiscountKind);
 

@@ -37,14 +37,14 @@ public sealed class HeldSaleService
             UserId = userId,
             HeldAt = DateTime.Now,
             CustomerName = customerName?.Trim().ToUpperInvariant() ?? "",
-            CustomerAddress = customerAddress?.Trim(),
+            CustomerAddress = customerAddress?.Trim().ToUpperInvariant(),
             InvoiceNumber = string.IsNullOrWhiteSpace(invoice) ? null : invoice.Trim().ToUpperInvariant(),
             Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim(),
             PaymentMethod = paymentMethod,
             OrderType = orderType,
             DiscountKind = discountKind,
             DiscountAmount = discountAmount,
-            SeniorIdNumber = seniorIdNumber?.Trim(),
+            SeniorIdNumber = seniorIdNumber?.Trim().ToUpperInvariant(),
             CartJson = JsonSerializer.Serialize(cart)
         };
         _db.HeldSales.Add(held);

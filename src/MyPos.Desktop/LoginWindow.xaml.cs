@@ -54,7 +54,7 @@ public partial class LoginWindow : Window
                 Date = DateTime.Now,
                 Action = "LoginFailed",
                 EntityName = "User",
-                Details = $"Attempted username: {username.ToUpperInvariant()}"
+                Details = $"Attempted username: {username}"
             });
             App.Db.SaveChanges();
 

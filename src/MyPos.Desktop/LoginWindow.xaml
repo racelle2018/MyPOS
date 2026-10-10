@@ -45,7 +45,7 @@
                        Margin="0,4,0,0" Visibility="Collapsed"/>
             <Button Content="Login" Style="{StaticResource LoginMaterialButton}" Height="42"
                     Margin="0,20,0,0"
-                    Click="LoginButton_Click" Background="#FF2878BD" BorderThickness="1,1,1,1" IsDefault="True" BorderBrush="{x:Null}"/>
+                    Click="LoginButton_Click" Background="#FF2878BD" BorderThickness="{StaticResource UiBorderThickness}" IsDefault="True" BorderBrush="{x:Null}"/>
             <TextBlock x:Name="VersionText" Foreground="{StaticResource UiMutedBrush}"
                        FontSize="11" HorizontalAlignment="Center"
                        Margin="0,18,0,0"/>

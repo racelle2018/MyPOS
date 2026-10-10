@@ -244,28 +244,44 @@ public partial class DailySalesView : UserControl
         var muted = new SolidColorBrush(Color.FromRgb(0x64, 0x74, 0x8B));
         var document = new FlowDocument
         {
-            PageWidth = 1123,
-            PageHeight = 794,
+            PageWidth = 794,
+            PageHeight = 1123,
             PagePadding = new Thickness(40, 30, 40, 30),
-            FontFamily = (System.Windows.Media.FontFamily)FindResource("UiFontFamily"),
-            FontSize = 9,
+            FontFamily = (System.Windows.Media.FontFamily)FindResource("ReportInterFontFamily"),
+            FontSize = 12,
             ColumnWidth = double.PositiveInfinity
         };
 
+        var branchName = AppSettings.Get("BranchName", "");
         document.Blocks.Add(new Paragraph(new Run(AppSettings.Get("CompanyName", "MY STORE")))
-        { FontSize = 16, FontWeight = FontWeights.Bold, TextAlignment = TextAlignment.Center });
-        document.Blocks.Add(new Paragraph(new Run($"DAILY SALES REPORT — {report.Date:dddd, MMMM d, yyyy}".ToUpperInvariant()))
-        { FontSize = 11, TextAlignment = TextAlignment.Center, Margin = new Thickness(0, 2, 0, 4) });
-        document.Blocks.Add(new Paragraph(new Run(
-            $"GENERATED {DateTime.Now:MM/dd/yyyy h:mm:ss tt} BY {App.CurrentUser?.FullName ?? "—"}"))
-        { FontSize = 8, Foreground = muted, TextAlignment = TextAlignment.Center, Margin = new Thickness(0, 0, 0, 14) });
+        {
+            FontSize = 17, FontWeight = FontWeights.Bold, TextAlignment = TextAlignment.Center,
+            Margin = new Thickness(0),
+            KeepWithNext = true
+        });
+        foreach (var detail in new[] { branchName, AppSettings.Get("CompanyAddress", "") }
+            .Where(value => !string.IsNullOrWhiteSpace(value)))
+            document.Blocks.Add(new Paragraph(new Run(detail.Trim()))
+            {
+                FontSize = 10, TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0), KeepWithNext = true
+            });
+        var reportHeading = new Paragraph
+        {
+            FontSize = 12, TextAlignment = TextAlignment.Center,
+            Margin = new Thickness(0, 0, 0, 14),
+            KeepTogether = true, KeepWithNext = true
+        };
+        reportHeading.Inlines.Add(new Run("DAILY SALES REPORT") { FontWeight = FontWeights.Bold });
+        reportHeading.Inlines.Add(new Run($" — {report.Date:dddd, MMMM d, yyyy}"));
+        document.Blocks.Add(reportHeading);
 
         TableCell SummaryCell(string label, string value)
         {
             var cell = new TableCell { Padding = new Thickness(6, 4, 6, 4), BorderBrush = border,
-                BorderThickness = new Thickness(0, 0, 1, 1) };
-            cell.Blocks.Add(new Paragraph(new Run(label)) { FontSize = 7.5, Foreground = muted, Margin = new Thickness(0) });
-            cell.Blocks.Add(new Paragraph(new Run(value)) { FontSize = 11, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 1, 0, 0) });
+                BorderThickness = new Thickness(0, 0, 2, 2) };
+            cell.Blocks.Add(new Paragraph(new Run(label)) { FontSize = 8.5, Foreground = muted, Margin = new Thickness(0) });
+            cell.Blocks.Add(new Paragraph(new Run(value)) { FontSize = 12, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 1, 0, 0) });
             return cell;
         }
 
@@ -287,9 +303,9 @@ public partial class DailySalesView : UserControl
         }});
         document.Blocks.Add(summary);
 
-        var headings = new[] { "SALE #", "TIME", "INVOICE/OR", "CUSTOMER", "PAY", "GROSS", "DISC", "TOTAL", "VAT", "NET", "VOID" };
-        var widths = new[] { 45.0, 60, 90, 170, 55, 80, 70, 85, 75, 80, 45 };
-        var alignments = new[] { TextAlignment.Left, TextAlignment.Left, TextAlignment.Left, TextAlignment.Left, TextAlignment.Left,
+        var headings = new[] { "INVOICE", "TIME", "CUSTOMER", "PAYMENT", "GROSS", "DISC", "TOTAL", "VAT", "NET", "VOID" };
+        var widths = new[] { 110.0, 60, 180, 75, 80, 70, 85, 75, 80, 45 };
+        var alignments = new[] { TextAlignment.Left, TextAlignment.Left, TextAlignment.Left, TextAlignment.Left,
             TextAlignment.Right, TextAlignment.Right, TextAlignment.Right, TextAlignment.Right, TextAlignment.Right, TextAlignment.Center };
 
         TableCell Cell(string text, int column, bool bold = false, Brush? foreground = null, Brush? background = null)
@@ -297,7 +313,7 @@ public partial class DailySalesView : UserControl
             var run = new Run(text) { FontWeight = bold ? FontWeights.Bold : FontWeights.Normal };
             if (foreground != null) run.Foreground = foreground;
             var cell = new TableCell(new Paragraph(run) { TextAlignment = alignments[column], Margin = new Thickness(0) })
-            { Padding = new Thickness(5, 3, 5, 3), BorderBrush = border, BorderThickness = new Thickness(0, 0, 1, 1) };
+            { Padding = new Thickness(5, 3, 5, 3), BorderBrush = border, BorderThickness = new Thickness(0, 0, 2, 2) };
             if (background != null) cell.Background = background;
             return cell;
         }
@@ -315,22 +331,37 @@ public partial class DailySalesView : UserControl
             var foreground = sale.IsVoided ? muted : null;
             var row = new TableRow();
             rows.Rows.Add(row);
-            row.Cells.Add(Cell(sale.SaleNumber.ToString(), 0, foreground: foreground));
+            row.Cells.Add(Cell(sale.ReceiptNumber ?? "—", 0, foreground: foreground));
             row.Cells.Add(Cell(sale.SaleDate.ToString("h:mm tt"), 1, foreground: foreground));
-            row.Cells.Add(Cell(sale.ReceiptNumber ?? "—", 2, foreground: foreground));
-            row.Cells.Add(Cell(sale.CustomerName ?? "WALK-IN", 3, foreground: foreground));
-            row.Cells.Add(Cell(sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH", 4, foreground: foreground));
-            row.Cells.Add(Cell(sale.GrossAmount.ToString("N2"), 5, foreground: foreground));
-            row.Cells.Add(Cell(sale.DiscountAmount.ToString("N2"), 6, foreground: foreground));
-            row.Cells.Add(Cell(sale.TotalAmount.ToString("N2"), 7, !sale.IsVoided, foreground));
-            row.Cells.Add(Cell(sale.VatAmount.ToString("N2"), 8, foreground: foreground));
-            row.Cells.Add(Cell(sale.NetAmount.ToString("N2"), 9, foreground: foreground));
-            row.Cells.Add(Cell(sale.IsVoided ? "VOID" : "", 10, foreground: foreground));
+            row.Cells.Add(Cell(sale.CustomerName ?? "WALK-IN", 2, foreground: foreground));
+            row.Cells.Add(Cell(sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH", 3, foreground: foreground));
+            row.Cells.Add(Cell(sale.GrossAmount.ToString("N2"), 4, foreground: foreground));
+            row.Cells.Add(Cell(sale.DiscountAmount.ToString("N2"), 5, foreground: foreground));
+            row.Cells.Add(Cell(sale.TotalAmount.ToString("N2"), 6, !sale.IsVoided, foreground));
+            row.Cells.Add(Cell(sale.VatAmount.ToString("N2"), 7, foreground: foreground));
+            row.Cells.Add(Cell(sale.NetAmount.ToString("N2"), 8, foreground: foreground));
+            row.Cells.Add(Cell(sale.IsVoided ? "VOID" : "", 9, foreground: foreground));
         }
         document.Blocks.Add(table);
         document.Blocks.Add(new Paragraph(new Run(
             $"{report.TransactionCount} TRANSACTION(S) — TOTAL ₱{report.TotalSales:N2} — NET ₱{report.NetSales:N2} — VAT ₱{report.Vat:N2}"))
-        { FontSize = 9, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 10, 0, 0) });
+        { FontSize = 10, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 10, 0, 0) });
+        document.Blocks.Add(new Paragraph(new Run("All amounts are in PHP. Summary totals exclude voided sales. Net sales exclude VAT; average sale is per transaction. Neither value represents profit."))
+        { FontSize = 9, Foreground = muted, Margin = new Thickness(0, 6, 0, 0) });
+        var preparedBy = new Paragraph { KeepTogether = true, Margin = new Thickness(0, 16, 0, 0), FontSize = 9 };
+        preparedBy.Inlines.Add(new Run($"Generated: {DateTime.Now:MM/dd/yyyy h:mm:ss tt}") { Foreground = muted });
+        preparedBy.Inlines.Add(new LineBreak());
+        preparedBy.Inlines.Add(new InlineUIContainer(new Border
+        {
+            Width = 240, Height = 32, HorizontalAlignment = HorizontalAlignment.Left,
+            BorderBrush = muted, BorderThickness = new Thickness(0, 0, 0, 2)
+        }));
+        preparedBy.Inlines.Add(new LineBreak());
+        preparedBy.Inlines.Add(new Run(App.CurrentUser?.FullName ?? "________________")
+        { FontSize = 10, FontWeight = FontWeights.SemiBold });
+        preparedBy.Inlines.Add(new LineBreak());
+        preparedBy.Inlines.Add(new Run("Prepared by / Signature") { Foreground = muted });
+        document.Blocks.Add(preparedBy);
         return document;
     }
 

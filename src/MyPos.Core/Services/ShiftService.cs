@@ -35,7 +35,7 @@ public sealed class ShiftService
         if (string.IsNullOrWhiteSpace(reason)) throw new InvalidOperationException("A reason is required.");
         var shift = GetOpenShift() ?? throw new InvalidOperationException("No open shift.");
         var now = DateTime.Now;
-        var movement = new CashMovement { ShiftId = shift.Id, Type = type, Amount = amount, Reason = reason.Trim().ToUpperInvariant(), UserId = userId, MovementDate = now };
+        var movement = new CashMovement { ShiftId = shift.Id, Type = type, Amount = amount, Reason = reason.Trim(), UserId = userId, MovementDate = now };
         _db.CashMovements.Add(movement);
         if (type == CashMovementType.CashOut)
             Post(now, shift.BranchId, "CashOut", movement.Id, $"CASH OUT: {movement.Reason}", (ShiftAccountCodes.OwnerDraws, amount, 0), (ShiftAccountCodes.CashOnHand, 0, amount));

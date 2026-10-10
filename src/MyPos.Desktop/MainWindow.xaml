@@ -1,107 +1,150 @@
 <Window x:Class="MyPos.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:MyPos.Desktop.Views"
         Title="MyPos" Height="680" Width="1120" MinWidth="760" MinHeight="480"
         WindowStartupLocation="CenterScreen" WindowState="Maximized"
         WindowStyle="SingleBorderWindow" ResizeMode="CanResize"
-        Background="{StaticResource UiBackgroundBrush}">
-    <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="58" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <!-- A compact activity rail keeps every screen one click away. -->
-            <Border Grid.Column="0" Background="{StaticResource UiSurfaceBrush}" BorderBrush="{StaticResource UiBorderBrush}"
-                BorderThickness="0,0,1,0">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Bottom" Margin="5,0,5,7">
-                        <Button x:Name="LockButton" Height="44" MinWidth="0" Margin="0,3,0,0"
-                            Style="{StaticResource HeaderButton}" Click="LockButton_Click"
-                            ToolTip="Lock now (F12)" AutomationProperties.Name="Lock session">
-                            <materialDesign:PackIcon Kind="LockOutline" Width="25" Height="25"/>
-                        </Button>
-                        <Button x:Name="LogoutButton" Height="44" MinWidth="0" Margin="0,3,0,0"
-                            Style="{StaticResource HeaderButton}" Click="LogoutButton_Click"
-                            ToolTip="Log out" AutomationProperties.Name="Log out">
-                            <materialDesign:PackIcon Kind="LogoutVariant" Width="25" Height="26"/>
-                        </Button>
-                    </StackPanel>
-
-                    <StackPanel Margin="5,8,5,0">
-                        <Border Width="40" Height="40" Margin="0,0,0,12"
-                            CornerRadius="20" Background="{StaticResource UiAccentBrush}">
-                            <TextBlock Text="M" Foreground="White" FontWeight="Bold" FontSize="19"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <Button x:Name="NavPosButton" Height="44" MinWidth="0" Margin="0,3"
-                            Style="{StaticResource HeaderButton}" Click="NavPos_Click"
-                            ToolTip="New Sale" AutomationProperties.Name="New Sale">
-                            <materialDesign:PackIcon Kind="cart" Width="25" Height="25"/>
-                        </Button>
-                        <Button x:Name="NavProductsButton" Height="44" MinWidth="0" Margin="0,3"
-                            Style="{StaticResource HeaderButton}" Click="NavProducts_Click"
-                            ToolTip="Products" AutomationProperties.Name="Products">
-                            <materialDesign:PackIcon Kind="Package" Width="25" Height="25"/>
-                        </Button>
-                        <Button x:Name="NavReportsButton" Height="44" MinWidth="0" Margin="0,3"
-                            Style="{StaticResource HeaderButton}" Click="NavReports_Click"
-                            ToolTip="Reports" AutomationProperties.Name="Reports">
-                            <materialDesign:PackIcon Kind="ChartBar" Width="25" Height="25"/>
-                        </Button>
-                        <Button x:Name="NavShiftButton" Height="44" MinWidth="0" Margin="0,3"
-                            Style="{StaticResource HeaderButton}" Click="NavShift_Click"
-                            ToolTip="Shift" AutomationProperties.Name="Shift">
-                            <materialDesign:PackIcon Kind="ClockPlus" Width="25" Height="25"/>
-                        </Button>
-                        <Button x:Name="NavUsersButton" Height="44" MinWidth="0" Margin="0,3"
-                            Style="{StaticResource HeaderButton}" Click="NavUsers_Click"
-                            ToolTip="Users" AutomationProperties.Name="Users">
-                            <materialDesign:PackIcon Kind="AccountAdd" Width="25" Height="25"/>
-                        </Button>
-                        <Button x:Name="SettingsButton" Height="44" MinWidth="0" Margin="0,3"
-                            Style="{StaticResource HeaderButton}" Click="NavSettings_Click"
-                            ToolTip="Settings" AutomationProperties.Name="Settings">
-                            <materialDesign:PackIcon Kind="Settings" Width="25" Height="25"/>
-                        </Button>
-                    </StackPanel>
-                </DockPanel>
-            </Border>
-
-            <DockPanel Grid.Column="1" LastChildFill="True">
-                <!-- Workbench header: same location and hierarchy on every page. -->
-                <Border DockPanel.Dock="Top" Background="{DynamicResource UiAccentBrush}"
-                    BorderThickness="0,0,0,1" Padding="16,8">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="ViewTitleText" FontSize="15" FontWeight="SemiBold"
-                               Foreground="White" VerticalAlignment="Center" />
-                        <TextBlock x:Name="WelcomeText" Grid.Column="1" Foreground="White"
-                               FontSize="12" MaxWidth="300" TextTrimming="CharacterEllipsis"
-                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                               Margin="12,0,0,0" />
-                    </Grid>
-                </Border>
-
-                <!-- POS keeps its own transaction messages and clock above this shell status. -->
-                <Border DockPanel.Dock="Bottom" Background="{StaticResource UiAccentBrush}" Padding="12,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="StatusSectionText" Foreground="White" FontSize="11"
-                               VerticalAlignment="Center" />
-                        <TextBlock Text="MyPos 1.0.0" Grid.Column="1" Foreground="White"
-                               FontSize="11" VerticalAlignment="Center" />
-                    </Grid>
-                </Border>
-
-                <ContentControl x:Name="ScreenHost" />
-            </DockPanel>
-    </Grid>
+        FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12" Background="#EEF0F1">
+    <Window.Resources>
+        <Style x:Key="MainNavigationMenuItem" TargetType="MenuItem">
+            <EventSetter Event="SubmenuOpened" Handler="Menu_SubmenuOpened"/>
+            <Setter Property="ItemContainerStyle" Value="{Binding Style, RelativeSource={RelativeSource Self}}"/>
+            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Grid>
+                            <Border x:Name="MenuChrome" Background="{TemplateBinding Background}"
+                                    Padding="{TemplateBinding Padding}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"
+                                                      VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{TemplateBinding InputGestureText}"
+                                               Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SubmenuArrow" Grid.Column="2" Text="›"
+                                               Margin="12,0,0,0" Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="OpenMenuEdge" Height="{StaticResource UiBorderWidth}" VerticalAlignment="Top"
+                                    Background="{StaticResource UiAccentBrush}" Visibility="Collapsed"
+                                    IsHitTestVisible="False"/>
+                            <Popup x:Name="PART_Popup" AllowsTransparency="True" Focusable="False"
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Placement="Right">
+                                <Border Background="#EEF0F1" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" CornerRadius="2"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" Padding="0,2">
+                                    <ScrollViewer CanContentScroll="True" HorizontalScrollBarVisibility="Disabled"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"
+                                                        KeyboardNavigation.TabNavigation="Cycle"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Role" Value="TopLevelHeader">
+                                <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom"/>
+                            </Trigger>
+                            <Trigger Property="Role" Value="SubmenuHeader">
+                                <Setter TargetName="SubmenuArrow" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="MenuChrome" Property="Background" Value="White"/>
+                                <Setter TargetName="OpenMenuEdge" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsHighlighted" Value="True"/>
+                                    <Condition Property="IsEnabled" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="MenuChrome" Property="Background" Value="{StaticResource UiAccentBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsSubmenuOpen" Value="True">
+                                <Setter TargetName="MenuChrome" Property="Background" Value="{StaticResource UiAccentBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{StaticResource UiMutedBrush}"/>
+                                <Setter TargetName="MenuChrome" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <DockPanel Background="#EEF0F1">
+        <Border DockPanel.Dock="Top" Background="#EEF0F1" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderBottomThickness}">
+            <Menu x:Name="MainMenu" Background="#EEF0F1" Padding="4,0" IsMainMenu="True"
+                  ItemContainerStyle="{StaticResource MainNavigationMenuItem}"
+                  FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12" MinHeight="0">
+                <MenuItem x:Name="HomeMenuItem" Header="_Home" Tag="home" Click="MenuRoute_Click"/>
+                <MenuItem Header="_Sales &amp; Inventory">
+                    <MenuItem Header="_New Sale" Tag="pos" Click="MenuRoute_Click"/>
+                    <MenuItem Header="_Products" Tag="products" Click="MenuRoute_Click"/>
+                    <Separator/>
+                    <MenuItem Header="_Shift / Cash Drawer" Tag="shift" Click="MenuRoute_Click"/>
+                </MenuItem>
+                <MenuItem Header="_Reports &amp; Inquiry">
+                    <MenuItem Header="_Daily Sales" Tag="reports" Click="MenuRoute_Click"/>
+                    <MenuItem x:Name="AuditMenuItem" Header="_Audit Log" Tag="audit" Click="MenuRoute_Click"/>
+                </MenuItem>
+                <MenuItem x:Name="MasterFileMenuItem" Header="_Master File">
+                    <MenuItem Header="_Users" Tag="users" Click="MenuRoute_Click"/>
+                </MenuItem>
+                <MenuItem x:Name="UtilitiesMenuItem" Header="System _Utilities">
+                    <MenuItem Header="_Settings" Tag="settings" Click="MenuRoute_Click"/>
+                    <MenuItem Header="Short_cuts" Tag="shortcuts" Click="MenuRoute_Click"/>
+                </MenuItem>
+                <MenuItem Header="S_ystem">
+                    <MenuItem Header="_Lock Session" InputGestureText="F12" Click="LockButton_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Log _out" Click="LogoutButton_Click"/>
+                </MenuItem>
+            </Menu>
+        </Border>
+        <Border DockPanel.Dock="Top" Background="White" BorderBrush="#CDD1D4"
+                BorderThickness="{StaticResource UiBorderBottomThickness}" Padding="12,6">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="ViewTitleText" FontWeight="SemiBold" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="WelcomeText" Grid.Column="1" Foreground="{StaticResource UiMutedBrush}"
+                           MaxWidth="300" TextTrimming="CharacterEllipsis" Margin="12,0,0,0" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+        <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4"
+                BorderThickness="{StaticResource UiBorderTopThickness}" Padding="12,4">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatusSectionText" Foreground="{StaticResource UiMutedBrush}" FontSize="11"
+                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="DateTimeText" Grid.Column="1" Margin="12,0,16,0"
+                           Foreground="{StaticResource UiMutedBrush}" FontSize="11"/>
+                <TextBlock x:Name="VersionText" Text="MyPos 1.0.0" Grid.Column="2"
+                           Foreground="{StaticResource UiMutedBrush}" FontSize="11"/>
+            </Grid>
+        </Border>
+        <Grid>
+            <ContentControl x:Name="ScreenHost"/>
+            <Grid x:Name="ShortcutsHintHost" Width="360" Margin="8" HorizontalAlignment="Right">
+                <views:ShortcutsView x:Name="ShortcutsHint" Visibility="Collapsed"
+                                     Width="360" MaxHeight="620"
+                                     Height="{Binding ActualHeight, ElementName=ShortcutsHintHost}"
+                                     VerticalAlignment="Top" CloseRequested="ShortcutsHint_CloseRequested"/>
+            </Grid>
+        </Grid>
+    </DockPanel>
 </Window>

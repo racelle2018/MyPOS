@@ -12,13 +12,17 @@ namespace MyPos.Desktop.Controls;
 /// </summary>
 public static class ComboBoxSearch
 {
-    public static void Attach(ComboBox box, List<string> choices, Action<string>? onTextChanged = null)
+    public static void Attach(ComboBox box, List<string> choices, Action<string>? onTextChanged = null,
+        CharacterCasing casing = CharacterCasing.Normal)
     {
         // Already attached? Swap in fresh choices and refilter — no new handlers.
         if (box.Tag is State state)
         {
             state.Choices = choices;
             state.OnTextChanged ??= onTextChanged;
+            box.ApplyTemplate();
+            if (box.Template.FindName("PART_EditableTextBox", box) is TextBox existingTextBox)
+                existingTextBox.CharacterCasing = casing;
             ApplyFilter(box, state);
             return;
         }
@@ -30,7 +34,7 @@ public static class ComboBoxSearch
         box.ApplyTemplate();
         if (box.Template.FindName("PART_EditableTextBox", box) is not TextBox tb) return;
 
-        tb.CharacterCasing = CharacterCasing.Upper;
+        tb.CharacterCasing = casing;
 
         // No blue selection block inside the box
         tb.SelectionBrush = new SolidColorBrush(Color.FromRgb(0xCB, 0xD5, 0xE1));

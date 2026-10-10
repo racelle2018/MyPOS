@@ -28,10 +28,10 @@ public partial class ProductEditDialog : Window
         {
             Title = "Edit product";
             TitleText.Text = "Edit product";
-            NameBox.Text = _editing.Name;
-            BarcodeBox.Text = _editing.Barcode ?? "";
-            CategoryBox.Text = _editing.Category;
-            UnitBox.Text = _editing.Unit;
+            NameBox.Text = _editing.Name.ToUpperInvariant();
+            BarcodeBox.Text = (_editing.Barcode ?? "").ToUpperInvariant();
+            CategoryBox.Text = _editing.Category.ToUpperInvariant();
+            UnitBox.Text = _editing.Unit.ToUpperInvariant();
             CostBox.Text = _editing.CostPrice.ToString("0.####");
             PriceBox.Text = _editing.Price.ToString("0.####");
             VatExemptBox.IsChecked = _editing.IsVatExempt;
@@ -61,7 +61,7 @@ public partial class ProductEditDialog : Window
         ComboBoxSearch.Attach(CategoryBox, existing.Concat(seeds)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(c => c)
-            .ToList());
+            .ToList(), casing: System.Windows.Controls.CharacterCasing.Upper);
     }
 
     private void LoadUnitChoices()
@@ -78,7 +78,7 @@ public partial class ProductEditDialog : Window
         ComboBoxSearch.Attach(UnitBox, existing.Concat(common)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(u => u)
-            .ToList());
+            .ToList(), casing: System.Windows.Controls.CharacterCasing.Upper);
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)

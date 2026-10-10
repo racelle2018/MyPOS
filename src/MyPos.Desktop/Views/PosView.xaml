@@ -2,33 +2,33 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:MyPos.Desktop.Controls"
-             xmlns:converters="clr-namespace:MyPos.Desktop.Converters"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="MyPos.Desktop.Views.PosView"
              FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12"
              SizeChanged="PosView_SizeChanged"
              PreviewKeyDown="UserControl_PreviewKeyDown" d:DesignWidth="1276.55" d:DesignHeight="542.05">
     <UserControl.Resources>
-        <converters:UpperTextConverter x:Key="UpperText"/>
         <SolidColorBrush x:Key="MaterialDesign.Brush.Background" Color="White"/>
         <SolidColorBrush x:Key="PosInputBorderBrush" Color="#CDD1D4"/>
-        <Style x:Key="PosInput" TargetType="TextBox" BasedOn="{StaticResource UpperBox}">
+        <Style x:Key="PosInput" TargetType="TextBox" BasedOn="{StaticResource InputBox}">
+            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
             <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="Padding" Value="8,0"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
             <Setter Property="BorderBrush" Value="{StaticResource PosInputBorderBrush}"/>
             <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
         </Style>
         <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
+            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
             <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="{StaticResource PosInputBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
             <Setter Property="MinHeight" Value="0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
@@ -63,7 +63,7 @@
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Background" Value="#EEF0F1"/>
             <Setter Property="BorderBrush" Value="#CDD1D4"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>
             <Setter Property="Padding" Value="6,3"/>
         </Style>
         <Style x:Key="InvoiceHoverToolTipBox" TargetType="{x:Type TextBox}" BasedOn="{StaticResource PosInput}">
@@ -79,22 +79,14 @@
     <DockPanel Margin="8,6,8,8">
         <!-- Only the product and current-sale lists scroll; the POS chrome stays fixed. -->
         <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4"
-                BorderThickness="0,1,0,0" Padding="8,4" Margin="0,6,0,0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock x:Name="StatusText" Foreground="#334155" FontSize="12"
-                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                <TextBlock x:Name="DateTimeText" Grid.Column="1" FontSize="12"
-                           Foreground="{StaticResource UiMutedBrush}"/>
-            </Grid>
+                BorderThickness="{StaticResource UiBorderTopThickness}" Padding="8,4" Margin="0,6,0,0">
+            <TextBlock x:Name="StatusText" Foreground="#334155" FontSize="12"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
         </Border>
 
         <DockPanel LastChildFill="True">
             <Border x:Name="PrintFailureBanner" DockPanel.Dock="Top" Background="#FEF3C7"
-                        BorderBrush="#F59E0B" BorderThickness="1" Padding="10,8"
+                        BorderBrush="#F59E0B" BorderThickness="{StaticResource UiBorderThickness}" Padding="10,8"
                         Margin="0,0,0,10" Visibility="Collapsed">
                 <DockPanel>
                     <Button Content="Retry receipt" DockPanel.Dock="Right" Height="32"
@@ -121,7 +113,7 @@
                     </Grid.RowDefinitions>
 
                     <Border x:Name="SaleDetailsPanel" Grid.Row="0" Background="White"
-                                BorderBrush="#CDD1D4" BorderThickness="1"
+                                BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}"
                                 Padding="12,6" Margin="0,0,0,6">
                         <StackPanel>
                             <TextBlock x:Name="SaleDetailsTitle" Text="Sale details" FontSize="12" FontWeight="SemiBold"
@@ -147,7 +139,7 @@
                                              Text="Required"/>
                                         <Run Text=")"/>
                                     </TextBlock>
-                                    <TextBox x:Name="InvoiceBox" Height="34" MaxLength="24"
+                                    <TextBox x:Name="InvoiceBox" Height="34" MaxLength="24" CharacterCasing="Upper"
                                                  Style="{StaticResource InvoiceHoverToolTipBox}"
                                                  materialDesign:HintAssist.Hint="Enter invoice / OR number"
                                                  materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
@@ -173,15 +165,16 @@
                                     <StackPanel Grid.Column="0" Margin="0,0,5,0">
                                         <TextBlock Text="Name" FontSize="11" FontWeight="Bold"
                                                    Foreground="#526071" Margin="0,0,0,2"/>
-                                        <TextBox x:Name="CustomerNameBox" Height="34"
+                                        <TextBox x:Name="CustomerNameBox" Height="34" CharacterCasing="Upper"
                                                  Style="{StaticResource PosInput}" Tag="Enter customer name"
                                                  TextChanged="CustomerNameBox_TextChanged"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="5,0,0,0">
                                         <TextBlock Text="Address" FontSize="11" FontWeight="Bold"
                                                    Foreground="#526071" Margin="0,0,0,2"/>
-                                        <TextBox x:Name="AddressBox" Height="34"
-                                                 Style="{StaticResource PosInput}" Tag="Enter customer address"/>
+                                        <TextBox x:Name="AddressBox" Height="34" CharacterCasing="Upper"
+                                                 Style="{StaticResource PosInput}" Tag="Enter customer address"
+                                                 TextChanged="AddressBox_TextChanged"/>
                                     </StackPanel>
                                 </Grid>
 
@@ -213,7 +206,7 @@
                     </Border>
 
                     <Border x:Name="ProductsPanel" Grid.Row="1" Background="White"
-                                BorderBrush="#CDD1D4" BorderThickness="1"
+                                BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}"
                                 Padding="10,6">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -250,7 +243,7 @@
                                               HeadersVisibility="Column" RowHeaderWidth="0"
                                               ScrollViewer.VerticalScrollBarVisibility="Auto"
                                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                              BorderThickness="1" BorderBrush="#CDD1D4" Background="White"
+                                              BorderThickness="{StaticResource UiBorderThickness}" BorderBrush="#CDD1D4" Background="White"
                                               MouseDoubleClick="ProductsGrid_MouseDoubleClick"
                                               KeyDown="ProductsGrid_KeyDown" Margin="0,2,0,0">
                                     <DataGrid.Columns>
@@ -276,7 +269,7 @@
 
                 <!-- Right: cart, compact total and its own action buttons. -->
                 <Border x:Name="CartArea" Grid.Row="0" Grid.Column="1" Background="White"
-                            BorderBrush="#CDD1D4" BorderThickness="1"
+                            BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}"
                             Padding="10,8" Margin="8,0,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -302,12 +295,12 @@
                                           SelectionMode="Single" HeadersVisibility="Column" RowHeaderWidth="0"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                          BorderThickness="1" BorderBrush="#CDD1D4" Background="White">
+                                          BorderThickness="{StaticResource UiBorderThickness}" BorderBrush="#CDD1D4" Background="White">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Product Code" Binding="{Binding ItemCode}"
                                                             ElementStyle="{StaticResource GridCellText}" Width="125"/>
                                     <DataGridTextColumn Header="Product Description" ElementStyle="{StaticResource GridCellText}"
-                                                            Width="*" Binding="{Binding Name, Converter={StaticResource UpperText}}"/>
+                                                            Width="*" Binding="{Binding Name}"/>
                                     <DataGridTextColumn Header="QTY" ElementStyle="{StaticResource RightCell}"
                                                             Binding="{Binding Qty, StringFormat=\{0:0.##\}}" Width="50"/>
                                     <DataGridTextColumn Header="Price" ElementStyle="{StaticResource RightCell}"
@@ -325,7 +318,7 @@
 
                         <StackPanel Grid.Row="2" Margin="0,10,0,0">
                             <Border x:Name="TotalCard" Background="{DynamicResource UiAccentBrush}"
-                                        BorderBrush="{StaticResource UiAccentBrush}" BorderThickness="1" Padding="10,8">
+                                        BorderBrush="{StaticResource UiAccentBrush}" BorderThickness="{StaticResource UiBorderThickness}" Padding="10,8">
                                 <StackPanel>
                                     <Grid x:Name="SummaryGrid">
                                         <Grid.RowDefinitions>
@@ -359,7 +352,7 @@
                                         </StackPanel>
                                     </Grid>
                                     <Border x:Name="DiscountBreakdown" Visibility="Collapsed"
-                                                BorderBrush="#80FFFFFF" BorderThickness="0,1,0,0"
+                                                BorderBrush="#80FFFFFF" BorderThickness="{StaticResource UiBorderTopThickness}"
                                                 Margin="0,8,0,0" Padding="0,7,0,0">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -381,7 +374,7 @@
 
                             <!-- Only the closed-shift state needs a prompt. Keep it beside payment. -->
                             <Border x:Name="ShiftPrompt" Background="#FFF8E8"
-                                        BorderBrush="#E8C982" BorderThickness="1"
+                                        BorderBrush="#E8C982" BorderThickness="{StaticResource UiBorderThickness}"
                                         Padding="8,4" Margin="0,6,0,0"
                                         Visibility="Collapsed">
                                 <Grid>

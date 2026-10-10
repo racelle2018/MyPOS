@@ -3,24 +3,29 @@
                     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
     <!-- Merged only by dialogs; the main screens retain their own styles. -->
     <Style x:Key="DialogWindow" TargetType="Window" BasedOn="{StaticResource {x:Type Window}}">
+        <Setter Property="ResizeMode" Value="NoResize"/>
+        <Setter Property="WindowStyle" Value="SingleBorderWindow"/>
         <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Background" Value="#EEF0F1"/>
     </Style>
     <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="MinHeight" Value="32"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="Background" Value="White"/>
         <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
     </Style>
-    <Style x:Key="UpperBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-        <Setter Property="CharacterCasing" Value="Upper"/>
+    <Style x:Key="InputBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
+        <Setter Property="CharacterCasing" Value="Normal"/>
     </Style>
     <Style TargetType="PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
+            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="MinHeight" Value="32"/>
@@ -30,13 +35,14 @@
         <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
     </Style>
     <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
+            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="MinHeight" Value="32"/>
         <Setter Property="Padding" Value="8,0"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
         <Setter Property="Background" Value="White"/>
         <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
     </Style>
@@ -69,13 +75,13 @@
         <Setter Property="ColumnHeaderHeight" Value="26"/>
         <Setter Property="Background" Value="White"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
     </Style>
     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Background" Value="#EEF0F1"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
-        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>
         <Setter Property="Padding" Value="6,3"/>
     </Style>
 </ResourceDictionary>

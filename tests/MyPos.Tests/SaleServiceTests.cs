@@ -63,6 +63,24 @@ public class SaleServiceTests
     }
 
     [Fact]
+    public void Customer_details_and_invoice_are_uppercase_while_stock_notes_preserve_case()
+    {
+        using var s = new Setup();
+        var id = s.AddProduct("Apple juice 250 mL", 112m, 50m, 10m);
+        var stock = s.Svc.ReceiveStock(id, 1m, 50m, s.CashierId, notes: " Supplier ref AbC-12 ");
+        Assert.Equal("Supplier ref AbC-12", stock.Notes);
+        var sale = s.Svc.PostSale(s.BranchId, s.CashierId, new[] { new CartLine(id, 1m) },
+            tendered: 200m, receiptType: ReceiptType.Manual, manualReceiptNumber: " Or-Ab12 ",
+            customerName: " Maria de la Cruz ", customerAddress: " 12 McKinley St. ",
+            discountKind: DiscountKind.SeniorPwd, seniorIdNumber: " Sc-aB12 ");
+        Assert.Equal("MARIA DE LA CRUZ", sale.CustomerName);
+        Assert.Equal("12 MCKINLEY ST.", sale.CustomerAddress);
+        Assert.Equal("OR-AB12", sale.ReceiptNumber);
+        Assert.Equal("SC-AB12", sale.SeniorIdNumber);
+        Assert.Equal("Apple juice 250 mL", sale.Items.Single().ProductName);
+    }
+
+    [Fact]
     public void Senior_checkout_uses_zero_entered_discount_and_preserves_reported_saving()
     {
         using var setup = new Setup();

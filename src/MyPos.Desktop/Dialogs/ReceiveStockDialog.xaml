@@ -22,7 +22,7 @@
         <TextBox x:Name="CostBox" Height="34" Margin="0,4,0,12" Tag="0.00"/>
 
         <TextBlock Text="Notes (supplier, invoice no.…)"/>
-        <TextBox x:Name="NotesBox" Style="{StaticResource UpperBox}" Height="34"
+        <TextBox x:Name="NotesBox" Style="{StaticResource InputBox}" Height="34"
                  Margin="0,4,0,12" Tag="Supplier or invoice reference"/>
 
         <TextBlock x:Name="ErrorText" Foreground="#DC2626" TextWrapping="Wrap" Margin="0,0,0,12"/>

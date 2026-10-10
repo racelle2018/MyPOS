@@ -96,10 +96,10 @@ public partial class SettingsView : UserControl
         Set("CompanyName", CompanyNameBox.Text.Trim());
         Set("CompanyAddress", CompanyAddressBox.Text.Trim());
         Set("CompanyTin", CompanyTinBox.Text.Trim());
-        Set("BranchName", BranchNameBox.Text.Trim().ToUpperInvariant());
-        Set("AccrNo", AccrBox.Text.Trim().ToUpperInvariant());
-        Set("Min", MinBox.Text.Trim().ToUpperInvariant());
-        Set("Sn", SnBox.Text.Trim().ToUpperInvariant());
+        Set("BranchName", BranchNameBox.Text.Trim());
+        Set("AccrNo", AccrBox.Text.Trim());
+        Set("Min", MinBox.Text.Trim());
+        Set("Sn", SnBox.Text.Trim());
         Set("ReceiptIssuanceEnabled", ReceiptsEnabledBox.IsChecked == true ? "true" : "false");
         Set("ReceiptWidth", WidthBox.SelectedIndex == 1 ? "48" : "32");
         Set("ReceiptPrintMode", PrintModeBox.SelectedIndex == 1 ? "Regular" : "Thermal");

@@ -12,7 +12,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border Background="White" CornerRadius="2" BorderBrush="#CDD1D4" BorderThickness="1" Padding="16">
+    <Border Background="White" CornerRadius="2" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" Padding="16">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
             <StackPanel>

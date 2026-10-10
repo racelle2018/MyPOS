@@ -89,5 +89,5 @@ public class UserRowVM
     public string RoleText => User.Role.ToString().ToUpperInvariant();
     public string StatusText => User.IsActive ? "ACTIVE" : "DISABLED";
     public Brush StatusBrush => User.IsActive ? new SolidColorBrush(Color.FromRgb(0x16, 0xA3, 0x4A)) : new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8));
-    public string LastLoginText => User.LastLoginAt?.ToString("MMM d, h:mm tt").ToUpperInvariant() ?? "NEVER";
+    public string LastLoginText => User.LastLoginAt?.ToString("MMM d, h:mm tt") ?? "NEVER";
 }

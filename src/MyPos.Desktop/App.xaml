@@ -35,12 +35,16 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
-                        <Border BorderBrush="{StaticResource UiAccentBrush}"
-                                BorderThickness="{StaticResource UiBorderThickness}" CornerRadius="6"/>
+                        <!-- Hide only the extra keyboard-focus adorner. Control
+                             borders, validation, selection and hover remain. -->
+                        <Grid IsHitTestVisible="False"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- Cover native WPF controls that do not use MyPosFocusVisual. -->
+        <Style x:Key="{x:Static SystemParameters.FocusVisualStyleKey}"
+               TargetType="Control" BasedOn="{StaticResource MyPosFocusVisual}"/>
 
         <Style x:Key="PageTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="20"/>

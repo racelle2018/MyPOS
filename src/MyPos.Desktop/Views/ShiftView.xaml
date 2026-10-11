@@ -71,12 +71,12 @@
                     </StackPanel>
                     <WrapPanel x:Name="ShiftActions" Grid.Column="1" HorizontalAlignment="Right"
                                VerticalAlignment="Center">
-                        <Button x:Name="OpenShiftButton" Content="Open Shift (X-Reading)"
+                        <Button x:Name="OpenShiftButton" Content="Open Shift"
                                 Style="{StaticResource ShiftOpenAction}"
                                 Click="OpenShiftButton_Click"/>
-                        <Button x:Name="CashIOButton" Content="Cash In / Out"
+                        <Button x:Name="CashIOButton" Content="Record Cash In / Out"
                                 Style="{StaticResource ShiftActionButton}" Click="CashIOButton_Click"/>
-                        <Button x:Name="CloseShiftButton" Content="Close Shift (Z-Reading)"
+                        <Button x:Name="CloseShiftButton" Content="Close Shift"
                                 Style="{StaticResource ShiftActionButton}" Margin="0,5,0,5"
                                 Click="CloseShiftButton_Click"/>
                     </WrapPanel>
@@ -122,7 +122,10 @@
             </UniformGrid>
             <Border Grid.Row="2" Background="#EEF0F1" BorderBrush="#CDD1D4"
                     BorderThickness="{StaticResource UiBorderBottomThickness}" Padding="8,5">
-                <TextBlock Text="Recent shifts" FontWeight="SemiBold"/>
+                <DockPanel>
+                    <Button Content="View Reconciliation" DockPanel.Dock="Right" Style="{StaticResource ReportChromeButton}" Margin="0,5,0,5" Click="Reconciliation_Click"/>
+                    <TextBlock Text="Shift history" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </DockPanel>
             </Border>
             <Grid Grid.Row="3">
                 <DataGrid x:Name="ShiftsGrid" AutoGenerateColumns="False" IsReadOnly="True"

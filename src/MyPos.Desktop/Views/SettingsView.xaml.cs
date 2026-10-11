@@ -1,7 +1,6 @@
 using System.Printing;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Win32;
 using MyPos.Core.Entities;
 using MyPos.Desktop.Dialogs;
 
@@ -26,11 +25,9 @@ public partial class SettingsView : UserControl
         WidthBox.SelectedIndex = AppSettings.Get("ReceiptWidth", "32") == "48" ? 1 : 0;
         PrintModeBox.SelectedIndex = AppSettings.Get("ReceiptPrintMode", "Thermal") == "Regular" ? 1 : 0;
         LowStockBox.Text = AppSettings.Get("LowStockThreshold", "5");
-        BackupCopyFolderBox.Text = AppSettings.Get("BackupCopyFolder", "");
-        RefreshBackupStatus();
         LoadPrinters();
         foreach (var box in new[] { CompanyNameBox, CompanyAddressBox, CompanyTinBox,
-                     BranchNameBox, AccrBox, MinBox, SnBox, LowStockBox, BackupCopyFolderBox })
+                     BranchNameBox, AccrBox, MinBox, SnBox, LowStockBox })
             box.TextChanged += (_, _) => SavedFeedbackText.Text = "Unsaved changes";
         foreach (var combo in new[] { WidthBox, PrintModeBox, PrinterBox })
             combo.SelectionChanged += (_, _) => SavedFeedbackText.Text = "Unsaved changes";
@@ -76,6 +73,7 @@ public partial class SettingsView : UserControl
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!Permissions.RequireAdmin("change settings")) return;
         if (!int.TryParse(LowStockBox.Text.Trim(), out var threshold) || threshold < 0)
         {
             LowStockErrorText.Text = "Enter a whole number (0 or more).";
@@ -105,7 +103,6 @@ public partial class SettingsView : UserControl
         Set("ReceiptPrintMode", PrintModeBox.SelectedIndex == 1 ? "Regular" : "Thermal");
         Set("ReceiptPrinterName", PrinterBox.SelectedItem as string ?? "");
         Set("LowStockThreshold", threshold.ToString());
-        Set("BackupCopyFolder", BackupCopyFolderBox.Text.Trim());
 
         if (changed.Count > 0)
         {
@@ -121,54 +118,6 @@ public partial class SettingsView : UserControl
         SavedFeedbackText.Text = changed.Count == 0
             ? "No changes to save."
             : "Settings saved. New sales and prints use the updated values.";
-    }
-
-    private async void BackupButton_Click(object sender, RoutedEventArgs e)
-    {
-        BackupButton.IsEnabled = false;
-        var path = await Task.Run(BackupService.BackupNow);
-        BackupButton.IsEnabled = true;
-        RefreshBackupStatus();
-        MessageBox.Show(path != null ? $"Verified backup saved:\n{path}" : $"Backup failed: {BackupService.LastError}",
-            "MyPos", MessageBoxButton.OK,
-            path != null ? MessageBoxImage.Information : MessageBoxImage.Warning);
-    }
-
-    private void RestoreButton_Click(object sender, RoutedEventArgs e)
-    {
-        var picker = new OpenFileDialog
-        {
-            Title = "Choose a MyPos backup to restore",
-            Filter = "MyPos database backup (*.db)|*.db",
-            InitialDirectory = BackupService.BackupFolder
-        };
-        if (picker.ShowDialog() != true) return;
-        if (MessageBox.Show(
-                "Restore this backup on the next start? Current sales and settings will be replaced. " +
-                "MyPos will first create a safety backup of the current database.",
-                "Confirm database restore", MessageBoxButton.YesNo, MessageBoxImage.Warning)
-            != MessageBoxResult.Yes) return;
-
-        try
-        {
-            BackupService.StageRestore(picker.FileName);
-            MessageBox.Show("Backup verified and staged. Close MyPos normally, then reopen it to finish restoring.",
-                "Restore ready", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message, "Restore could not be staged", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-
-    private void RefreshBackupStatus()
-    {
-        var latest = BackupService.LastVerifiedBackupAt;
-        BackupStatusText.Text = latest.HasValue
-            ? $"Last verified backup: {latest.Value:g} · {BackupService.BackupFolder}"
-            : "No verified backup found yet.";
-        if (BackupService.LastError is { Length: > 0 } error)
-            BackupStatusText.Text += $"\nLast backup issue: {error}";
     }
 
     private void TestReceiptButton_Click(object sender, RoutedEventArgs e)

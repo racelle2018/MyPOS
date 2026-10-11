@@ -25,6 +25,7 @@ public partial class MainWindow : Window
         WelcomeText.Text = $"{App.CurrentUser?.FullName} ({App.CurrentUser?.Role})";
         MasterFileMenuItem.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         UtilitiesMenuItem.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+        VoidEventsMenuItem.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         AuditMenuItem.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         Navigate("home");
 
@@ -121,7 +122,25 @@ public partial class MainWindow : Window
                 break;
             case "shift":
                 view = new ShiftView();
-                title = "Shift";
+                title = "Shift Operations";
+                break;
+            case "reconciliation":
+                view = new ShiftReconciliationView();
+                title = "Shift / Cashier Reconciliation";
+                break;
+            case "cash-movements":
+                view = new CashMovementsView();
+                title = "Cash Movements";
+                break;
+            case "sales-summary":
+                view = new ExpandedReportsView(ExpandedReportKind.SalesSummary); title = "Sales Summary";
+                break;
+            case "product-sales":
+                view = new ExpandedReportsView(ExpandedReportKind.ProductSales); title = "Product Sales";
+                break;
+            case "void-events":
+                if (!Permissions.RequireAdmin("review void events")) return;
+                view = new ExpandedReportsView(ExpandedReportKind.VoidEvents); title = "Void Events";
                 break;
             case "users":
                 if (!Permissions.RequireAdmin("manage users")) return;
@@ -131,7 +150,17 @@ public partial class MainWindow : Window
             case "settings":
                 if (!Permissions.RequireAdmin("change settings")) return;
                 view = new SettingsView();
-                title = "Settings";
+                title = "General Settings";
+                break;
+            case "drawer-settings":
+                if (!Permissions.RequireAdmin("configure cash drawers")) return;
+                view = new CashDrawerSettingsView();
+                title = "Drawer Access Settings";
+                break;
+            case "backup":
+                if (!Permissions.RequireAdmin("manage backups")) return;
+                view = new BackupRestoreView();
+                title = "Backup & Restore";
                 break;
             default:
                 return;
@@ -148,9 +177,9 @@ public partial class MainWindow : Window
         var parent = destination switch
         {
             "pos" or "products" or "shift" => "Sales & Inventory",
-            "reports" or "audit" => "Reports & Inquiry",
+            "reports" or "audit" or "reconciliation" or "cash-movements" or "sales-summary" or "product-sales" or "void-events" => "Reports & Inquiry",
             "users" => "Master File",
-            "settings" or "shortcuts" => "System Utilities",
+            "settings" or "drawer-settings" or "backup" or "shortcuts" => "System Utilities",
             _ => null
         };
         ViewTitleText.Text = parent == null ? title : $"{parent} › {title}";

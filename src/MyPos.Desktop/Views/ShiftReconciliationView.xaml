@@ -1,0 +1,82 @@
+<UserControl x:Class="MyPos.Desktop.Views.ShiftReconciliationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12">
+    <UserControl.Resources>
+        <Style x:Key="ReconciliationColumnHeader" TargetType="DataGridColumnHeader"
+               BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="#EEF0F1"/>
+            <Setter Property="BorderBrush" Value="#CDD1D4"/>
+            <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>
+            <Setter Property="Padding" Value="6,3"/>
+        </Style>
+    </UserControl.Resources>
+    <Border Background="White" BorderBrush="{StaticResource UiBorderBrush}"
+            BorderThickness="{StaticResource UiBorderThickness}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Border Background="#EEF0F1" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderBottomThickness}">
+                <WrapPanel Margin="8,0">
+                    <TextBlock Text="Shift" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <ComboBox x:Name="ShiftBox" Width="340" Height="28" Margin="0,5,8,5"
+                              DisplayMemberPath="Label" SelectionChanged="ShiftBox_SelectionChanged"/>
+                    <Button Content="Refresh" Style="{StaticResource ReportChromeButton}" Margin="0,5,6,5" Click="Refresh_Click"/>
+                    <Button x:Name="PrintButton" Content="Print / PDF" Style="{StaticResource ReportChromeButton}" Margin="0,5,6,5" Click="Print_Click"/>
+                    <Button x:Name="ExportButton" Content="Export CSV" Style="{StaticResource ReportChromeButton}" Margin="0,5,6,5" Click="Export_Click"/>
+                </WrapPanel>
+            </Border>
+            <TextBlock Grid.Row="1" x:Name="StatusText" Margin="8,6" TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}"/>
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="8,0,8,8">
+                    <TextBlock Text="Current sales — approved voids excluded" FontWeight="SemiBold" Margin="0,6"/>
+                    <DataGrid x:Name="SummaryGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                              SizeChanged="MetricGrid_SizeChanged"
+                              HeadersVisibility="Column" RowHeaderWidth="0" RowHeight="28" ColumnHeaderHeight="26"
+                              ColumnHeaderStyle="{StaticResource ReconciliationColumnHeader}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Label}" Width="2*" MinWidth="400"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*" MinWidth="150" ElementStyle="{StaticResource RightCell}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Text="Drawer accountability" FontWeight="SemiBold" Margin="0,12,0,6"/>
+                    <TextBlock Text="Closed shifts preserve the original counted cash, expected drawer and variance. Later voids update current sales above, not the historical cash count."
+                               TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}" Margin="0,0,0,6"/>
+                    <DataGrid x:Name="DrawerGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                              SizeChanged="MetricGrid_SizeChanged"
+                              HeadersVisibility="Column" RowHeaderWidth="0" RowHeight="28" ColumnHeaderHeight="26"
+                              ColumnHeaderStyle="{StaticResource ReconciliationColumnHeader}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Label}" Width="2*" MinWidth="400"/>
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Value}" Width="*" MinWidth="150" ElementStyle="{StaticResource RightCell}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Text="Cash movements — not all cash out is an expense" FontWeight="SemiBold" Margin="0,12,0,6"/>
+                    <TextBlock x:Name="DenominationHint" TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}"/>
+                    <DataGrid x:Name="DenominationGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Visibility="Collapsed"
+                              RowHeight="28" ColumnHeaderHeight="26" HeadersVisibility="Column" RowHeaderWidth="0" ColumnHeaderStyle="{StaticResource ReconciliationColumnHeader}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Face value" Binding="{Binding FaceValue, StringFormat=₱{0:N2}}" Width="*"/>
+                            <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="120"/>
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=₱{0:N2}}" Width="150" ElementStyle="{StaticResource RightCell}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <DataGrid x:Name="MovementsGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                              HeadersVisibility="Column" RowHeaderWidth="0" RowHeight="28" ColumnHeaderHeight="26"
+                              ColumnHeaderStyle="{StaticResource ReconciliationColumnHeader}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Date / time" Binding="{Binding Date}" Width="160"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="90"/>
+                            <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*" MinWidth="150"/>
+                            <DataGridTextColumn Header="User" Binding="{Binding User}" Width="120"/>
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" Width="100" ElementStyle="{StaticResource RightCell}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>

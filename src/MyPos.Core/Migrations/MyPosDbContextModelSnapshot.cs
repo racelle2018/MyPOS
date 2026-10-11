@@ -113,7 +113,22 @@ namespace MyPos.Core.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ApprovedById")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Destination")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ExpenseCategory")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("MovementDate")
@@ -121,6 +136,9 @@ namespace MyPos.Core.Migrations
 
                     b.Property<string>("Reason")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reference")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ShiftId")
@@ -145,10 +163,16 @@ namespace MyPos.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("AssignedCashierId")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("BranchId")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ClosedById")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal?>("CountedDrawer")
@@ -156,6 +180,9 @@ namespace MyPos.Core.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("DrawerMode")
+                        .HasColumnType("INTEGER");
 
                     b.Property<decimal>("ExpectedDrawer")
                         .HasColumnType("TEXT");
@@ -200,6 +227,29 @@ namespace MyPos.Core.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("MyPos.Core.Entities.DenominationCount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("FaceValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ShiftId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShiftId", "FaceValue")
+                        .IsUnique();
+
+                    b.ToTable("DenominationCounts");
                 });
 
             modelBuilder.Entity("MyPos.Core.Entities.HeldSale", b =>
@@ -434,6 +484,9 @@ namespace MyPos.Core.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("CashShiftId")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid?>("CashierId")
                         .HasColumnType("TEXT");
 
@@ -497,6 +550,9 @@ namespace MyPos.Core.Migrations
                     b.Property<decimal>("VatRate")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("VoidCashShiftId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("VoidReason")
                         .HasColumnType("TEXT");
 
@@ -527,7 +583,25 @@ namespace MyPos.Core.Migrations
                     b.Property<string>("Barcode")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CategorySnapshot")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool?>("IsVatExemptSnapshot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("LineDiscount")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("LineGross")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("LineNet")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("LineTotal")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("LineVat")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ProductId")
@@ -543,10 +617,16 @@ namespace MyPos.Core.Migrations
                     b.Property<Guid>("SaleId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("TaxTreatmentSnapshot")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("UnitPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UnitSnapshot")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -617,6 +697,15 @@ namespace MyPos.Core.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MyPos.Core.Entities.DenominationCount", b =>
+                {
+                    b.HasOne("MyPos.Core.Entities.CashShift", null)
+                        .WithMany("DenominationCounts")
+                        .HasForeignKey("ShiftId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MyPos.Core.Entities.JournalLine", b =>
                 {
                     b.HasOne("MyPos.Core.Entities.JournalEntry", null)
@@ -646,6 +735,8 @@ namespace MyPos.Core.Migrations
 
             modelBuilder.Entity("MyPos.Core.Entities.CashShift", b =>
                 {
+                    b.Navigation("DenominationCounts");
+
                     b.Navigation("Movements");
                 });
 

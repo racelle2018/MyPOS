@@ -22,6 +22,7 @@ public class MyPosDbContext : DbContext
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<CashShift> CashShifts => Set<CashShift>();
     public DbSet<CashMovement> CashMovements => Set<CashMovement>();
+    public DbSet<DenominationCount> DenominationCounts => Set<DenominationCount>();
     public DbSet<HeldSale> HeldSales => Set<HeldSale>();
 
     protected override void OnModelCreating(ModelBuilder mb)
@@ -51,5 +52,7 @@ public class MyPosDbContext : DbContext
 
         mb.Entity<Setting>(e => e.HasKey(x => x.Key));
         mb.Entity<CashShift>(e => e.HasMany(x => x.Movements).WithOne().HasForeignKey(x => x.ShiftId));
+        mb.Entity<CashShift>(e => e.HasMany(x => x.DenominationCounts).WithOne().HasForeignKey(x => x.ShiftId));
+        mb.Entity<DenominationCount>(e => e.HasIndex(x => new { x.ShiftId, x.FaceValue }).IsUnique());
     }
 }

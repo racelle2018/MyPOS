@@ -16,11 +16,19 @@ public partial class DailySalesView : UserControl
     private readonly Guid _branchId;
     private DailySalesReport? _report;
     private bool _compactSalesHeader;
+    private bool _loadingFilters = true;
+    private string _filterScope = "All cashiers | All payments | Search: None";
+    private string _printFilterScope = "";
+    private bool _hasPrintFilters;
 
     public DailySalesView()
     {
         InitializeComponent();
         _branchId = App.Db.Branches.OrderBy(b => b.CreatedAt).First().Id;
+        CashierFilterBox.ItemsSource = new[] { new FilterChoice(null, "All cashiers") }.Concat(App.Db.Users.OrderBy(u => u.FullName).Select(u => new FilterChoice(u.Id, u.FullName)).ToList()).ToList();
+        PaymentFilterBox.ItemsSource = new[] { new FilterChoice(null, "All payments") }.Concat(Enum.GetValues<PaymentMethod>().Select(m => new FilterChoice((int)m, m.ToString()))).ToList();
+        CashierFilterBox.SelectedIndex = PaymentFilterBox.SelectedIndex = 0;
+        _loadingFilters = false;
         VoidButton.Visibility = Permissions.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         DatePick.DisplayDateEnd = DateTime.Today;
         DatePick.SelectedDate = DateTime.Today;
@@ -33,14 +41,43 @@ public partial class DailySalesView : UserControl
 
     private void LoadDate(DateTime date)
     {
-        _report = new ReportService(App.Db).GetDailySales(date, _branchId);
+        var cashier = (CashierFilterBox.SelectedItem as FilterChoice)?.Value as Guid?;
+        var payment = (PaymentFilterBox.SelectedItem as FilterChoice)?.Value is int method ? (PaymentMethod?)method : null;
+        var scope = new ReportScope(_branchId, App.CurrentUser?.Id ?? Guid.Empty, DateOnly.FromDateTime(date), DateOnly.FromDateTime(date), cashier, payment, SalesSearchBox.Text.Trim());
+        try
+        {
+            var service = new ExpandedReportService(App.Db); service.Validate(scope);
+            _filterScope = service.Describe(scope);
+            var printScope = new List<string>();
+            if (App.Db.Branches.Count() > 1)
+                printScope.Add("Branch: " + App.Db.Branches.First(b => b.Id == _branchId).Name);
+            if (cashier.HasValue)
+                printScope.Add("Cashier: " + (CashierFilterBox.SelectedItem as FilterChoice)!.Label);
+            if (payment.HasValue)
+                printScope.Add("Payment: " + (PaymentFilterBox.SelectedItem as FilterChoice)!.Label);
+            if (scope.Search.Length > 0) printScope.Add("Search: " + scope.Search);
+            _printFilterScope = string.Join(" | ", printScope);
+            _hasPrintFilters = printScope.Count > 0;
+            var result = new ReportService(App.Db).GetDailySales(date, _branchId, cashier, payment, SalesSearchBox.Text);
+            _report = new DailySalesReport { Date = result.Date, Sales = result.Sales, ScopeDescription = _filterScope };
+        }
+        catch (InvalidOperationException ex)
+        {
+            _report = null; SalesGrid.ItemsSource = null; TableStatusText.Text = ex.Message;
+            UpdateActions(); return;
+        }
         SalesGrid.ItemsSource = _report.Sales.Select(s => new SaleRowVM(s)).ToList();
-        TableStatusText.Text = $"{_report.Sales.Count} sale{(_report.Sales.Count == 1 ? "" : "s")}";
+        var paymentTotals = string.Join(" · ", Enum.GetValues<PaymentMethod>().Select(m => $"{m}: ₱{_report.ActiveSales.SelectMany(s => s.Payments).Where(p => p.Method == m).Sum(p => p.Amount):N2}"));
+        TableStatusText.Text = $"{_report.Sales.Count} sale(s) · {_filterScope} · {paymentTotals}";
         ReportEmptyHint.Visibility = _report.Sales.Count == 0
             ? Visibility.Visible : Visibility.Collapsed;
         UpdateSummary();
         UpdateActions();
     }
+
+    private sealed record FilterChoice(object? Value, string Label);
+    private void Filters_Changed(object sender, SelectionChangedEventArgs e) { if (!_loadingFilters) LoadDate(DatePick.SelectedDate ?? DateTime.Today); }
+    private void Search_Changed(object sender, TextChangedEventArgs e) { if (!_loadingFilters) LoadDate(DatePick.SelectedDate ?? DateTime.Today); }
 
     private void SalesHeader_SizeChanged(object sender, SizeChangedEventArgs e)
     {
@@ -192,6 +229,7 @@ public partial class DailySalesView : UserControl
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)
     {
+        LoadDate(DatePick.SelectedDate ?? DateTime.Today);
         if (_report == null || _report.Sales.Count == 0)
         {
             MessageBox.Show("No sales to export for this date.", "MyPos");
@@ -205,26 +243,14 @@ public partial class DailySalesView : UserControl
         };
         if (dialog.ShowDialog() != true) return;
 
-        var csv = new StringBuilder();
-        csv.AppendLine("Sale #,Time,Invoice/OR,Customer,Pay Mode,Senior/PWD ID,Gross,Discount,Total,VAT,Net,Voided");
-        foreach (var sale in _report.Sales)
-        {
-            csv.AppendLine(string.Join(",", sale.SaleNumber,
-                sale.SaleDate.ToString("HH:mm:ss"), Quote(sale.ReceiptNumber ?? ""),
-                Quote(sale.CustomerName ?? "WALK-IN"),
-                (sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH") +
-                    (sale.DiscountKind == MyPos.Core.Entities.DiscountKind.SeniorPwd ? " (SC)" : ""),
-                Quote(sale.SeniorIdNumber ?? ""),
-                sale.GrossAmount.ToString("N2"), sale.DiscountAmount.ToString("N2"),
-                sale.TotalAmount.ToString("N2"), sale.VatAmount.ToString("N2"),
-                sale.NetAmount.ToString("N2"), sale.IsVoided ? "YES" : ""));
-        }
-        File.WriteAllText(dialog.FileName, csv.ToString(), Encoding.UTF8);
+        var branch = App.Db.Branches.First(b => b.Id == _branchId).Name;
+        File.WriteAllText(dialog.FileName, ReportCsv.DailySales(_report, branch), Encoding.UTF8);
         MessageBox.Show($"Exported {_report.Sales.Count} rows to:\n{dialog.FileName}", "Export Complete");
     }
 
     private void PrintButton_Click(object sender, RoutedEventArgs e)
     {
+        LoadDate(DatePick.SelectedDate ?? DateTime.Today);
         if (_report == null || _report.Sales.Count == 0)
         {
             MessageBox.Show("No sales to print for this date.", "MyPos",
@@ -232,15 +258,15 @@ public partial class DailySalesView : UserControl
             return;
         }
 
-        var preview = new ReportPrintPreviewWindow(BuildReportDocument()) { Owner = Window.GetWindow(this) };
+        var preview = new ReportPrintPreviewWindow(BuildReportDocument(), "Daily Sales",
+            $"Daily-Sales-{_report.Date:yyyy-MM-dd}.pdf") { Owner = Window.GetWindow(this) };
         preview.ShowDialog();
     }
 
     private FlowDocument BuildReportDocument()
     {
         var report = _report!;
-        var border = new SolidColorBrush(Color.FromRgb(0xE2, 0xE8, 0xF0));
-        var headerBackground = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
+        var border = Brushes.Black;
         var muted = new SolidColorBrush(Color.FromRgb(0x64, 0x74, 0x8B));
         var document = new FlowDocument
         {
@@ -252,55 +278,65 @@ public partial class DailySalesView : UserControl
             ColumnWidth = double.PositiveInfinity
         };
 
-        var branchName = AppSettings.Get("BranchName", "");
-        document.Blocks.Add(new Paragraph(new Run(AppSettings.Get("CompanyName", "MY STORE")))
-        {
-            FontSize = 17, FontWeight = FontWeights.Bold, TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0),
-            KeepWithNext = true
-        });
-        foreach (var detail in new[] { branchName, AppSettings.Get("CompanyAddress", "") }
-            .Where(value => !string.IsNullOrWhiteSpace(value)))
-            document.Blocks.Add(new Paragraph(new Run(detail.Trim()))
-            {
-                FontSize = 10, TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0), KeepWithNext = true
-            });
-        var reportHeading = new Paragraph
-        {
-            FontSize = 12, TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0, 0, 0, 14),
-            KeepTogether = true, KeepWithNext = true
-        };
-        reportHeading.Inlines.Add(new Run("DAILY SALES REPORT") { FontWeight = FontWeights.Bold });
-        reportHeading.Inlines.Add(new Run($" — {report.Date:dddd, MMMM d, yyyy}"));
-        document.Blocks.Add(reportHeading);
+        ReportDocumentChrome.AddHeader(document, "DAILY SALES REPORT", $"{report.Date:dddd, MMMM d, yyyy}");
+        if (_hasPrintFilters)
+            document.Blocks.Add(new Paragraph(new Run("Filters: " + _printFilterScope)) { FontSize = 9, Margin = new Thickness(0, 0, 0, 5) });
 
-        TableCell SummaryCell(string label, string value)
+        TableCell SummaryCell(string text, bool amount = false, bool emphasize = false, bool indent = false)
         {
-            var cell = new TableCell { Padding = new Thickness(6, 4, 6, 4), BorderBrush = border,
-                BorderThickness = new Thickness(0, 0, 2, 2) };
-            cell.Blocks.Add(new Paragraph(new Run(label)) { FontSize = 8.5, Foreground = muted, Margin = new Thickness(0) });
-            cell.Blocks.Add(new Paragraph(new Run(value)) { FontSize = 12, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 1, 0, 0) });
+            var cell = new TableCell
+            {
+                Padding = new Thickness(amount || indent ? 8 : 0, 3, amount ? 3 : 8, 3),
+                BorderThickness = new Thickness(0)
+            };
+            cell.Blocks.Add(new Paragraph(new Run(text))
+            {
+                FontSize = 10, FontWeight = emphasize ? FontWeights.SemiBold : FontWeights.Normal,
+                TextAlignment = amount ? TextAlignment.Right : TextAlignment.Left,
+                Margin = new Thickness(0), KeepTogether = true
+            });
             return cell;
         }
 
         var summary = new Table { CellSpacing = 0, Margin = new Thickness(0, 0, 0, 14) };
-        for (var i = 0; i < 5; i++) summary.Columns.Add(new TableColumn { Width = new GridLength(190) });
+        foreach (var width in new[] { 190d, 290, 40, 190, 290 })
+            summary.Columns.Add(new TableColumn { Width = new GridLength(width) });
         var summaryRows = new TableRowGroup();
         summary.RowGroups.Add(summaryRows);
+        TableCell SummaryHeading(string title)
+        {
+            var cell = SummaryCell(title, emphasize: true);
+            cell.ColumnSpan = 2;
+            cell.BorderBrush = border;
+            cell.BorderThickness = new Thickness(1);
+            cell.Padding = new Thickness(3, 3, 0, 3);
+            return cell;
+        }
         summaryRows.Rows.Add(new TableRow { Cells =
         {
-            SummaryCell("TOTAL SALES", $"₱{report.TotalSales:N2}"), SummaryCell("NET SALES", $"₱{report.NetSales:N2}"),
-            SummaryCell("VAT", $"₱{report.Vat:N2}"), SummaryCell("TRANSACTIONS", report.TransactionCount.ToString()),
-            SummaryCell("AVG. SALE", $"₱{report.AverageSale:N2}")
+            SummaryHeading("Sales summary"), SummaryCell(""),
+            SummaryHeading("Invoice reconciliation")
         }});
-        summaryRows.Rows.Add(new TableRow { Cells =
+        void SummaryRow(string label, string value, string check, string count, bool primary = false, bool last = false)
         {
-            SummaryCell("SYSTEM RECEIPTS", report.SystemReceipts.ToString()), SummaryCell("MANUAL OR", report.ManualReceipts.ToString()),
-            SummaryCell("MISSING RECEIPTS", report.MissingReceipts.ToString()), SummaryCell("VOIDS", $"{report.VoidCount} (₱{report.VoidTotal:N2})"),
-            SummaryCell("DISCOUNTS", $"₱{report.Discounts:N2}")
-        }});
+            var row = new TableRow { Cells =
+            {
+                SummaryCell(label, indent: true), SummaryCell(value, true, primary), SummaryCell(""),
+                SummaryCell(check, indent: true), SummaryCell(count, true)
+            }};
+            foreach (var index in new[] { 0, 1, 3, 4 })
+            {
+                row.Cells[index].BorderBrush = border;
+                row.Cells[index].BorderThickness = new Thickness(
+                    index is 0 or 3 ? 1 : 0, 0, index is 1 or 4 ? 1 : 0, last ? 1 : 0);
+            }
+            summaryRows.Rows.Add(row);
+        }
+        SummaryRow("Total sales", $"₱{report.TotalSales:N2}", "System invoices", report.SystemReceipts.ToString(), primary: true);
+        SummaryRow("Discounts", $"₱{report.Discounts:N2}", "Manual invoices", report.ManualReceipts.ToString());
+        SummaryRow("Net sales (excl. VAT)", $"₱{report.NetSales:N2}", "Missing invoices", report.MissingReceipts.ToString());
+        SummaryRow("VAT", $"₱{report.Vat:N2}", "Voided invoices", report.VoidCount.ToString());
+        SummaryRow("Transactions", report.TransactionCount.ToString(), "Voided amount", $"₱{report.VoidTotal:N2}", last: true);
         document.Blocks.Add(summary);
 
         var headings = new[] { "INVOICE", "TIME", "CUSTOMER", "PAYMENT", "GROSS", "DISC", "TOTAL", "VAT", "NET", "VOID" };
@@ -308,13 +344,12 @@ public partial class DailySalesView : UserControl
         var alignments = new[] { TextAlignment.Left, TextAlignment.Left, TextAlignment.Left, TextAlignment.Left,
             TextAlignment.Right, TextAlignment.Right, TextAlignment.Right, TextAlignment.Right, TextAlignment.Right, TextAlignment.Center };
 
-        TableCell Cell(string text, int column, bool bold = false, Brush? foreground = null, Brush? background = null)
+        TableCell Cell(string text, int column, bool bold = false, Brush? foreground = null)
         {
             var run = new Run(text) { FontWeight = bold ? FontWeights.Bold : FontWeights.Normal };
             if (foreground != null) run.Foreground = foreground;
-            var cell = new TableCell(new Paragraph(run) { TextAlignment = alignments[column], Margin = new Thickness(0) })
-            { Padding = new Thickness(5, 3, 5, 3), BorderBrush = border, BorderThickness = new Thickness(0, 0, 2, 2) };
-            if (background != null) cell.Background = background;
+            var cell = new TableCell(new Paragraph(run) { TextAlignment = alignments[column], Margin = new Thickness(0), KeepTogether = true })
+            { Padding = new Thickness(3, 4, 3, 4), BorderBrush = border, BorderThickness = new Thickness(0) };
             return cell;
         }
 
@@ -324,7 +359,12 @@ public partial class DailySalesView : UserControl
         table.RowGroups.Add(rows);
         var heading = new TableRow();
         rows.Rows.Add(heading);
-        for (var i = 0; i < headings.Length; i++) heading.Cells.Add(Cell(headings[i], i, true, background: headerBackground));
+        for (var i = 0; i < headings.Length; i++)
+        {
+            var cell = Cell(headings[i], i, true);
+            cell.BorderThickness = new Thickness(0, 1, 0, 1);
+            heading.Cells.Add(cell);
+        }
 
         foreach (var sale in report.Sales)
         {
@@ -342,26 +382,16 @@ public partial class DailySalesView : UserControl
             row.Cells.Add(Cell(sale.NetAmount.ToString("N2"), 8, foreground: foreground));
             row.Cells.Add(Cell(sale.IsVoided ? "VOID" : "", 9, foreground: foreground));
         }
+        if (rows.Rows.Count > 1)
+            foreach (var cell in rows.Rows.Last().Cells)
+                cell.BorderThickness = new Thickness(0, 0, 0, 1);
         document.Blocks.Add(table);
-        document.Blocks.Add(new Paragraph(new Run(
-            $"{report.TransactionCount} TRANSACTION(S) — TOTAL ₱{report.TotalSales:N2} — NET ₱{report.NetSales:N2} — VAT ₱{report.Vat:N2}"))
-        { FontSize = 10, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 10, 0, 0) });
-        document.Blocks.Add(new Paragraph(new Run("All amounts are in PHP. Summary totals exclude voided sales. Net sales exclude VAT; average sale is per transaction. Neither value represents profit."))
-        { FontSize = 9, Foreground = muted, Margin = new Thickness(0, 6, 0, 0) });
-        var preparedBy = new Paragraph { KeepTogether = true, Margin = new Thickness(0, 16, 0, 0), FontSize = 9 };
-        preparedBy.Inlines.Add(new Run($"Generated: {DateTime.Now:MM/dd/yyyy h:mm:ss tt}") { Foreground = muted });
-        preparedBy.Inlines.Add(new LineBreak());
-        preparedBy.Inlines.Add(new InlineUIContainer(new Border
-        {
-            Width = 240, Height = 32, HorizontalAlignment = HorizontalAlignment.Left,
-            BorderBrush = muted, BorderThickness = new Thickness(0, 0, 0, 2)
-        }));
-        preparedBy.Inlines.Add(new LineBreak());
-        preparedBy.Inlines.Add(new Run(App.CurrentUser?.FullName ?? "________________")
-        { FontSize = 10, FontWeight = FontWeights.SemiBold });
-        preparedBy.Inlines.Add(new LineBreak());
-        preparedBy.Inlines.Add(new Run("Prepared by / Signature") { Foreground = muted });
-        document.Blocks.Add(preparedBy);
+        document.Blocks.Add(new Paragraph(new Run("Sales totals exclude voided invoices. Net sales = Total sales − VAT; costs and expenses are not deducted."))
+        { FontSize = 9, Foreground = new SolidColorBrush(Color.FromRgb(0x47, 0x55, 0x69)),
+            TextAlignment = TextAlignment.Left, Margin = new Thickness(0, 6, 0, 0) });
+        ReportDocumentChrome.AddFooter(document);
+        ReportPagination.SetIdentity(document, $"Daily Sales · {report.Date:yyyy-MM-dd}");
+        ReportPagination.SetPlainTableHeaders(document, true);
         return document;
     }
 

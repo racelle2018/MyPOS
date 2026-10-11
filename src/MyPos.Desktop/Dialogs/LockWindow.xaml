@@ -1,9 +1,9 @@
 <Window x:Class="MyPos.Desktop.Dialogs.LockWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Session Locked" Width="450" SizeToContent="Height"
-        MaxHeight="620" WindowStartupLocation="CenterOwner"
-        WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
+        Title="Session Locked" Width="400" SizeToContent="Height"
+        MaxHeight="620" WindowStartupLocation="CenterScreen"
+        WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="True"
         Background="White" Style="{DynamicResource DialogWindow}">
     <Window.Resources>
         <ResourceDictionary>

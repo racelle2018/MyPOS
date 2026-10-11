@@ -2,7 +2,84 @@
 
 Notable MyPos changes, newest first. Historical entries are based on repository commit subjects/bodies, not GitHub push timestamps. Dates are commit dates; no release tags or version numbers are implied. New entries describe the changes delivered with this checkpoint.
 
+## 2026-10-12 — Report cleanup and Phase 1 status (working changes, not yet pushed)
+
+### Changed
+
+- Apply selected-filters-only presentation across printable reports: omit default All/empty search labels and the entire Filters line when unused, retain date/period and required shift/grouping context, and identify branch scope when multiple branches exist. Preserve queries, permissions, and full CSV metadata. Record the rule in the MyPos WinBox UI skill.
+- Simplify Sales Summary preview/print/PDF: remove the introductory explanatory sentence and duplicate top totals; keep one final totals line below the table. Date-range filtering remains available, including a single day through Today or matching From/To dates; Daily/Monthly controls grouping rather than limiting the range.
+- Remove the repeated report-name footer from every report page. Retain continuation headings, upper-right page number/print date, and preparation/signature sections.
+- Clean up Cash Movements: show totals once below the table, label the cash-out-only classification breakdown, and include only classifications with matching cash-out entries. Use readable classification/type names, thousands-separated amounts, labeled reference/destination/expense/approval details, and no empty optional detail lines. Move a shorter access/net-movement note below the totals; preserve approval status and accounting behavior.
+- Remove duplicate top totals from Void Events and retain one final summary with a concise cancellation-date explanation below the table.
+- Format decimal values with thousands separators in shared printed report tables without changing raw report data or CSV numeric formatting. Review the other printable reports for duplicate summaries and preserve their already-approved layouts.
+
+### Verification and remaining work
+
+- Latest verified solution test run: 61 passing tests (49 Core, 12 Desktop). Rendered report layouts checked; portrait A4/Short/Long pagination remains covered. This is not physical-printer or production acceptance certification.
+- Approved operational report additions are implemented. The broader Phase 1 rollout is not yet fully accepted: backup retention/free-space warnings, first-run setup checklist, and an explicit transaction time-zone policy remain outstanding, along with real scanner/drawer/printer/scaling checks, an external-profile/computer restore drill, external-backup verification, and local receipt-wording review. See [Phase 1 plan](phase1.md).
+- Stock-receipt posting direction, inventory-adjustment journal coverage, and related ledger/valuation/profit readiness require separately approved corrections. No historical transaction/journal rewrite is included. See [accounting-posting review](report-accounting-review.md).
+
+## 2026-10-11 — Approved operational reports (working changes, not yet pushed)
+
+- Simplify Product/Category Sales presentation: hide the single-branch selector without removing branch filtering, show Period and selected filters only, use distinct report titles and one summary, and move a short explanatory note below the table. Explicitly label incomplete product totals as partial and warn about missing historical sale-item amounts; compare invoice totals only for unfiltered products/categories. Preserve historical unknowns, calculation logic and full CSV filter metadata.
+- Centralize approved report headers/footers for Daily Sales, Shift/Cashier Reconciliation, Cash Movements, Sales Summary, Product Sales/category summary and Void Events. Use left-aligned 10-DIP bold company/10-DIP business details, centered 14-DIP bold titles, upper-right 10-DIP Page No. current/total and Print Date, and matching Prepared by/1-DIP signature lines. Keep optional branch details compact, preserve reconciliation reviewer sign-offs and all body data/filters, and remove lower Generated/page-count lines and repeated filter scope from page identity. Receipts and CSV are unchanged.
+- Align the Daily Sales first-page Page No./Print Date block with the company header's top edge. Reserve right-side space in business details so long names/addresses wrap without overlapping metadata; branch/address lines retain zero vertical gaps.
+- Match the owner's Daily Sales upper-right reference with two rows: Page No. as current/total (for example 1/1 or 2/3), and Print Date in MM/dd/yyyy without time. Align values to the paper content's right edge on every page.
+- Move Daily Sales printed timestamp and Page X of Y to the upper-right on every preview/print/PDF page. Remove the lower Generated line and page count while retaining Prepared by, signature and report identity; other reports keep their current pagination layout.
+- Fix login password reveal after reviewing the owner's recording: replace the second Material field with a borderless text-only overlay inside the existing PasswordBox, preserving its single outline/floating label. Empty passwords do not show a duplicate placeholder; release/deactivation still clears revealed text.
+- Refine login with a 20-DIP welcome heading, shorter floating labels, a 40-DIP blue Login button, reserved Caps Lock warning space, and press-and-hold password visibility that clears on release/deactivation. Add a responsive Signing in state and duplicate-submission guard; password checks retain case-sensitive BCrypt and database work remains on the UI thread.
+- Clarify the Daily Sales print/PDF note: Philippine pesos, void exclusions and net sales as total sales less VAT without deducting costs/expenses. Use darker slate text for print legibility; calculations remain unchanged.
+- Match the revised Daily Sales print/PDF top section: two equal summary boxes with 1-DIP black outlines and heading separators, right-aligned inset values, and five detail rows. Remove Average sale from printed output only; retain selected filters above the boxes and existing calculations/on-screen metrics.
+- Make login close-only like dialogs: hide minimize/maximize and disable resizing; retain the 300 × 450 layout and authentication behavior.
+- Resize login to 300 × 450 DIP and its credential fields/Login button to 240 DIP wide. Preserve centered branding, floating labels, 1-DIP styling and authentication.
+- Hide all open MyPos windows, including report previews and nested dialogs, while the session is locked. Restore their existing state only after successful unlock without ending pending modal dialogs; switching users never re-exposes the previous session.
+- Simplified Daily Sales page identity to `Daily Sales · sales date` plus Page X of Y. Show only selected cashier/payment/search filters once below the title; remove repeated default filters and database branch name from print scope. Printed branch identity comes solely from General Settings, without changing database branch IDs or historical data.
+- Moved Daily Sales summary values farther right, ending immediately before the reconciliation group; reconciliation values now align with the report's right edge. Preserve the label indent, equal group widths and 1-DIP rules.
+- Inset Daily Sales Sales summary and Invoice reconciliation values 16 DIP from their section right edges while preserving numeric right alignment, label positions and equal group widths. Widen value columns to retain room for currency amounts.
+- Aligned Daily Sales summary groups to equal widths, indented detail labels by 8 DIP, and retained a minimum 16-DIP label/value gap with right-aligned values. Preserve summary padding across A4/Short/Long paper changes without altering detail-table compacting.
+- Refined Daily Sales printed summaries into Sales summary and Invoice reconciliation with sentence-case labels and 1-DIP heading rules. Move Discounts into sales, label net sales as excluding VAT, separate void count/amount, and reserve value emphasis for Total sales. Calculations, invoice table and on-screen UI are unchanged.
+- Reduced Daily Sales print/PDF table rules, continuation-heading rules and signature line to 1 DIP; layout, typography and paper guide remain unchanged.
+- Matched the owner's revised Daily Sales sketch: report date directly below business address, standalone centered title, spaced summary groups, and compact Generated/Prepared by/Signature footer. Omit the scope line for unfiltered reports while retaining it for filtered output and preserving page identity.
+- Restyled Daily Sales print/PDF using reference 1's plain paper presentation: left-aligned business details, centered bold title/date, aligned label/value summaries and black horizontal rules without shaded cells or vertical grid lines. Preserve invoice order, summary values, signature, portrait paper options and continuation headings; other reports and on-screen layouts are unchanged.
+- Simplified Daily Sales print/PDF: removed the duplicated footer totals, shortened the explanatory note, and omitted the repeated date range, unused category filter and empty search label from printed scope. Keep branch/cashier/payment scope, summaries, invoice/void details and prepared-by signature; on-screen controls and CSV remain unchanged.
+- Added a default VS Code solution build task (Ctrl+Shift+B) with MSBuild diagnostics in Problems and isolated, ignored `artifacts/vscode` outputs. No automatic builds or application restarts.
+- Hide extra keyboard-focus adorners app-wide through the shared MyPos and default WPF focus resources. Preserve normal input/validation borders, selection, hover, active states and keyboard navigation; Windows-owned dialogs retain native styling.
+- Hide the whole menu bar's inherited dotted Alt-focus outline; preserve keyboard menu navigation, the separator, and individual menu-item focus/highlight styling.
+- Hide Alt-key mnemonic underlines on navigation menus while retaining the shortcuts; replace inherited dashed menu focus chrome with the shared solid 1-DIP focus outline.
+- Cleared bill/coin quantity cells now immediately display `0`, matching their zero contribution to the counted cash total.
+- Fixed Close Shift bill/coin counting: cleared or whitespace-only quantities count as zero without invalidating the total. Negative, fractional, nonnumeric and overflowing counts remain rejected; an empty manual counted-cash field still requires input.
+- Improved Close Shift with shift/operator identity, an aligned cash summary above counting, Balanced/Short/Over feedback and a default-No closing confirmation. Verify fresh totals and close the displayed shift ID inside the transaction; reject changed totals, already-closed shifts and amounts beyond two decimal places. Keep the scrollable body and pinned actions.
+- Hide the main application while the session is locked; restore it only after successful unlock. The centered lock window has its own taskbar entry, and switching users keeps the previous session hidden.
+- Adjusted login content for the 400 × 450 window: 320-DIP-wide credential fields/button, larger centered logo and heading, and balanced spacing. Company name remains directly under Welcome back; floating hints and authentication are unchanged.
+- Resized login to 300 × 450 with a smaller centered logo, heading, credential fields and button. Removed the sign-in subtitle so the company name sits directly below Welcome back; floating hints and authentication behavior remain unchanged.
+- Restored the original centered login composition (round logo, company name, welcome text and version) and floating username/password hints by owner request. Login styling retains Inter, approved colors, 1-DIP borders and report-style button chrome; the Close Shift sizing fix is unchanged.
+- Bounded the Close Shift window to the usable desktop height; bill/coin counting scrolls within the body while Cancel/Close Shift and variance/validation remain in a fixed footer. Refreshed login with compact Inter typography, gray/white surfaces, nonfloating credential fields, 1-DIP borders and a matching Sign in button; authentication behavior is unchanged.
+- Audited UI wording and distinguished Shift Operations from Drawer Access Settings and General Settings. Clarified Home's Daily Sales shortcut, cash recording, invoice checks, sample receipt preview and report Print/PDF actions; removed misleading X/Z-reading labels from opening/closing forms. See [UI wording audit](ui-wording-audit.md). No route IDs, permissions or stored data changed.
+- Removed the redundant Cash Movements button/dialog from reconciliation by owner request. Its movement table and print/CSV details remain; the standalone Cash Movements report remains under Reports & Inquiry.
+- Fixed report-link dialog crashes caused by resolving dialog-only styles from page resources. Cash Movements from reconciliation and reconciliation from shift history now use a shared close-only report window with its own dialog resources; regression checks initialize and lay out both dialog construction paths.
+- Completed the remaining approved operational report work: Product Sales/category summary, Sales Summary daily/monthly presets, Daily Sales cashier/payment/search filters, and admin-only cancellation-date Void Events.
+- Added historical line category/unit/tax/discount/total/net/VAT snapshots for new sales, preserving null legacy fields and original invoices; bounded discount rounding residuals so line totals cannot go negative.
+- Added structured cash-movement classifications/references/destinations and active-admin approval records; kept operational class totals separate from unverified journal mappings.
+- Added optional denomination counting, saved close operator, reconciliation count breakdown, selected-shift report access from full history, and a selected-shift Cash Movements link.
+- Added shared printed continuation headings, report identity and Page X of Y to preview/print/PDF. Kept portrait papers, approved report typography and the preview-only guide.
+- Added [accounting-posting source review](report-accounting-review.md); no historical ledger rewrite, profit report or explicitly deferred A/R/check/case workflow was introduced.
+- Added Cash Movements under Reports & Inquiry with inclusive date filters, type filter, Today/Last 7 days, refresh, cash-in/out totals, and net movement.
+- Added formula-safe CSV with invariant amounts and movement/shift identifiers; reused portrait A4/Short/Long print preview and direct PDF saving.
+- Enforced existing branch/drawer access on each report refresh and output. Cash movement totals exclude sales, refunds, and opening float; cash out is not automatically an expense.
+- Added regression coverage for date boundaries, branch/type filtering, assignment snapshots, inactive-user denial, empty ranges, stale tracked data, CSV escaping, navigation, date clearing, and report layout.
+
 ## 2026-10-10 — Home, navigation, report printing, and documentation
+
+### Follow-up working changes — not yet pushed
+
+- Split System Utilities into Settings, Cash Drawer, Backup & Restore, and the existing Shortcuts hint.
+- Moved admin-only drawer configuration out of Open Shift; policy changes apply to the next shift without changing an active drawer.
+- Moved backup preferences and recovery actions out of general Settings, preserving verified backups and staged restore safeguards.
+- Added admin-controlled shared/assigned drawer access, sale/refund drawer links and an EF schema migration.
+- Added Shift / Cashier Reconciliation with live sales/payment totals, preserved original closing count/variance, cash movements, CSV and portrait print/PDF.
+- Enforced active-admin void approval in the core service and updated report totals for approved voids.
+- Fixed Daily Sales CSV amount formatting, date/branch metadata and text escaping; aligned default PDF filename with the selected sales date.
+- Added regression tests for assignment restrictions, shared cashiers, admin-only voids, later refunds, empty shifts and CSV formatting.
 
 ### Added
 

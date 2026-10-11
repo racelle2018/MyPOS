@@ -14,10 +14,10 @@ public static class ReportPdfExporter
     public static void Export(FlowDocument document, Stream output)
     {
         document.Dispatcher.VerifyAccess();
-        var paginator = ((IDocumentPaginatorSource)document).DocumentPaginator;
+        var paginator = ReportPagination.Create(document);
         paginator.ComputePageCount();
         using var pdf = new PdfDocument();
-        pdf.Info.Title = "MyPos Daily Sales Report";
+        pdf.Info.Title = string.IsNullOrWhiteSpace(document.Name) ? "MyPos Report" : document.Name;
         pdf.Info.Creator = "MyPos";
         const double dpi = 300;
         for (var index = 0; index < paginator.PageCount; index++)

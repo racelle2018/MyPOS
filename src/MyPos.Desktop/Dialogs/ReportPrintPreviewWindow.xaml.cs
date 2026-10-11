@@ -9,15 +9,21 @@ namespace MyPos.Desktop.Dialogs;
 public partial class ReportPrintPreviewWindow : Window
 {
     private readonly FlowDocument _document;
+    private readonly string _reportTitle;
+    private readonly string _fileName;
 
-    public ReportPrintPreviewWindow(FlowDocument document)
+    public ReportPrintPreviewWindow(FlowDocument document, string reportTitle = "Daily Sales", string? fileName = null)
     {
         InitializeComponent();
         _document = document;
+        _reportTitle = reportTitle;
+        _fileName = fileName ?? $"{reportTitle.Replace(' ', '-')}-{DateTime.Today:yyyy-MM-dd}.pdf";
+        Title = $"Print Preview — {reportTitle}";
         PaperSizeBox.ItemsSource = ReportPaperSize.Options;
         PaperSizeBox.SelectedIndex = 2;
         ApplyPaperSize();
         DocViewer.Document = document;
+        DocViewer.RefreshReportPagination();
         DocViewer.CommandBindings.Add(new CommandBinding(ApplicationCommands.Print,
             (_, args) => { PrintReport(); args.Handled = true; }));
     }
@@ -42,7 +48,10 @@ public partial class ReportPrintPreviewWindow : Window
             foreach (var column in table.Columns)
                 column.Width = new GridLength(column.Width.Value / total * contentWidth);
             // Keep the sales table compact enough for portrait paper.
-            if (table.Columns.Count > 5)
+            // Only compact regular detail tables; grouped summaries use spanning
+            // headings and intentionally different label/value padding.
+            if (table.Columns.Count > 5 &&
+                table.RowGroups.FirstOrDefault()?.Rows.FirstOrDefault()?.Cells.Count == table.Columns.Count)
             {
                 table.FontSize = 10;
                 foreach (var cell in table.RowGroups.SelectMany(group => group.Rows).SelectMany(row => row.Cells))
@@ -101,12 +110,12 @@ public partial class ReportPrintPreviewWindow : Window
     {
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = "Save daily sales report as PDF",
+            Title = $"Save {_reportTitle} report as PDF",
             Filter = "PDF document (*.pdf)|*.pdf",
             DefaultExt = ".pdf",
             AddExtension = true,
             OverwritePrompt = true,
-            FileName = $"Daily-Sales-{DateTime.Now:yyyy-MM-dd}.pdf"
+            FileName = _fileName
         };
         if (dialog.ShowDialog(this) != true) return;
         try
@@ -148,8 +157,8 @@ public partial class ReportPrintPreviewWindow : Window
                 return;
             }
             dialog.PrintTicket = validated;
-            dialog.PrintDocument(((IDocumentPaginatorSource)_document).DocumentPaginator,
-                "MyPos Daily Sales Report");
+            dialog.PrintDocument(ReportPagination.Create(_document),
+                $"MyPos {_reportTitle} Report");
         }
         catch (Exception ex)
         {

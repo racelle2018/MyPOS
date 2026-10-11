@@ -97,7 +97,7 @@ public partial class AuditLogView : UserControl
         MessageBox.Show($"Exported {_rows.Count} entries to:\n{dialog.FileName}", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
-    private static string Quote(string value) => $"\"{value.Replace("\"", "\"\"")}\"";
+    private static string Quote(string value) => MyPos.Core.Services.ReportCsv.Text(value);
 }
 
 public class AuditRowVM

@@ -34,14 +34,14 @@
                 </Button>
                 <Button Style="{StaticResource HomeAction}" Tag="reports" Click="Workspace_Click">
                     <StackPanel><materialDesign:PackIcon Kind="ChartBar" Width="22" Height="22" Foreground="{StaticResource UiAccentBrush}"/>
-                        <TextBlock Text="Reports" FontWeight="SemiBold" Margin="0,5,0,3"/>
+                        <TextBlock Text="Daily Sales" FontWeight="SemiBold" Margin="0,5,0,3"/>
                         <TextBlock Text="Review daily sales and receipts." Foreground="{StaticResource UiMutedBrush}"/>
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource HomeAction}" Tag="shift" Click="Workspace_Click">
                     <StackPanel><materialDesign:PackIcon Kind="ClockOutline" Width="22" Height="22" Foreground="{StaticResource UiAccentBrush}"/>
-                        <TextBlock Text="Shift" FontWeight="SemiBold" Margin="0,5,0,3"/>
-                        <TextBlock Text="Manage your shift and cash drawer." Foreground="{StaticResource UiMutedBrush}"/>
+                        <TextBlock Text="Shift Operations" FontWeight="SemiBold" Margin="0,5,0,3"/>
+                        <TextBlock Text="Open, count, and close your shift." Foreground="{StaticResource UiMutedBrush}"/>
                     </StackPanel>
                 </Button>
             </WrapPanel>

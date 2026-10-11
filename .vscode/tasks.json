@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "MyPos: Build solution",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/MyPos.slnx",
+        "--artifacts-path",
+        "${workspaceFolder}/artifacts/vscode",
+        "--nologo",
+        "--verbosity",
+        "minimal",
+        "-p:GenerateFullPaths=true",
+        "-consoleloggerparameters:NoSummary"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": {
+        "base": "$msCompile",
+        "applyTo": "allDocuments"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "detail": "Build MyPos and refresh build diagnostics; isolated outputs do not replace the running app."
+    }
+  ]
+}

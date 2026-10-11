@@ -9,6 +9,41 @@ namespace MyPos.Tests;
 public class ShiftServiceTests
 {
     [Fact]
+    public void Closing_requires_review_of_fresh_totals_and_preserves_shift_on_rejection()
+    {
+        using var db = CreateDb();
+        var user = db.Users.Single();
+        var service = new ShiftService(db);
+        var shift = service.OpenShift(db.Branches.Single().Id, user.Id, 100m);
+        var reviewed = service.GetShiftTotals(shift.Id);
+        service.RecordCashMovement(user.Id, CashMovementType.CashIn, 10m, "Added float");
+        Assert.Throws<InvalidOperationException>(() => service.CloseShift(user.Id, 100m, null,
+            shiftId: shift.Id, reviewedTotals: reviewed));
+        Assert.Null(shift.ClosedAt);
+        Assert.Empty(db.AuditLogs.Where(a => a.Action == "ShiftClose"));
+        var fresh = service.GetShiftTotals(shift.Id);
+        service.CloseShift(user.Id, 110m, null, shiftId: shift.Id, reviewedTotals: fresh);
+        Assert.Equal(110m, shift.ExpectedDrawer);
+        Assert.Equal(0m, shift.Variance);
+    }
+
+    [Fact]
+    public void Stale_closing_screen_cannot_close_a_replacement_shift()
+    {
+        using var db = CreateDb();
+        var user = db.Users.Single();
+        var service = new ShiftService(db);
+        var first = service.OpenShift(db.Branches.Single().Id, user.Id, 100m);
+        service.CloseShift(user.Id, 100m, null, shiftId: first.Id);
+        var second = service.OpenShift(db.Branches.Single().Id, user.Id, 50m);
+        Assert.Throws<InvalidOperationException>(() => service.CloseShift(user.Id, 100m, null, shiftId: first.Id));
+        Assert.Null(second.ClosedAt);
+        Assert.Throws<InvalidOperationException>(() => service.CloseShift(user.Id, 50.001m, null, shiftId: second.Id));
+        Assert.Null(second.ClosedAt);
+        Assert.Single(db.AuditLogs.Where(a => a.Action == "ShiftClose"));
+    }
+
+    [Fact]
     public void Close_counts_net_cash_once_and_posts_balanced_shortage()
     {
         using var db = CreateDb();

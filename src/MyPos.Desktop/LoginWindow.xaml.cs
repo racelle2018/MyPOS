@@ -7,9 +7,13 @@ namespace MyPos.Desktop;
 
 public partial class LoginWindow : Window
 {
+    private bool _signingIn;
+    private bool _closed;
     public LoginWindow()
     {
         InitializeComponent();
+        Deactivated += (_, _) => HidePasswordPreview();
+        Closed += (_, _) => { _closed = true; HidePasswordPreview(); PasswordBox.Clear(); };
         CompanyLabel.Text = AppSettings.Get("CompanyName", "MY STORE");
         VersionText.Text = $"MYPOS {typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0"}";
         Loaded += (_, _) =>
@@ -27,10 +31,80 @@ public partial class LoginWindow : Window
     private void UpdateCapsLockHint()
     {
         CapsLockHint.Visibility = Keyboard.IsKeyToggled(Key.CapsLock)
-            ? Visibility.Visible : Visibility.Collapsed;
+            ? Visibility.Visible : Visibility.Hidden;
     }
 
-    private void LoginButton_Click(object sender, RoutedEventArgs e)
+    private void ShowPasswordPreview()
+    {
+        if (_signingIn) return;
+        // Keep keyboard holds on the eye button so its KeyUp can hide the text.
+        if (!RevealPasswordButton.IsKeyboardFocusWithin) PasswordBox.Focus();
+        if (PasswordBox.Password.Length == 0) return;
+        VisiblePasswordBox.Text = PasswordBox.Password;
+        VisiblePasswordBox.Visibility = Visibility.Visible;
+    }
+
+    private void HidePasswordPreview()
+    {
+        VisiblePasswordBox.Visibility = Visibility.Collapsed;
+        VisiblePasswordBox.Clear();
+        if (RevealPasswordButton.IsMouseCaptured) RevealPasswordButton.ReleaseMouseCapture();
+    }
+
+    private void RevealPassword_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        RevealPasswordButton.CaptureMouse();
+        ShowPasswordPreview();
+        e.Handled = true;
+    }
+
+    private void RevealPassword_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        HidePasswordPreview();
+        e.Handled = true;
+    }
+
+    private void RevealPassword_End(object sender, RoutedEventArgs e) => HidePasswordPreview();
+
+    private void RevealPassword_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key is not (Key.Space or Key.Enter)) return;
+        ShowPasswordPreview();
+        e.Handled = true;
+    }
+
+    private void RevealPassword_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (e.Key is not (Key.Space or Key.Enter)) return;
+        HidePasswordPreview();
+        e.Handled = true;
+    }
+
+    private void SetSigningIn(bool busy)
+    {
+        _signingIn = busy;
+        HidePasswordPreview();
+        LoginButton.Content = busy ? "Signing in…" : "Login";
+        LoginButton.IsEnabled = UsernameBox.IsEnabled = PasswordBox.IsEnabled = RevealPasswordButton.IsEnabled = !busy;
+    }
+
+    private async void LoginButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_signingIn) return;
+        SetSigningIn(true);
+        try { await SignInAsync(); }
+        finally
+        {
+            if (!_closed)
+            {
+                SetSigningIn(false);
+                if (UsernameBox.Text.Trim().Length == 0) UsernameBox.Focus();
+                else PasswordBox.Focus();
+            }
+        }
+    }
+
+    private async Task SignInAsync()
     {
         var username = UsernameBox.Text.Trim();
         var password = PasswordBox.Password;
@@ -47,7 +121,10 @@ public partial class LoginWindow : Window
         var user = App.Db.Users.ToList().FirstOrDefault(
             u => string.Equals(u.Username, username, StringComparison.OrdinalIgnoreCase));
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        var hash = user?.PasswordHash;
+        var valid = hash is not null && await Task.Run(() => BCrypt.Net.BCrypt.Verify(password, hash));
+        if (_closed) return;
+        if (user == null || !valid)
         {
             App.Db.AuditLogs.Add(new AuditLog
             {
@@ -72,8 +149,10 @@ public partial class LoginWindow : Window
             return;
         }
 
-        if (string.Equals(user.Username, "admin", StringComparison.OrdinalIgnoreCase)
-            && BCrypt.Net.BCrypt.Verify("admin123", user.PasswordHash))
+        var initialAdminPassword = string.Equals(user.Username, "admin", StringComparison.OrdinalIgnoreCase)
+            && await Task.Run(() => BCrypt.Net.BCrypt.Verify("admin123", hash!));
+        if (_closed) return;
+        if (initialAdminPassword)
         {
             var change = new ChangeInitialPasswordDialog(user) { Owner = this };
             if (change.ShowDialog() != true) return;
@@ -98,13 +177,4 @@ public partial class LoginWindow : Window
         MessageBox.Show(this, message, "Sign-in warning", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
-    private void UsernameBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-    {
-
-    }
-
-    private void UsernameBox_TextChanged_1(object sender, System.Windows.Controls.TextChangedEventArgs e)
-    {
-
-    }
 }

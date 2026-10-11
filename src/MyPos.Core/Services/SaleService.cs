@@ -87,6 +87,13 @@ public class SaleService
         using var tx = _db.Database.BeginTransaction();
 
         var branch = _db.Branches.First(b => b.Id == branchId);
+        var shiftService = new ShiftService(_db);
+        var activeShift = shiftService.GetOpenShift();
+        if (activeShift != null)
+        {
+            if (activeShift.BranchId != branchId) throw new InvalidOperationException("The open drawer belongs to another branch.");
+            shiftService.RequireDrawerAccess(activeShift, cashierId);
+        }
         _db.Entry(branch).Reload();
 
         // 1) Load products fresh, validate stock
@@ -112,18 +119,7 @@ public class SaleService
 
         var gross = prepared.Sum(x => Round2(x.Product.Price * x.Qty));
 
-        // 2) Allocate discount proportionally; last line absorbs rounding
-        if (gross > 0)
-        {
-            decimal allocated = 0;
-            for (var i = 0; i < prepared.Count; i++)
-            {
-                prepared[i].DiscountShare = i == prepared.Count - 1
-                    ? discount - allocated
-                    : Round2(discount * prepared[i].LineGross / gross);
-                allocated += prepared[i].DiscountShare;
-            }
-        }
+        // SaleCalculator owns both invoice and line allocation snapshots.
 
         // 3) VAT split per line — round the net, derive VAT by subtraction
         var vatRate = decimal.Parse(
@@ -155,6 +151,7 @@ public class SaleService
         var sale = new Sale
         {
             BranchId = branchId, CashierId = cashierId, SaleDate = now,
+            CashShiftId = activeShift?.Id,
             SaleNumber = branch.NextSaleNumber++,
             OrderType = orderType,
             GrossAmount = calc.Gross, DiscountAmount = calc.Discount, TotalAmount = calc.Total,
@@ -198,10 +195,15 @@ public class SaleService
         foreach (var line in prepared)
         {
             var p = line.Product;
+            var money = calc.LineAmounts[prepared.IndexOf(line)];
             sale.Items.Add(new SaleItem
             {
                 ProductId = p.Id, ProductName = p.Name, Barcode = p.Barcode,
-                Qty = line.Qty, UnitPrice = p.Price, LineGross = calc.LineGrosses[prepared.IndexOf(line)], UnitCost = p.CostPrice
+                Qty = line.Qty, UnitPrice = p.Price, LineGross = money.Gross, UnitCost = p.CostPrice,
+                CategorySnapshot = p.Category ?? "", UnitSnapshot = p.Unit,
+                IsVatExemptSnapshot = p.IsVatExempt,
+                TaxTreatmentSnapshot = discountKind == DiscountKind.SeniorPwd ? "SC/PWD VAT-exempt" : p.IsVatExempt ? "VAT-exempt" : "VAT-inclusive",
+                LineDiscount = money.Discount, LineTotal = money.Total, LineNet = money.Net, LineVat = money.Vat
             });
             _db.InventoryMovements.Add(new InventoryMovement
             {
@@ -235,12 +237,15 @@ public class SaleService
 
     public void VoidSale(Guid saleId, Guid userId, string reason)
     {
+        if (!_db.Users.Any(u => u.Id == userId && u.IsActive && u.Role == UserRole.Admin))
+            throw new InvalidOperationException("An active administrator must approve the void.");
         if (string.IsNullOrWhiteSpace(reason))
             throw new ArgumentException("A void reason is required.", nameof(reason));
 
         using var tx = _db.Database.BeginTransaction();
 
         var sale = _db.Sales.Include(s => s.Items).First(s => s.Id == saleId);
+        _db.Entry(sale).Reload();
         if (sale.IsVoided) throw new InvalidOperationException("This sale is already voided.");
 
         var original = _db.JournalEntries.Include(e => e.Lines)
@@ -272,6 +277,8 @@ public class SaleService
         }
 
         sale.IsVoided = true;
+        var refundShift = new ShiftService(_db).GetOpenShift();
+        sale.VoidCashShiftId = refundShift?.BranchId == sale.BranchId ? refundShift.Id : null;
         sale.VoidedAt = now;
         sale.VoidedById = userId;
         sale.VoidReason = reason;
@@ -348,6 +355,5 @@ public class SaleService
         public Product Product = null!;
         public decimal Qty;
         public decimal LineGross;     // price × qty, VAT-inclusive
-        public decimal DiscountShare;
     }
 }

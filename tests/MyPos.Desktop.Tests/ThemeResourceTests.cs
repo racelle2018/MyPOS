@@ -43,6 +43,17 @@ public class ThemeResourceTests
                 Assert.NotNull(app.TryFindResource("UiMutedBrush"));
                 Assert.NotNull(app.TryFindResource("UiAccentSoftBrush"));
                 Assert.NotNull(app.TryFindResource("MyPosFocusVisual"));
+                var hiddenFocusStyle = Assert.IsType<Style>(app.FindResource("MyPosFocusVisual"));
+                var defaultFocusStyle = Assert.IsType<Style>(app.FindResource(SystemParameters.FocusVisualStyleKey));
+                Assert.Same(hiddenFocusStyle, defaultFocusStyle.BasedOn);
+                foreach (var focusStyle in new[] { hiddenFocusStyle, defaultFocusStyle })
+                {
+                    var focusVisual = new Control { Style = focusStyle };
+                    focusVisual.ApplyTemplate();
+                    var focusRoot = Assert.IsType<Grid>(VisualTreeHelper.GetChild(focusVisual, 0));
+                    Assert.Empty(focusRoot.Children.Cast<UIElement>());
+                    Assert.False(focusRoot.IsHitTestVisible);
+                }
                 Assert.Equal(new Thickness(1), Assert.IsType<Thickness>(app.FindResource("UiBorderThickness")));
                 Assert.Equal(1d, Assert.IsType<double>(app.FindResource("UiBorderWidth")));
                 Assert.NotNull(app.TryFindResource("PageTitle"));
@@ -90,14 +101,16 @@ public class ThemeResourceTests
                     var login = new LoginWindow();
                     var username = Assert.IsType<TextBox>(login.FindName("UsernameBox"));
                     var password = Assert.IsType<PasswordBox>(login.FindName("PasswordBox"));
-                    Assert.Equal(280, username.Width);
-                    Assert.Equal(280, password.Width);
+                    Assert.Equal(240, username.Width);
+                    Assert.Equal(240, password.Width);
                     Assert.Equal(48, username.Height);
                     Assert.Equal(48, password.Height);
-                    Assert.Equal(14, username.FontSize);
-                    Assert.Equal(14, password.FontSize);
+                    Assert.Equal(12, username.FontSize);
+                    Assert.Equal(12, password.FontSize);
+                    Assert.Contains("Inter", username.FontFamily.Source);
+                    Assert.Contains("Inter", password.FontFamily.Source);
                     Assert.Equal(new Thickness(12, 8, 12, 8), username.Padding);
-                    Assert.Equal(new Thickness(12, 8, 12, 8), password.Padding);
+                    Assert.Equal(new Thickness(12, 8, 40, 8), password.Padding);
                     Assert.True(HintAssist.GetIsFloating(username));
                     Assert.True(HintAssist.GetIsFloating(password));
                     Assert.Equal(new Thickness(1), username.BorderThickness);
@@ -106,8 +119,16 @@ public class ThemeResourceTests
                     Assert.Equal(new Thickness(1), TextFieldAssist.GetOutlinedBorderActiveThickness(password));
                     username.Text = "MixedCase.Username";
                     Assert.Equal("MixedCase.Username", username.Text);
-                    Assert.Equal(new CornerRadius(0), TextFieldAssist.GetTextFieldCornerRadius(username));
-                    Assert.Equal(new CornerRadius(0), TextFieldAssist.GetTextFieldCornerRadius(password));
+                    Assert.Equal("Username", HintAssist.GetHint(username));
+                    username.Clear();
+                    Assert.Equal("Username", HintAssist.GetHint(username));
+                    password.Password = "MixedCase.123";
+                    Assert.Equal("MixedCase.123", password.Password);
+                    Assert.Equal("Password", HintAssist.GetHint(password));
+                    password.Clear();
+                    Assert.Equal("Password", HintAssist.GetHint(password));
+                    Assert.Equal(new CornerRadius(2), TextFieldAssist.GetTextFieldCornerRadius(username));
+                    Assert.Equal(new CornerRadius(2), TextFieldAssist.GetTextFieldCornerRadius(password));
                     Assert.Equal(Colors.White, Assert.IsType<SolidColorBrush>(HintAssist.GetBackground(username)).Color);
                     Assert.Equal(Colors.White, Assert.IsType<SolidColorBrush>(HintAssist.GetBackground(password)).Color);
                     Assert.Equal(Colors.White,
@@ -121,11 +142,90 @@ public class ThemeResourceTests
                     Assert.Null(login.FindName("ErrorText"));
                     Assert.IsType<Style>(login.FindResource("LoginMaterialButton"));
                     Assert.Equal(WindowStyle.SingleBorderWindow, login.WindowStyle);
-                    Assert.Equal(ResizeMode.CanMinimize, login.ResizeMode);
+                    Assert.Equal(ResizeMode.NoResize, login.ResizeMode);
                     Assert.Equal(WindowState.Normal, login.WindowState);
-                    Assert.Equal(350, login.Width);
-                    Assert.Equal(500, login.Height);
+                    Assert.Equal(300, login.Width);
+                    Assert.Equal(450, login.Height);
                     Assert.IsType<ScrollViewer>(login.Content);
+                    var signIn = Assert.IsType<Button>(login.FindName("LoginButton"));
+                    Assert.Equal("Login", signIn.Content);
+                    Assert.True(signIn.IsDefault);
+                    Assert.Equal(40, signIn.Height);
+                    Assert.Equal(Colors.White, Assert.IsType<SolidColorBrush>(signIn.Foreground).Color);
+                    Assert.Equal(Color.FromRgb(0x28, 0x78, 0xBD), Assert.IsType<SolidColorBrush>(signIn.Background).Color);
+                    Assert.Equal(240, signIn.Width);
+                    Assert.Equal(new Thickness(0, 10, 0, 10), signIn.Margin);
+                    Assert.Equal(new Thickness(1), signIn.BorderThickness);
+                    var loginBody = Assert.IsType<ScrollViewer>(login.Content);
+                    Assert.Equal(HorizontalAlignment.Center, Assert.IsType<Border>(login.FindName("LoginLogo")).HorizontalAlignment);
+                    Assert.Equal(TextAlignment.Center, Assert.IsType<TextBlock>(login.FindName("CompanyLabel")).TextAlignment);
+                    Assert.Equal(HorizontalAlignment.Center, Assert.IsType<TextBlock>(login.FindName("VersionText")).HorizontalAlignment);
+                    var loginLayout = Assert.IsType<StackPanel>(loginBody.Content);
+                    var welcomeLabel = Assert.IsType<TextBlock>(login.FindName("WelcomeLabel"));
+                    Assert.Equal(20, welcomeLabel.FontSize);
+                    var capsHint = Assert.IsType<TextBlock>(login.FindName("CapsLockHint"));
+                    Assert.Equal(Visibility.Hidden, capsHint.Visibility);
+                    var passwordPreview = Assert.IsType<TextBox>(login.FindName("VisiblePasswordBox"));
+                    Assert.True(passwordPreview.IsReadOnly);
+                    Assert.False(passwordPreview.Focusable);
+                    Assert.False(passwordPreview.IsHitTestVisible);
+                    Assert.Null(passwordPreview.Style);
+                    Assert.Equal(new Thickness(0), passwordPreview.BorderThickness);
+                    Assert.False(HintAssist.GetIsFloating(passwordPreview));
+                    var reveal = Assert.IsType<Button>(login.FindName("RevealPasswordButton"));
+                    void InvokeLogin(string method, params object[] args) => typeof(LoginWindow)
+                        .GetMethod(method, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                        .Invoke(login, args);
+                    password.Password = "Case.Sensitive123";
+                    InvokeLogin("ShowPasswordPreview");
+                    Assert.Equal(Visibility.Visible, passwordPreview.Visibility);
+                    Assert.Equal(password.Password, passwordPreview.Text);
+                    passwordPreview.ApplyTemplate();
+                    var revealContent = Assert.IsType<ScrollViewer>(passwordPreview.Template.FindName("PART_ContentHost", passwordPreview));
+                    Assert.Equal(VerticalAlignment.Center, revealContent.VerticalAlignment);
+                    InvokeLogin("HidePasswordPreview");
+                    Assert.Equal(Visibility.Collapsed, passwordPreview.Visibility);
+                    Assert.Empty(passwordPreview.Text);
+                    Assert.Equal("Case.Sensitive123", password.Password);
+                    InvokeLogin("SetSigningIn", true);
+                    Assert.Equal("Signing in…", signIn.Content);
+                    Assert.All(new Control[] { signIn, username, password, reveal }, control => Assert.False(control.IsEnabled));
+                    InvokeLogin("ShowPasswordPreview");
+                    Assert.Equal(Visibility.Collapsed, passwordPreview.Visibility);
+                    InvokeLogin("SetSigningIn", false);
+                    Assert.Equal("Login", signIn.Content);
+                    Assert.All(new Control[] { signIn, username, password, reveal }, control => Assert.True(control.IsEnabled));
+                    password.Clear();
+                    InvokeLogin("ShowPasswordPreview");
+                    Assert.Equal(Visibility.Collapsed, passwordPreview.Visibility);
+                    Assert.Empty(passwordPreview.Text);
+                    Assert.Same(login.FindName("CompanyLabel"), loginLayout.Children[loginLayout.Children.IndexOf(welcomeLabel) + 1]);
+                    loginBody.Measure(new Size(284, 410));
+                    loginBody.Arrange(new Rect(0, 0, 284, 410)); loginBody.UpdateLayout();
+                    var loginButtonTop = signIn.TranslatePoint(new Point(), loginBody).Y;
+                    capsHint.Visibility = Visibility.Visible;
+                    loginBody.UpdateLayout();
+                    Assert.Equal(loginButtonTop, signIn.TranslatePoint(new Point(), loginBody).Y);
+                    capsHint.Visibility = Visibility.Hidden;
+                    loginBody.UpdateLayout();
+                    AssertInside(signIn, loginBody, 284, 410);
+                    AssertInside(username, loginBody, 284, 410);
+                    AssertInside(password, loginBody, 284, 410);
+                    foreach (var field in new FrameworkElement[] { username, password, signIn })
+                    {
+                        var bounds = field.TransformToAncestor(loginBody).TransformBounds(new Rect(field.RenderSize));
+                        Assert.InRange(bounds.Left, 0, 284);
+                        Assert.InRange(bounds.Right, 0, 284);
+                        Assert.True(Math.Abs(bounds.Left - (284 - bounds.Right)) <= 1,
+                            $"{field.Name}: {bounds}; parent {((FrameworkElement)field.Parent).ActualWidth}; body {loginBody.ActualWidth}");
+                    }
+                    CaptureFormQa(loginBody, "login", 284, 410);
+                    password.Password = "Preview.Check123";
+                    InvokeLogin("ShowPasswordPreview");
+                    loginBody.UpdateLayout();
+                    CaptureFormQa(loginBody, "login-password-reveal", 284, 410);
+                    InvokeLogin("HidePasswordPreview");
+                    password.Clear();
                     Assert.Null(login.FindName("MinimizeButton"));
                     Assert.Null(login.FindName("MaximizeButton"));
                     Assert.Null(login.FindName("CloseButton"));
@@ -136,6 +236,8 @@ public class ThemeResourceTests
                     var navigationGuide = Assert.IsType<TextBlock>(mainWindow.FindName("ViewTitleText"));
                     Assert.Equal("Home", navigationGuide.Text);
                     var mainMenu = Assert.IsType<Menu>(mainWindow.FindName("MainMenu"));
+                    Assert.Null(mainMenu.FocusVisualStyle);
+                    Assert.True(mainMenu.IsMainMenu);
                     var shellClock = Assert.IsType<TextBlock>(mainWindow.FindName("DateTimeText"));
                     var versionText = Assert.IsType<TextBlock>(mainWindow.FindName("VersionText"));
                     Assert.False(string.IsNullOrWhiteSpace(shellClock.Text));
@@ -147,6 +249,9 @@ public class ThemeResourceTests
                         .Concat(mainMenu.Items.OfType<MenuItem>().SelectMany(item => item.Items.OfType<MenuItem>()))
                         .Where(item => item.Tag is string)
                         .ToDictionary(item => (string)item.Tag);
+                    Assert.Equal("_Shift Operations", destinations["shift"].Header);
+                    Assert.Equal("_Drawer Access Settings", destinations["drawer-settings"].Header);
+                    Assert.Equal("_General Settings", destinations["settings"].Header);
                     destinations["pos"].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
                     Assert.Equal("Sales & Inventory › New Sale", navigationGuide.Text);
                     Assert.Equal("_Sales & Inventory", Assert.Single(mainMenu.Items.OfType<MenuItem>(), item => item.IsChecked).Header);
@@ -168,11 +273,21 @@ public class ThemeResourceTests
                     {
                         ("products", typeof(ProductCatalogView)), ("reports", typeof(ReportsView)),
                         ("audit", typeof(ReportsView)), ("shift", typeof(ShiftView)),
-                        ("users", typeof(UserManagementView)), ("settings", typeof(SettingsView))
+                        ("cash-movements", typeof(CashMovementsView)),
+                        ("product-sales", typeof(ExpandedReportsView)), ("sales-summary", typeof(ExpandedReportsView)),
+                        ("void-events", typeof(ExpandedReportsView)),
+                        ("users", typeof(UserManagementView)), ("drawer-settings", typeof(CashDrawerSettingsView)),
+                        ("backup", typeof(BackupRestoreView)), ("settings", typeof(SettingsView))
                     })
                     {
                         destinations[destination].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
                         Assert.Equal(viewType, screenHost.Content.GetType());
+                        if (destination is "shift" or "drawer-settings" or "settings")
+                        {
+                            var label = destinations[destination].Header.ToString()!.Replace("_", "");
+                            var parent = destination == "shift" ? "Sales & Inventory" : "System Utilities";
+                            Assert.Equal($"{parent} › {label}", navigationGuide.Text);
+                        }
                     }
                     var pageBeforeHint = screenHost.Content;
                     destinations["shortcuts"].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
@@ -180,7 +295,7 @@ public class ThemeResourceTests
                     Assert.Equal(Visibility.Visible, shortcutsHint.Visibility);
                     Assert.Equal(360, shortcutsHint.Width);
                     Assert.Same(pageBeforeHint, screenHost.Content);
-                    Assert.Equal("System Utilities › Settings", navigationGuide.Text);
+                    Assert.Equal("System Utilities › General Settings", navigationGuide.Text);
                     Assert.IsType<Button>(shortcutsHint.FindName("CloseHintButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                     Assert.Equal(Visibility.Collapsed, shortcutsHint.Visibility);
                     destinations["shortcuts"].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
@@ -215,11 +330,61 @@ public class ThemeResourceTests
                     Assert.Equal(WindowState.Maximized, mainWindow.WindowState);
                     mainWindow.Opacity = 0;
                     mainWindow.Show();
+                    var lockPreview = new Window { Owner = mainWindow, Opacity = 0, ShowInTaskbar = false };
+                    lockPreview.Show();
+                    var nestedDialog = new Window { Owner = lockPreview, Opacity = 0, ShowInTaskbar = false };
+                    var unownedDialog = new Window { Opacity = 0, ShowInTaskbar = false };
+                    var hiddenDialog = new Window { Owner = mainWindow, ShowInTaskbar = false };
+                    var dialogClosed = false;
+                    lockPreview.Closed += (_, _) => dialogClosed = true;
+                    nestedDialog.Show();
+                    unownedDialog.Show();
+                    var sessionWindows = new[] { mainWindow, lockPreview, nestedDialog, unownedDialog };
+                    bool NativeVisible(Window window) => IsWindowVisible(new WindowInteropHelper(window).Handle);
+                    var runLocked = typeof(IdleSessionGuard).GetMethod("RunLocked",
+                        System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+                    var switched = false;
+                    runLocked.Invoke(null, new object[] { mainWindow, (Func<bool>)(() =>
+                    {
+                        Assert.All(sessionWindows, window => Assert.False(NativeVisible(window)));
+                        Assert.False(dialogClosed);
+                        return true;
+                    }), (Action)(() => switched = true) });
+                    Assert.True(mainWindow.IsVisible);
+                    Assert.All(sessionWindows, window => Assert.True(NativeVisible(window)));
+                    Assert.False(hiddenDialog.IsVisible);
+                    Assert.False(dialogClosed);
+                    Assert.Equal(WindowState.Maximized, mainWindow.WindowState);
+                    Assert.False(switched);
+                    runLocked.Invoke(null, new object[] { mainWindow, (Func<bool>)(() =>
+                    {
+                        Assert.All(sessionWindows, window => Assert.False(NativeVisible(window)));
+                        return false;
+                    }), (Action)(() =>
+                    {
+                        Assert.All(sessionWindows, window => Assert.False(NativeVisible(window)));
+                        switched = true;
+                    }) });
+                    Assert.True(switched);
+                    Assert.All(sessionWindows, window => Assert.False(NativeVisible(window)));
+                    nestedDialog.Close();
+                    lockPreview.Close();
+                    unownedDialog.Close();
+                    hiddenDialog.Close();
+                    ShowWindow(new WindowInteropHelper(mainWindow).Handle, 8);
                     mainWindow.UpdateLayout();
                     var menuBorder = Assert.IsType<Border>(mainMenu.Parent);
                     Assert.Equal(new Thickness(0, 0, 0, 1), menuBorder.BorderThickness);
                     foreach (var header in mainMenu.Items.OfType<MenuItem>())
                     {
+                        Assert.Same(app.FindResource("MyPosFocusVisual"), header.FocusVisualStyle);
+                        var menuLabel = Assert.IsType<AccessText>(header.Template.FindName("MenuHeaderText", header));
+                        Assert.Equal(0, menuLabel.Opacity);
+                        Assert.Equal(header.Header.ToString(), menuLabel.Text);
+                        Assert.NotEqual('\0', menuLabel.AccessKey);
+                        var caption = Assert.IsType<TextBlock>(header.Template.FindName("MenuHeaderCaption", header));
+                        Assert.Equal(header.Header.ToString()!.Replace("_", ""), caption.Text);
+                        Assert.Empty(caption.TextDecorations);
                         var headerBounds = header.TransformToAncestor(menuBorder)
                             .TransformBounds(new Rect(0, 0, header.ActualWidth, header.ActualHeight));
                         Assert.InRange(Math.Abs(headerBounds.Bottom -
@@ -311,6 +476,8 @@ public class ThemeResourceTests
                     }
                     mainWindow.Close();
                     App.CurrentUser = new User { Username = "cashier", FullName = "Cashier", Role = UserRole.Cashier };
+                    Assert.Throws<UnauthorizedAccessException>(() => new CashDrawerSettingsView());
+                    Assert.Throws<UnauthorizedAccessException>(() => new BackupRestoreView());
                     var cashierWindow = new MainWindow();
                     Assert.Equal(Visibility.Collapsed, Assert.IsType<MenuItem>(cashierWindow.FindName("MasterFileMenuItem")).Visibility);
                     Assert.Equal(Visibility.Collapsed, Assert.IsType<MenuItem>(cashierWindow.FindName("UtilitiesMenuItem")).Visibility);
@@ -749,7 +916,8 @@ public class ThemeResourceTests
                     Assert.Equal(5, reprint.Margin.Top);
                     Assert.Equal(5, reprint.Margin.Bottom);
                     Assert.False(reprint.IsEnabled);
-                    Assert.Equal("Print Report", Assert.IsType<Button>(dailySales.FindName("PrintButton")).Content);
+                    Assert.Equal("Print / PDF", Assert.IsType<Button>(dailySales.FindName("PrintButton")).Content);
+                    Assert.Equal("INVOICE CHECK", Assert.IsType<TextBlock>(dailySales.FindName("InvoiceCheckLabel")).Text);
                     var systemSale = new Sale { ReceiptType = ReceiptType.System, ReceiptNumber = "R000001" };
                     var manualSale = new Sale { ReceiptType = ReceiptType.Manual, ReceiptNumber = "OR-1" };
                     salesGrid.ItemsSource = new[] { new SaleRowVM(systemSale), new SaleRowVM(manualSale) };
@@ -863,14 +1031,27 @@ public class ThemeResourceTests
                             Assert.True(scroller.ScrollableHeight > 0);
                             scroller.ScrollToBottom();
                             settings.UpdateLayout();
-                            var restore = Assert.IsType<Button>(settings.FindName("RestoreButton"));
-                            var restoreBounds = restore.TransformToAncestor(scroller).TransformBounds(
-                                new Rect(0, 0, restore.ActualWidth, restore.ActualHeight));
-                            Assert.True(restoreBounds.Top >= 0);
-                            Assert.True(restoreBounds.Bottom <= scroller.ViewportHeight);
                         }
                     }
-                    var backupFolder = Assert.IsType<TextBox>(settings.FindName("BackupCopyFolderBox"));
+                    Assert.Null(settings.FindName("BackupCopyFolderBox"));
+                    Assert.Null(settings.FindName("RestoreButton"));
+                    var backupPage = new BackupRestoreView();
+                    var drawerPage = new CashDrawerSettingsView();
+                    Assert.Equal("", Assert.IsType<TextBlock>(drawerPage.FindName("SavedFeedbackText")).Text);
+                    foreach (var page in new UserControl[] { backupPage, drawerPage })
+                    {
+                        foreach (var width in new[] { 1200d, 700d })
+                        {
+                            page.Measure(new Size(width, 570)); page.Arrange(new Rect(0, 0, width, 570)); page.UpdateLayout();
+                            Assert.Contains("#Inter", page.FontFamily.Source); Assert.Equal(12, page.FontSize);
+                        }
+                    }
+                    var openDialog = new ShiftOpenDialog();
+                    Assert.Null(openDialog.FindName("DrawerModeBox"));
+                    Assert.Null(openDialog.FindName("AssignedCashierBox"));
+                    Assert.NotEmpty(Assert.IsType<TextBlock>(openDialog.FindName("DrawerPolicyText")).Text);
+                    openDialog.Close();
+                    var backupFolder = Assert.IsType<TextBox>(backupPage.FindName("BackupCopyFolderBox"));
                     Assert.Equal("External drive or synced-folder path", HintAssist.GetHint(backupFolder));
                     var catalogSearch = Assert.IsType<TextBox>(productCatalog.FindName("SearchBox"));
                     Assert.Equal(catalogSearch.Tag, HintAssist.GetHint(catalogSearch));
@@ -963,7 +1144,92 @@ public class ThemeResourceTests
                         typeof(DailySalesView).GetMethod("BuildReportDocument", System.Reflection.BindingFlags.Instance |
                             System.Reflection.BindingFlags.NonPublic)!.Invoke(printReportView, null));
                     var printSalesTable = printReportDocument.Blocks.OfType<System.Windows.Documents.Table>().Last();
-                    Assert.Equal(new Thickness(0), printReportDocument.Blocks.FirstBlock.Margin);
+                    var dailyPrintText = new System.Windows.Documents.TextRange(
+                        printReportDocument.ContentStart, printReportDocument.ContentEnd).Text;
+                    Assert.DoesNotContain("TRANSACTION(S) — TOTAL", dailyPrintText);
+                    Assert.DoesNotContain("Category: All", dailyPrintText);
+                    Assert.DoesNotContain("Search: None", dailyPrintText);
+                    Assert.DoesNotContain("All cashiers", dailyPrintText);
+                    Assert.DoesNotContain("All payments", dailyPrintText);
+                    Assert.DoesNotContain("Filters:", dailyPrintText);
+                    Assert.DoesNotContain("Branch:", dailyPrintText);
+                    Assert.Equal($"Daily Sales · {DateOnly.FromDateTime(DateTime.Today):yyyy-MM-dd}",
+                        ReportPagination.GetIdentity(printReportDocument));
+                    var filteredPrintView = new DailySalesView();
+                    Assert.IsType<ComboBox>(filteredPrintView.FindName("CashierFilterBox")).SelectedIndex = 1;
+                    Assert.IsType<ComboBox>(filteredPrintView.FindName("PaymentFilterBox")).SelectedIndex = 1;
+                    Assert.IsType<TextBox>(filteredPrintView.FindName("SalesSearchBox")).Text = "FILTER-TEST";
+                    var filteredPrintDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(
+                        typeof(DailySalesView).GetMethod("BuildReportDocument", System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.NonPublic)!.Invoke(filteredPrintView, null));
+                    var filterParagraph = Assert.Single(filteredPrintDocument.Blocks.OfType<System.Windows.Documents.Paragraph>(),
+                        p => new System.Windows.Documents.TextRange(p.ContentStart, p.ContentEnd).Text.StartsWith("Filters:"));
+                    var filterText = new System.Windows.Documents.TextRange(filterParagraph.ContentStart, filterParagraph.ContentEnd).Text;
+                    Assert.Contains("Cashier:", filterText);
+                    Assert.Contains("Payment:", filterText);
+                    Assert.Contains("Search: FILTER-TEST", filterText);
+                    Assert.DoesNotContain("Branch:", filterText);
+                    Assert.DoesNotContain("FILTER-TEST", ReportPagination.GetIdentity(filteredPrintDocument));
+                    Assert.Contains("Sales totals exclude voided invoices. Net sales = Total sales − VAT; costs and expenses are not deducted.", dailyPrintText);
+                    Assert.DoesNotContain("All amounts are in Philippine pesos (PHP).", dailyPrintText);
+                    var reportNote = Assert.Single(printReportDocument.Blocks.OfType<System.Windows.Documents.Paragraph>(),
+                        paragraph => new System.Windows.Documents.TextRange(paragraph.ContentStart, paragraph.ContentEnd).Text.StartsWith("Sales totals exclude"));
+                    Assert.Equal(Color.FromRgb(0x47, 0x55, 0x69), Assert.IsType<SolidColorBrush>(reportNote.Foreground).Color);
+                    Assert.Equal(TextAlignment.Left, reportNote.TextAlignment);
+                    Assert.Contains("Sales summary", dailyPrintText);
+                    Assert.Contains("Invoice reconciliation", dailyPrintText);
+                    Assert.Contains("Total sales", dailyPrintText);
+                    Assert.Contains("Net sales (excl. VAT)", dailyPrintText);
+                    Assert.Contains("Transactions", dailyPrintText);
+                    Assert.Contains("Voided invoices", dailyPrintText);
+                    Assert.Contains("Voided amount", dailyPrintText);
+                    Assert.True(ReportPagination.GetPlainTableHeaders(printReportDocument));
+                    Assert.Equal(TextAlignment.Left, printReportDocument.Blocks.FirstBlock.TextAlignment);
+                    Assert.Equal(10, printReportDocument.Blocks.FirstBlock.FontSize);
+                    Assert.Equal(FontWeights.Bold, printReportDocument.Blocks.FirstBlock.FontWeight);
+                    var plainSummary = printReportDocument.Blocks.OfType<System.Windows.Documents.Table>().First();
+                    Assert.Equal(5, plainSummary.Columns.Count);
+                    Assert.Equal(40, plainSummary.Columns[2].Width.Value);
+                    Assert.All(plainSummary.RowGroups[0].Rows.Skip(1), row =>
+                    {
+                        Assert.Equal(5, row.Cells.Count);
+                        Assert.Equal(3, row.Cells[4].Padding.Right);
+                        Assert.Equal(TextAlignment.Right, row.Cells[1].Blocks.FirstBlock.TextAlignment);
+                        Assert.Equal(TextAlignment.Right, row.Cells[4].Blocks.FirstBlock.TextAlignment);
+                    });
+                    Assert.Equal(6, plainSummary.RowGroups[0].Rows.Count);
+                    Assert.DoesNotContain("Average sale", dailyPrintText);
+                    Assert.Equal(plainSummary.Columns[0].Width.Value + plainSummary.Columns[1].Width.Value,
+                        plainSummary.Columns[3].Width.Value + plainSummary.Columns[4].Width.Value);
+                    Assert.Equal(3, plainSummary.RowGroups[0].Rows[0].Cells[0].Padding.Left);
+                    Assert.Equal(3, plainSummary.RowGroups[0].Rows[0].Cells[2].Padding.Left);
+                    Assert.All(plainSummary.RowGroups[0].Rows.Skip(1), row =>
+                    {
+                        Assert.Equal(8, row.Cells[0].Padding.Left);
+                        Assert.Equal(8, row.Cells[3].Padding.Left);
+                        Assert.Equal(3, row.Cells[1].Padding.Right);
+                        Assert.Equal(3, row.Cells[4].Padding.Right);
+                        Assert.Equal(16, row.Cells[0].Padding.Right + row.Cells[1].Padding.Left);
+                        Assert.Equal(16, row.Cells[3].Padding.Right + row.Cells[4].Padding.Left);
+                    });
+                    Assert.Equal(new Thickness(1), plainSummary.RowGroups[0].Rows[0].Cells[0].BorderThickness);
+                    Assert.Equal(new Thickness(1), plainSummary.RowGroups[0].Rows[0].Cells[2].BorderThickness);
+                    for (var index = 1; index < plainSummary.RowGroups[0].Rows.Count; index++)
+                    {
+                        var row = plainSummary.RowGroups[0].Rows[index];
+                        var bottom = index == 5 ? 1 : 0;
+                        Assert.Equal(new Thickness(1, 0, 0, bottom), row.Cells[0].BorderThickness);
+                        Assert.Equal(new Thickness(0, 0, 1, bottom), row.Cells[1].BorderThickness);
+                        Assert.Equal(new Thickness(0), row.Cells[2].BorderThickness);
+                        Assert.Equal(new Thickness(1, 0, 0, bottom), row.Cells[3].BorderThickness);
+                        Assert.Equal(new Thickness(0, 0, 1, bottom), row.Cells[4].BorderThickness);
+                    }
+                    Assert.All(printSalesTable.RowGroups[0].Rows[0].Cells, cell =>
+                    {
+                        Assert.Null(cell.Background);
+                        Assert.Equal(new Thickness(0, 1, 0, 1), cell.BorderThickness);
+                    });
+                    Assert.Equal(new Thickness(0, 0, 190, 0), printReportDocument.Blocks.FirstBlock.Margin);
                     var previousBranchName = AppSettings.Get("BranchName");
                     var previousCompanyAddress = AppSettings.Get("CompanyAddress");
                     try
@@ -974,13 +1240,13 @@ public class ThemeResourceTests
                         var branchDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(
                             typeof(DailySalesView).GetMethod("BuildReportDocument", System.Reflection.BindingFlags.Instance |
                                 System.Reflection.BindingFlags.NonPublic)!.Invoke(printReportView, null));
-                        Assert.Equal(new Thickness(0), branchDocument.Blocks.FirstBlock.Margin);
-                        Assert.Equal(new Thickness(0), branchDocument.Blocks.FirstBlock.NextBlock.Margin);
+                        Assert.Equal(new Thickness(0, 0, 190, 0), branchDocument.Blocks.FirstBlock.Margin);
+                        Assert.Equal(new Thickness(0, 0, 190, 0), branchDocument.Blocks.FirstBlock.NextBlock.Margin);
                         Assert.Contains("REPORT TEST BRANCH", new System.Windows.Documents.TextRange(
                             branchDocument.Blocks.FirstBlock.NextBlock.ContentStart,
                             branchDocument.Blocks.FirstBlock.NextBlock.ContentEnd).Text);
                         var addressBlock = branchDocument.Blocks.FirstBlock.NextBlock.NextBlock;
-                        Assert.Equal(new Thickness(0), addressBlock.Margin);
+                        Assert.Equal(new Thickness(0, 0, 190, 0), addressBlock.Margin);
                         Assert.Contains("REPORT TEST ADDRESS", new System.Windows.Documents.TextRange(
                             addressBlock.ContentStart, addressBlock.ContentEnd).Text);
                         AppSettings.Set("BranchName", "   ");
@@ -988,14 +1254,17 @@ public class ThemeResourceTests
                         var blankBranchDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(
                             typeof(DailySalesView).GetMethod("BuildReportDocument", System.Reflection.BindingFlags.Instance |
                                 System.Reflection.BindingFlags.NonPublic)!.Invoke(printReportView, null));
-                        Assert.Equal(new Thickness(0), blankBranchDocument.Blocks.FirstBlock.Margin);
-                        Assert.Equal(new Thickness(0), blankBranchDocument.Blocks.FirstBlock.NextBlock.Margin);
+                        Assert.Equal(new Thickness(0, 0, 190, 0), blankBranchDocument.Blocks.FirstBlock.Margin);
+                        Assert.Equal(new Thickness(0, 0, 190, 0), blankBranchDocument.Blocks.FirstBlock.NextBlock.Margin);
                         Assert.Contains("REPORT TEST ADDRESS", new System.Windows.Documents.TextRange(
                             blankBranchDocument.Blocks.FirstBlock.NextBlock.ContentStart,
                             blankBranchDocument.Blocks.FirstBlock.NextBlock.ContentEnd).Text);
                         Assert.Contains("DAILY SALES REPORT", new System.Windows.Documents.TextRange(
-                            blankBranchDocument.Blocks.FirstBlock.NextBlock.NextBlock.ContentStart,
-                            blankBranchDocument.Blocks.FirstBlock.NextBlock.NextBlock.ContentEnd).Text);
+                            blankBranchDocument.Blocks.FirstBlock.NextBlock.NextBlock.NextBlock.ContentStart,
+                            blankBranchDocument.Blocks.FirstBlock.NextBlock.NextBlock.NextBlock.ContentEnd).Text);
+                        var reportDateBlock = blankBranchDocument.Blocks.FirstBlock.NextBlock.NextBlock;
+                        Assert.Equal(TextAlignment.Left, reportDateBlock.TextAlignment);
+                        Assert.Equal(new Thickness(0, 0, 190, 0), reportDateBlock.Margin);
                     }
                     finally
                     {
@@ -1007,6 +1276,7 @@ public class ThemeResourceTests
                         paragraph => new System.Windows.Documents.TextRange(paragraph.ContentStart, paragraph.ContentEnd)
                             .Text.Contains("DAILY SALES REPORT"));
                     Assert.Null(headingBand.Background);
+                    Assert.Equal(14, headingBand.FontSize);
                     Assert.Equal(new Thickness(0), headingBand.Padding);
                     Assert.Equal(FontWeights.Bold, Assert.IsType<System.Windows.Documents.Run>(headingBand.Inlines.FirstInline).FontWeight);
                     Assert.DoesNotContain("Generated", new System.Windows.Documents.TextRange(
@@ -1014,13 +1284,16 @@ public class ThemeResourceTests
                     var signatureSection = Assert.IsType<System.Windows.Documents.Paragraph>(printReportDocument.Blocks.LastBlock);
                     Assert.True(signatureSection.KeepTogether);
                     var footerText = new System.Windows.Documents.TextRange(signatureSection.ContentStart, signatureSection.ContentEnd).Text;
-                    Assert.Contains("Generated:", footerText);
+                    Assert.DoesNotContain("Generated:", footerText);
+                    Assert.DoesNotContain("Generated:", dailyPrintText);
+                    Assert.Matches(@"^\d{2}/\d{2}/\d{4}$", ReportPagination.GetTopRightMetadata(printReportDocument));
                     Assert.Contains(admin.FullName, footerText);
-                    Assert.Contains("Prepared by / Signature", footerText);
+                    Assert.Contains("Prepared by: " + admin.FullName, footerText);
+                    Assert.Contains("Signature:", footerText);
                     var signatureLine = Assert.IsType<Border>(signatureSection.Inlines
                         .OfType<System.Windows.Documents.InlineUIContainer>().Single().Child);
-                    Assert.Equal(240, signatureLine.Width);
-                    Assert.Equal(new Thickness(0, 0, 0, 2), signatureLine.BorderThickness);
+                    Assert.Equal(90, signatureLine.Width);
+                    Assert.Equal(new Thickness(0, 0, 0, 1), signatureLine.BorderThickness);
                     string CellText(System.Windows.Documents.TableCell cell) =>
                         new System.Windows.Documents.TextRange(cell.ContentStart, cell.ContentEnd).Text.Trim();
                     Assert.Equal(new[] { "INVOICE", "TIME", "CUSTOMER", "PAYMENT", "GROSS", "DISC", "TOTAL", "VAT", "NET", "VOID" },
@@ -1041,8 +1314,62 @@ public class ThemeResourceTests
                     foreach (var paper in ReportPaperSize.Options)
                     {
                         pdfPaperBox.SelectedItem = paper;
+                        var metadataPaginator = ReportPagination.Create(printReportDocument);
+                        metadataPaginator.ComputePageCount();
+                        IEnumerable<GlyphRunDrawing> Glyphs(Drawing drawing)
+                        {
+                            if (drawing is GlyphRunDrawing glyph) yield return glyph;
+                            if (drawing is DrawingGroup group)
+                                foreach (var child in group.Children)
+                                    foreach (var nested in Glyphs(child)) yield return nested;
+                        }
+                        for (var pageIndex = 0; pageIndex < metadataPaginator.PageCount; pageIndex++)
+                        {
+                            var pageVisual = Assert.IsType<DrawingVisual>(metadataPaginator.GetPage(pageIndex).Visual);
+                            var glyphs = Glyphs(pageVisual.Drawing).ToArray();
+                            var topText = string.Concat(glyphs.Where(glyph => glyph.Bounds.Bottom < printReportDocument.PagePadding.Top + 28)
+                                .Select(glyph => new string(glyph.GlyphRun.Characters.ToArray())));
+                            var pageLabel = Assert.Single(glyphs, glyph => new string(glyph.GlyphRun.Characters.ToArray()) == "Page No.");
+                            Assert.Equal(10, pageLabel.GlyphRun.FontRenderingEmSize);
+                            Assert.All(glyphs.Where(glyph => new string(glyph.GlyphRun.Characters.ToArray()) is "Print Date"
+                                || new string(glyph.GlyphRun.Characters.ToArray()) == ReportPagination.GetTopRightMetadata(printReportDocument)
+                                || new string(glyph.GlyphRun.Characters.ToArray()) == $"{pageIndex + 1}/{metadataPaginator.PageCount}"),
+                                glyph => Assert.Equal(10, glyph.GlyphRun.FontRenderingEmSize));
+                            Assert.InRange(pageLabel.Bounds.Top,
+                                pageIndex == 0 ? printReportDocument.PagePadding.Top : 0,
+                                (pageIndex == 0 ? printReportDocument.PagePadding.Top : 0) + 5);
+                            Assert.Contains(ReportPagination.GetTopRightMetadata(printReportDocument), topText);
+                            Assert.Contains("Page No.", topText);
+                            Assert.Contains("Print Date", topText);
+                            Assert.Contains($"{pageIndex + 1}/{metadataPaginator.PageCount}", topText);
+                            var bottomText = string.Concat(glyphs.Where(glyph => glyph.Bounds.Top > printReportDocument.PageHeight - 48)
+                                .Select(glyph => new string(glyph.GlyphRun.Characters.ToArray())));
+                            Assert.DoesNotContain("Page ", bottomText);
+                            Assert.DoesNotContain("Print Date", bottomText);
+                        }
+                        Assert.Equal(8, plainSummary.RowGroups[0].Rows[1].Cells[0].Padding.Left);
+                        Assert.Equal(8, plainSummary.RowGroups[0].Rows[1].Cells[3].Padding.Left);
+                        Assert.Equal(3, plainSummary.RowGroups[0].Rows[1].Cells[1].Padding.Right);
+                        Assert.Equal(3, plainSummary.RowGroups[0].Rows[1].Cells[4].Padding.Right);
+                        Assert.Equal(16, plainSummary.RowGroups[0].Rows[1].Cells[0].Padding.Right +
+                            plainSummary.RowGroups[0].Rows[1].Cells[1].Padding.Left);
                         Assert.Equal(10, printSalesTable.FontSize);
-                        Assert.Equal(new Thickness(0, 0, 2, 2), printSalesTable.RowGroups[0].Rows[0].Cells[0].BorderThickness);
+                        Assert.Equal(new Thickness(0, 1, 0, 1), printSalesTable.RowGroups[0].Rows[0].Cells[0].BorderThickness);
+                        var dailyQaFolder = Environment.GetEnvironmentVariable("MYPOS_LOGIN_SHIFT_QA_DIR");
+                        if (!string.IsNullOrWhiteSpace(dailyQaFolder))
+                        {
+                            System.IO.Directory.CreateDirectory(dailyQaFolder);
+                            var dailyPaginator = ReportPagination.Create(printReportDocument);
+                            dailyPaginator.ComputePageCount();
+                            var dailyPage = dailyPaginator.GetPage(0);
+                            var dailyBitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(
+                                (int)Math.Ceiling(dailyPage.Size.Width), (int)Math.Ceiling(dailyPage.Size.Height), 96, 96, PixelFormats.Pbgra32);
+                            dailyBitmap.Render(dailyPage.Visual);
+                            var dailyEncoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                            dailyEncoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(dailyBitmap));
+                            using var dailyPng = System.IO.File.Create(System.IO.Path.Combine(dailyQaFolder, "daily-sales-" + paper.Label.Replace("/", "-") + ".png"));
+                            dailyEncoder.Save(dailyPng);
+                        }
                         using var pdfStream = new System.IO.MemoryStream();
                         ReportPdfExporter.Export(printReportDocument, pdfStream);
                         pdfStream.Position = 0;
@@ -1066,6 +1393,396 @@ public class ThemeResourceTests
                     var branchId = db.Branches.First().Id;
                     var shiftService = new ShiftService(db);
                     if (!shiftService.HasOpenShift) shiftService.OpenShift(branchId, admin.Id, 100m);
+                    var closeSizing = new ShiftCloseDialog();
+                    Assert.Contains("drawer", Assert.IsType<TextBlock>(closeSizing.FindName("ShiftIdentityText")).Text);
+                    Assert.Contains(admin.FullName, Assert.IsType<TextBlock>(closeSizing.FindName("ClosingOperatorText")).Text);
+                    Assert.NotNull(closeSizing.FindName("CashInText"));
+                    Assert.NotNull(closeSizing.FindName("CashOutText"));
+                    var cashCount = Assert.IsType<TextBox>(closeSizing.FindName("CountedBox"));
+                    var cashStatus = Assert.IsType<TextBlock>(closeSizing.FindName("VariancePreview"));
+                    var expectedCash = shiftService.GetOpenShift()!.OpeningFloat;
+                    var closeTotals = shiftService.GetShiftTotals(shiftService.GetOpenShift()!.Id);
+                    expectedCash += closeTotals.CashSales + closeTotals.CashIn - closeTotals.CashOut;
+                    cashCount.Text = expectedCash.ToString("0.00");
+                    Assert.Equal("Balanced", cashStatus.Text);
+                    cashCount.Text = (expectedCash + 10m).ToString("0.00");
+                    Assert.StartsWith("Over by", cashStatus.Text);
+                    cashCount.Text = "";
+                    Assert.Equal("Cash not yet counted", cashStatus.Text);
+                    cashCount.Text = "1.001";
+                    Assert.Equal("Cash not yet counted", cashStatus.Text);
+                    var fixedHeight = closeSizing.Height;
+                    Assert.Equal(SizeToContent.Manual, closeSizing.SizeToContent);
+                    Assert.True(closeSizing.MaxHeight <= SystemParameters.WorkArea.Height - 32);
+                    var closeBody = Assert.IsType<Grid>(closeSizing.Content);
+                    var countToggle = Assert.IsType<CheckBox>(closeSizing.FindName("UseDenominationsBox"));
+                    var formScroll = Assert.IsType<ScrollViewer>(closeSizing.FindName("FormScroller"));
+                    foreach (var availableHeight in new[] { 550d, 420d, 340d })
+                    {
+                        countToggle.IsChecked = true;
+                        var denominationRows = Assert.IsAssignableFrom<IEnumerable<ShiftCloseDialog.CountRow>>(
+                            Assert.IsType<DataGrid>(closeSizing.FindName("DenominationGrid")).ItemsSource).ToList();
+                        denominationRows[0].CountText = "2";
+                        denominationRows[1].CountText = "";
+                        Assert.Equal("0", denominationRows[1].CountText);
+                        Assert.Equal("2000.00", cashCount.Text);
+                        denominationRows[0].CountText = "";
+                        Assert.Equal("0", denominationRows[0].CountText);
+                        Assert.Equal("0.00", cashCount.Text);
+                        closeBody.Measure(new Size(400, availableHeight));
+                        closeBody.Arrange(new Rect(0, 0, 400, availableHeight)); closeBody.UpdateLayout();
+                        Assert.Equal(fixedHeight, closeSizing.Height);
+                        Assert.True(Assert.IsType<TextBox>(closeSizing.FindName("CountedBox")).IsReadOnly);
+                        AssertInside(Assert.IsType<Button>(closeSizing.FindName("CancelButton")), closeBody, 400, availableHeight);
+                        AssertInside(Assert.IsType<Button>(closeSizing.FindName("CloseShiftButton")), closeBody, 400, availableHeight);
+                        if (availableHeight <= 420) Assert.True(formScroll.ScrollableHeight > 0);
+                        CaptureFormQa(closeBody, "close-shift-counting-" + availableHeight, 400, (int)availableHeight);
+                        countToggle.IsChecked = false;
+                        Assert.False(Assert.IsType<TextBox>(closeSizing.FindName("CountedBox")).IsReadOnly);
+                    }
+                    closeSizing.Close();
+                    var privacyShift = shiftService.GetOpenShift()!;
+                    var previousMode = privacyShift.DrawerMode;
+                    var previousAssignment = privacyShift.AssignedCashierId;
+                    var otherCashier = new User { Username = "drawer-privacy-test", FullName = "Other cashier", Role = UserRole.Cashier, IsActive = true };
+                    db.Users.Add(otherCashier);
+                    privacyShift.DrawerMode = DrawerMode.Assigned;
+                    privacyShift.AssignedCashierId = admin.Id;
+                    db.SaveChanges();
+                    App.CurrentUser = otherCashier;
+                    var restrictedShift = new ShiftView();
+                    Assert.Equal("—", Assert.IsType<TextBlock>(restrictedShift.FindName("ExpectedText")).Text);
+                    Assert.False(Assert.IsType<Button>(restrictedShift.FindName("CloseShiftButton")).IsEnabled);
+                    Assert.Empty(Assert.IsType<DataGrid>(restrictedShift.FindName("ShiftsGrid")).Items.Cast<object>());
+                    App.CurrentUser = admin;
+                    privacyShift.DrawerMode = previousMode;
+                    privacyShift.AssignedCashierId = previousAssignment;
+                    db.Users.Remove(otherCashier);
+                    db.SaveChanges();
+                    var reconciliation = new ShiftReconciliationView();
+                    Assert.True(Assert.IsType<Button>(reconciliation.FindName("PrintButton")).IsEnabled,
+                        Assert.IsType<TextBlock>(reconciliation.FindName("StatusText")).Text);
+                    void CheckReportDialog(ReportHostWindow opened, Type expectedContent)
+                    {
+                        Assert.IsType(expectedContent, opened.Content);
+                        Assert.Same(Assert.IsType<Style>(opened.FindResource("DialogWindow")), opened.Style);
+                        Assert.Equal(ResizeMode.NoResize, opened.ResizeMode);
+                        Assert.Equal(WindowStyle.SingleBorderWindow, opened.WindowStyle);
+                        Assert.Equal(1000, opened.Width);
+                        Assert.Equal(12, opened.FontSize);
+                        var reportContent = Assert.IsAssignableFrom<FrameworkElement>(opened.Content);
+                        reportContent.Measure(new Size(980, 600));
+                        reportContent.Arrange(new Rect(0, 0, 980, 600));
+                        reportContent.UpdateLayout();
+                        opened.Close();
+                    }
+                    var reconciliationToolbar = Assert.IsType<WrapPanel>(Assert.IsType<Button>(reconciliation.FindName("PrintButton")).Parent);
+                    Assert.DoesNotContain(reconciliationToolbar.Children.OfType<Button>(),
+                        button => string.Equals(button.Content?.ToString(), "Cash movements", StringComparison.OrdinalIgnoreCase));
+                    Assert.NotNull(reconciliation.FindName("MovementsGrid"));
+                    var historyView = new ShiftView();
+                    var historyGrid = Assert.IsType<DataGrid>(historyView.FindName("ShiftsGrid"));
+                    historyGrid.SelectedItem = historyGrid.Items.Cast<ShiftRowVM>().First(r => r.ShiftId == privacyShift.Id);
+                    CheckReportDialog(Assert.IsType<ReportHostWindow>(typeof(ShiftView).GetMethod("CreateReconciliationDialog",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                        .Invoke(historyView, new object[] { privacyShift.Id })), typeof(ShiftReconciliationView));
+                    Assert.True(Assert.IsType<Button>(reconciliation.FindName("PrintButton")).IsEnabled);
+                    Assert.NotEmpty(Assert.IsType<DataGrid>(reconciliation.FindName("DrawerGrid")).Items.Cast<object>());
+                    foreach (var width in new[] { 1300d, 760d })
+                    {
+                        reconciliation.Width = width; reconciliation.Height = 570;
+                        reconciliation.Measure(new Size(width, 570));
+                        reconciliation.Arrange(new Rect(0, 0, width, 570)); reconciliation.UpdateLayout();
+                        Assert.Equal(12, Assert.IsType<DataGrid>(reconciliation.FindName("DrawerGrid")).FontSize);
+                    }
+                    var reconciliationDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(
+                        typeof(ShiftReconciliationView).GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.NonPublic)!.Invoke(reconciliation, null));
+                    Assert.Contains("SHIFT / CASHIER RECONCILIATION", new System.Windows.Documents.TextRange(
+                        reconciliationDocument.ContentStart, reconciliationDocument.ContentEnd).Text);
+                    AssertStandardReportChrome(reconciliationDocument, "reconciliation");
+                    var reconciliationFooter = new System.Windows.Documents.TextRange(reconciliationDocument.Blocks.LastBlock.ContentStart,
+                        reconciliationDocument.Blocks.LastBlock.ContentEnd).Text;
+                    Assert.Contains("Checked by:", reconciliationFooter);
+                    Assert.Contains("Received by:", reconciliationFooter);
+                    var reconciliationQa = Environment.GetEnvironmentVariable("MYPOS_RECONCILIATION_QA_DIR");
+                    if (!string.IsNullOrWhiteSpace(reconciliationQa))
+                    {
+                        System.IO.Directory.CreateDirectory(reconciliationQa);
+                        var capture = new System.Windows.Media.Imaging.RenderTargetBitmap(760, 570, 96, 96,
+                            System.Windows.Media.PixelFormats.Pbgra32);
+                        capture.Render(reconciliation);
+                        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(capture));
+                        using (var stream = System.IO.File.Create(System.IO.Path.Combine(reconciliationQa, "reconciliation-ui.png")))
+                            encoder.Save(stream);
+                        foreach (var option in ReportPaperSize.Options)
+                        {
+                            reconciliationDocument.PageWidth = option.Width;
+                            reconciliationDocument.PageHeight = option.Height;
+                            reconciliationDocument.PagePadding = new Thickness(48);
+                            var tables = reconciliationDocument.Blocks.OfType<System.Windows.Documents.Table>();
+                            foreach (var table in tables)
+                            {
+                                var total = table.Columns.Sum(c => c.Width.Value);
+                                foreach (var column in table.Columns)
+                                    column.Width = new GridLength(column.Width.Value / total * (option.Width - 96));
+                            }
+                            ReportPdfExporter.Save(reconciliationDocument, System.IO.Path.Combine(reconciliationQa,
+                                $"reconciliation-{option.Width:0}-{option.Height:0}.pdf"));
+                        }
+                    }
+                    db.CashMovements.AddRange(
+                        new CashMovement { ShiftId = shiftService.GetOpenShift()!.Id, UserId = admin.Id,
+                            Type = CashMovementType.CashIn, Amount = 1200, MovementDate = DateTime.Today.AddHours(8), Reason = "Float replenishment" },
+                        new CashMovement { ShiftId = shiftService.GetOpenShift()!.Id, UserId = admin.Id,
+                            Type = CashMovementType.CashOut, Amount = 200, MovementDate = DateTime.Today.AddHours(9), Reason = "Cash withdrawal; not necessarily an expense" });
+                    db.SaveChanges();
+                    var movements = new CashMovementsView();
+                    var movementTable = Assert.IsType<DataGrid>(movements.FindName("MovementsGrid"));
+                    Assert.Equal(2, movementTable.Items.Count);
+                    Assert.Equal(12, movementTable.FontSize);
+                    Assert.Equal(28, movementTable.RowHeight); Assert.Equal(26, movementTable.ColumnHeaderHeight);
+                    Assert.Equal("₱1,000.00", Assert.IsType<TextBlock>(movements.FindName("NetText")).Text);
+                    Assert.IsType<ComboBox>(movements.FindName("TypeBox")).SelectedIndex = 2;
+                    Assert.Single(movementTable.Items.Cast<object>());
+                    Assert.IsType<DatePicker>(movements.FindName("FromPick")).SelectedDate = null;
+                    Assert.False(Assert.IsType<Button>(movements.FindName("PrintButton")).IsEnabled);
+                    Assert.Empty(movementTable.Items.Cast<object>());
+                    Assert.IsType<DatePicker>(movements.FindName("FromPick")).SelectedDate = DateTime.Today;
+                    Assert.IsType<ComboBox>(movements.FindName("TypeBox")).SelectedIndex = 0;
+                    foreach (var width in new[] { 1300d, 760d })
+                    {
+                        movements.Measure(new Size(width, 570)); movements.Arrange(new Rect(0, 0, width, 570)); movements.UpdateLayout();
+                        Assert.True(movementTable.ActualHeight > 200);
+                        Assert.True(movementTable.Columns[3].ActualWidth >= 140);
+                        AssertInside(Assert.IsType<Button>(movements.FindName("PrintButton")), movements, width, 570);
+                        AssertInside(Assert.IsType<Button>(movements.FindName("ExportButton")), movements, width, 570);
+                    }
+                    var movementDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(
+                        typeof(CashMovementsView).GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.NonPublic)!.Invoke(movements, null));
+                    var movementPrintText = new System.Windows.Documents.TextRange(movementDocument.ContentStart, movementDocument.ContentEnd).Text;
+                    Assert.Contains("CASH MOVEMENTS REPORT", movementPrintText);
+                    Assert.Contains("Float replenishment", movementPrintText);
+                    Assert.Contains("Prepared by: Test Administrator", movementPrintText);
+                    Assert.Contains("Period:", movementPrintText);
+                    Assert.DoesNotContain("Filters:", movementPrintText);
+                    Assert.DoesNotContain("All movements", movementPrintText);
+                    Assert.DoesNotContain("Category: All", movementPrintText);
+                    Assert.DoesNotContain("Search: None", movementPrintText);
+                    Assert.DoesNotContain("All accessible", movementPrintText);
+                    Assert.Contains("Recorded by: Test Administrator", movementPrintText);
+                    Assert.Contains("Approval: Unapproved", movementPrintText);
+                    Assert.Contains("1,200.00", movementPrintText);
+                    Assert.DoesNotContain("CashIn", movementPrintText);
+                    Assert.DoesNotContain("Expense: PHP 0.00", movementPrintText);
+                    Assert.Contains("Cash-out breakdown: Unclassified: ₱200.00", movementPrintText);
+                    var movementTotals = Assert.Single(movementDocument.Blocks.OfType<System.Windows.Documents.Paragraph>(),
+                        p => new System.Windows.Documents.TextRange(p.ContentStart, p.ContentEnd).Text.Contains("Net movement:"));
+                    var movementBlocks = movementDocument.Blocks.ToList();
+                    Assert.True(movementBlocks.IndexOf(movementTotals) > movementBlocks.FindLastIndex(b => b is System.Windows.Documents.Table));
+                    var movementNote = Assert.Single(movementDocument.Blocks.OfType<System.Windows.Documents.Paragraph>(),
+                        p => new System.Windows.Documents.TextRange(p.ContentStart, p.ContentEnd).Text.Contains("Accessible drawers only."));
+                    Assert.True(movementBlocks.IndexOf(movementNote) > movementBlocks.IndexOf(movementTotals));
+                    AssertStandardReportChrome(movementDocument, "cash-movements");
+                    if (Environment.GetEnvironmentVariable("MYPOS_CASH_MOVEMENT_QA_DIR") is { Length: > 0 } movementQa)
+                    {
+                        System.IO.Directory.CreateDirectory(movementQa);
+                        for (var i = 0; i < 40; i++) db.CashMovements.Add(new CashMovement {
+                            ShiftId = shiftService.GetOpenShift()!.Id, UserId = admin.Id, Amount = 100 + i,
+                            MovementDate = DateTime.Today.AddHours(10).AddMinutes(i),
+                            Type = i % 2 == 0 ? CashMovementType.CashIn : CashMovementType.CashOut,
+                            Reason = "QA entry with a longer reason to verify wrapping and readable portrait print output." });
+                        db.SaveChanges();
+                        typeof(CashMovementsView).GetMethod("LoadReport", System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.NonPublic)!.Invoke(movements, null);
+                        foreach (var width in new[] { 1300d, 760d })
+                        {
+                            movements.Measure(new Size(width, 570)); movements.Arrange(new Rect(0, 0, width, 570)); movements.UpdateLayout();
+                            var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)width, 570, 96, 96, PixelFormats.Pbgra32);
+                            bitmap.Render(movements);
+                            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+                            using var stream = System.IO.File.Create(System.IO.Path.Combine(movementQa, $"movements-{width}.png"));
+                            encoder.Save(stream);
+                        }
+                        foreach (var paper in ReportPaperSize.Options)
+                        {
+                            var print = Assert.IsType<System.Windows.Documents.FlowDocument>(
+                                typeof(CashMovementsView).GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance |
+                                    System.Reflection.BindingFlags.NonPublic)!.Invoke(movements, null));
+                            print.PageWidth = paper.Width; print.PageHeight = paper.Height;
+                            foreach (var table in print.Blocks.OfType<System.Windows.Documents.Table>())
+                                foreach (var column in table.Columns) column.Width = new GridLength(column.Width.Value / 698 * (paper.Width - 96));
+                            ReportPdfExporter.Save(print, System.IO.Path.Combine(movementQa, $"movements-{paper.Width:0}-{paper.Height:0}.pdf"));
+                        }
+                    }
+                    foreach (var kind in Enum.GetValues<ExpandedReportKind>())
+                    {
+                        var reportView = new ExpandedReportsView(kind);
+                        foreach (var width in new[] { 1300d, 760d })
+                        {
+                            reportView.Measure(new Size(width, 570)); reportView.Arrange(new Rect(0, 0, width, 570)); reportView.UpdateLayout();
+                            var table = Assert.IsType<DataGrid>(reportView.FindName("ReportGrid"));
+                            Assert.Equal(12, table.FontSize); Assert.True(table.ActualHeight >= 150);
+                            AssertInside(Assert.IsType<Button>(reportView.FindName("PrintButton")), reportView, width, 570);
+                        }
+                        Assert.True(Assert.IsType<Button>(reportView.FindName("PrintButton")).IsEnabled);
+                        var standardDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(typeof(ExpandedReportsView)
+                            .GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                            .Invoke(reportView, null));
+                        AssertStandardReportChrome(standardDocument, kind.ToString());
+                        var scopeText = new System.Windows.Documents.TextRange(standardDocument.ContentStart, standardDocument.ContentEnd).Text;
+                        Assert.Contains("period:", scopeText.ToLowerInvariant());
+                        Assert.DoesNotContain("Filters:", scopeText);
+                        Assert.DoesNotContain("All cashiers", scopeText);
+                        Assert.DoesNotContain("All payments", scopeText);
+                        Assert.DoesNotContain("Category: All", scopeText);
+                        Assert.DoesNotContain("Search: None", scopeText);
+                        if (kind == ExpandedReportKind.SalesSummary)
+                        {
+                            Assert.DoesNotContain("Current-status sales", scopeText);
+                            Assert.DoesNotContain("Payment filter selects whole invoices", scopeText);
+                            Assert.Contains("transactions | Total PHP", scopeText);
+                            var totalParagraph = Assert.Single(standardDocument.Blocks.OfType<System.Windows.Documents.Paragraph>(),
+                                p => new System.Windows.Documents.TextRange(p.ContentStart, p.ContentEnd).Text.Contains("transactions | Total PHP"));
+                            var summaryBlocks = standardDocument.Blocks.ToList();
+                            Assert.True(summaryBlocks.IndexOf(totalParagraph) > summaryBlocks.FindLastIndex(b => b is System.Windows.Documents.Table));
+                        }
+                        if (kind == ExpandedReportKind.VoidEvents)
+                        {
+                            var voidTotals = Assert.Single(standardDocument.Blocks.OfType<System.Windows.Documents.Paragraph>(),
+                                p => new System.Windows.Documents.TextRange(p.ContentStart, p.ContentEnd).Text.Contains("Voided invoices:"));
+                            var voidBlocks = standardDocument.Blocks.ToList();
+                            Assert.True(voidBlocks.IndexOf(voidTotals) > voidBlocks.FindLastIndex(b => b is System.Windows.Documents.Table));
+                            Assert.Contains("Voids are grouped by approval date", scopeText);
+                        }
+                        if (kind == ExpandedReportKind.ProductSales)
+                        {
+                            var branchControl = Assert.IsType<ComboBox>(reportView.FindName("BranchBox"));
+                            Assert.Equal(Visibility.Collapsed, branchControl.Visibility);
+                            Assert.NotNull(branchControl.SelectedItem);
+                            var productText = new System.Windows.Documents.TextRange(standardDocument.ContentStart, standardDocument.ContentEnd).Text;
+                            Assert.Contains("PRODUCT SALES REPORT", productText);
+                            Assert.Contains("Period:", productText);
+                            Assert.DoesNotContain("All cashiers", productText);
+                            Assert.DoesNotContain("All payments", productText);
+                            Assert.DoesNotContain("Category: All", productText);
+                            Assert.DoesNotContain("Search: None", productText);
+                            Assert.DoesNotContain("Product detail", productText);
+                            Assert.Single(standardDocument.Blocks.OfType<System.Windows.Documents.Paragraph>(), paragraph =>
+                                new System.Windows.Documents.TextRange(paragraph.ContentStart, paragraph.ContentEnd).Text.Contains("Invoice sales total:"));
+                            var productTable = standardDocument.Blocks.OfType<System.Windows.Documents.Table>().Single();
+                            Assert.Contains("Voided sales are excluded.", new System.Windows.Documents.TextRange(
+                                productTable.NextBlock.ContentStart, productTable.NextBlock.ContentEnd).Text);
+                            Assert.IsType<ComboBox>(reportView.FindName("ModeBox")).SelectedIndex = 1;
+                            var categoryDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(typeof(ExpandedReportsView)
+                                .GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                                .Invoke(reportView, null));
+                            Assert.Contains("CATEGORY SALES REPORT", new System.Windows.Documents.TextRange(categoryDocument.ContentStart, categoryDocument.ContentEnd).Text);
+                            AssertStandardReportChrome(categoryDocument, "CategorySales");
+                            var extraBranch = new Branch { Name = "Second report branch" };
+                            db.Branches.Add(extraBranch); db.SaveChanges();
+                            var branchName = db.Branches.Single(b => b.Id == branchId).Name;
+                            var multiBranchDaily = new DailySalesView();
+                            var multiBranchDailyDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(typeof(DailySalesView)
+                                .GetMethod("BuildReportDocument", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                                .Invoke(multiBranchDaily, null));
+                            Assert.Contains("Filters: Branch: " + branchName, new System.Windows.Documents.TextRange(
+                                multiBranchDailyDocument.ContentStart, multiBranchDailyDocument.ContentEnd).Text);
+                            var multiBranchReconciliation = Assert.IsType<System.Windows.Documents.FlowDocument>(typeof(ShiftReconciliationView)
+                                .GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                                .Invoke(reconciliation, null));
+                            Assert.Contains("Filters: Branch: " + branchName, new System.Windows.Documents.TextRange(
+                                multiBranchReconciliation.ContentStart, multiBranchReconciliation.ContentEnd).Text);
+                            var multipleBranchView = new ExpandedReportsView(ExpandedReportKind.ProductSales);
+                            var multipleBranches = Assert.IsType<ComboBox>(multipleBranchView.FindName("BranchBox"));
+                            Assert.Equal(Visibility.Visible, multipleBranches.Visibility);
+                            Assert.Equal(2, multipleBranches.Items.Count);
+                            multipleBranches.SelectedIndex = 1;
+                            Assert.Contains("Branch: Second report branch", Assert.IsType<TextBlock>(multipleBranchView.FindName("StatusText")).Text);
+                            Assert.Contains("Product sales total: ₱0.00", Assert.IsType<TextBlock>(multipleBranchView.FindName("SummaryText")).Text);
+                            db.Branches.Remove(extraBranch); db.SaveChanges();
+                            var legacyProductSale = new Sale
+                            {
+                                BranchId = branchId, CashierId = admin.Id, SaleDate = DateTime.Today.AddHours(9),
+                                SaleNumber = 987654, ReceiptNumber = "LEGACY-REPORT-QA", TotalAmount = 100, GrossAmount = 100,
+                                Items = new() { new SaleItem { ProductId = Guid.NewGuid(), ProductName = "Legacy report sample",
+                                    Qty = 1, LineGross = 100 } }
+                            };
+                            db.Sales.Add(legacyProductSale); db.SaveChanges();
+                            var legacyView = new ExpandedReportsView(ExpandedReportKind.ProductSales);
+                            var legacyWarning = Assert.IsType<TextBlock>(legacyView.FindName("ReportWarningText"));
+                            Assert.Equal(Visibility.Visible, legacyWarning.Visibility);
+                            Assert.Contains("Product totals are incomplete.", legacyWarning.Text);
+                            Assert.Contains("Known product sales (partial)", Assert.IsType<TextBlock>(legacyView.FindName("SummaryText")).Text);
+                            var legacyDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(typeof(ExpandedReportsView)
+                                .GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                                .Invoke(legacyView, null));
+                            AssertStandardReportChrome(legacyDocument, "ProductSalesPartial");
+                            Assert.Single(legacyDocument.Blocks.OfType<System.Windows.Documents.Paragraph>(), paragraph =>
+                                new System.Windows.Documents.TextRange(paragraph.ContentStart, paragraph.ContentEnd).Text.StartsWith("Warning:"));
+                            Assert.IsType<DatePicker>(legacyView.FindName("FromPick")).SelectedDate = null;
+                            Assert.Equal(Visibility.Collapsed, legacyWarning.Visibility);
+                            db.Sales.Remove(legacyProductSale); db.SaveChanges();
+                        }
+                        Assert.IsType<DatePicker>(reportView.FindName("FromPick")).SelectedDate = null;
+                        Assert.False(Assert.IsType<Button>(reportView.FindName("PrintButton")).IsEnabled);
+                    }
+                    if (Environment.GetEnvironmentVariable("MYPOS_AUDIT_COMPLETION_QA_DIR") is { Length: > 0 } auditQa)
+                    {
+                        System.IO.Directory.CreateDirectory(auditQa);
+                        for (var i = 0; i < 75; i++)
+                        {
+                            var gross = 112m * (i + 1); var net = 100m * (i + 1);
+                            db.Sales.Add(new Sale { BranchId = branchId, CashierId = admin.Id, SaleNumber = 5000 + i,
+                                SaleDate = DateTime.Today.AddDays(-(i % 30)).AddHours(8), ReceiptNumber = "QA" + i,
+                                CustomerName = "QA customer with a longer name for portrait print checking",
+                                GrossAmount = gross, TotalAmount = gross, NetAmount = net, VatAmount = gross - net,
+                                IsVoided = i % 10 == 0, VoidedAt = i % 10 == 0 ? DateTime.Today.AddHours(11) : null,
+                                VoidedById = i % 10 == 0 ? admin.Id : null, VoidReason = i % 10 == 0 ? "QA approved cancellation; verify wrapping" : null,
+                                Items = new() { new SaleItem { ProductId = Guid.NewGuid(), ProductName = "QA product with a long historical name " + i,
+                                    Barcode = "BARCODE" + i, CategorySnapshot = "CATEGORY " + (i % 4), UnitSnapshot = i % 2 == 0 ? "pc" : "kg", Qty = i + 1,
+                                    LineGross = gross, LineDiscount = 0, LineTotal = gross, LineNet = net, LineVat = gross - net,
+                                    TaxTreatmentSnapshot = "VAT-inclusive", IsVatExemptSnapshot = false } },
+                                Payments = new() { new Payment { Method = PaymentMethod.Cash, Amount = gross } } });
+                        }
+                        db.SaveChanges();
+                        var samples = new List<(string Name, UserControl View, System.Windows.Documents.FlowDocument Document)>();
+                        foreach (var kind in Enum.GetValues<ExpandedReportKind>())
+                        {
+                            var view = new ExpandedReportsView(kind);
+                            Assert.IsType<DatePicker>(view.FindName("FromPick")).SelectedDate = DateTime.Today.AddDays(-29);
+                            var doc = Assert.IsType<System.Windows.Documents.FlowDocument>(typeof(ExpandedReportsView)
+                                .GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(view, null));
+                            samples.Add((kind.ToString(), view, doc));
+                        }
+                        foreach (var sample in samples)
+                        {
+                            foreach (var width in new[] { 1300d, 760d })
+                            {
+                                sample.View.Measure(new Size(width, 570)); sample.View.Arrange(new Rect(0, 0, width, 570)); sample.View.UpdateLayout();
+                                var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)width, 570, 96, 96, PixelFormats.Pbgra32);
+                                bitmap.Render(sample.View);
+                                var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                                encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+                                using var stream = System.IO.File.Create(System.IO.Path.Combine(auditQa, sample.Name + "-" + width + ".png")); encoder.Save(stream);
+                            }
+                            foreach (var paper in ReportPaperSize.Options)
+                            {
+                                sample.Document.PageWidth = paper.Width; sample.Document.PageHeight = paper.Height;
+                                foreach (var table in sample.Document.Blocks.OfType<System.Windows.Documents.Table>())
+                                {
+                                    var total = table.Columns.Sum(c => c.Width.Value);
+                                    foreach (var column in table.Columns) column.Width = new GridLength(column.Width.Value / total * (paper.Width - 96));
+                                }
+                                var paginator = ReportPagination.Create(sample.Document); paginator.ComputePageCount();
+                                Assert.True(paginator.PageCount >= 1); Assert.NotSame(System.Windows.Documents.DocumentPage.Missing, paginator.GetPage(0));
+                                ReportPdfExporter.Save(sample.Document, System.IO.Path.Combine(auditQa, $"{sample.Name}-{paper.Width:0}-{paper.Height:0}.pdf"));
+                            }
+                        }
+                    }
                     var dialogs = new Window[]
                     {
                         new CashMovementDialog(), new ChangeInitialPasswordDialog(admin),
@@ -1112,7 +1829,12 @@ public class ThemeResourceTests
                             Assert.Equal(1248, ReportPaperSize.Options[0].Height);
                             Assert.Equal(1056, ReportPaperSize.Options[1].Height);
                         }
-                        if (dialog is LockWindow) Assert.Null(dialog.FindName("ErrorText"));
+                        if (dialog is LockWindow)
+                        {
+                            Assert.Null(dialog.FindName("ErrorText"));
+                            Assert.True(dialog.ShowInTaskbar);
+                            Assert.Equal(WindowStartupLocation.CenterScreen, dialog.WindowStartupLocation);
+                        }
                         Assert.Contains("#Inter", dialog.FontFamily.Source);
                         var content = Assert.IsAssignableFrom<FrameworkElement>(dialog.Content);
                         var contentWidth = Math.Min(dialog.Width - 32, 1000);
@@ -1134,6 +1856,7 @@ public class ThemeResourceTests
                             Assert.NotEmpty(viewer.PageViews);
                             Assert.All(viewer.PageViews, page =>
                             {
+                                Assert.Contains("DecoratedPaginator", page.DocumentPaginator.GetType().Name);
                                 Assert.Equal(Stretch.None, page.Stretch);
                                 var guide = Assert.IsType<Border>(page.Parent);
                                 Assert.Equal("PaperGuideBorder", guide.Name);
@@ -1221,6 +1944,8 @@ public class ThemeResourceTests
                         {
                             CaptureReport(dailySales, width, 570, $"daily-{width}");
                             CaptureReport(auditLog, width, 570, $"audit-{width}");
+                            CaptureReport(backupPage, width, 570, $"backup-{width}");
+                            CaptureReport(drawerPage, width, 570, $"drawer-{width}");
                         }
                         var qaPreview = new ReportPrintPreviewWindow(printReportDocument);
                         CaptureReport((FrameworkElement)qaPreview.Content, 918, 600, "preview");
@@ -1246,6 +1971,90 @@ public class ThemeResourceTests
 
         if (error is not null)
             Assert.Fail(error.ToString());
+    }
+
+    private static void AssertStandardReportChrome(System.Windows.Documents.FlowDocument document, string name)
+    {
+        var company = document.Blocks.FirstBlock;
+        Assert.Equal(10, company.FontSize);
+        Assert.Equal(FontWeights.Bold, company.FontWeight);
+        Assert.Equal(TextAlignment.Left, company.TextAlignment);
+        Assert.Equal(new Thickness(0, 0, 190, 0), company.Margin);
+        var title = Assert.Single(document.Blocks.OfType<System.Windows.Documents.Paragraph>(), paragraph => paragraph.FontSize == 14);
+        Assert.Equal(TextAlignment.Center, title.TextAlignment);
+        Assert.Equal(FontWeights.Bold, Assert.IsType<System.Windows.Documents.Run>(title.Inlines.FirstInline).FontWeight);
+        var body = new System.Windows.Documents.TextRange(document.ContentStart, document.ContentEnd).Text;
+        Assert.DoesNotContain("Generated:", body);
+        var footer = Assert.IsType<System.Windows.Documents.Paragraph>(document.Blocks.LastBlock);
+        Assert.Equal(10, footer.FontSize);
+        Assert.True(footer.KeepTogether);
+        Assert.Equal(new Thickness(0, 32, 0, 0), footer.Margin);
+        var footerText = new System.Windows.Documents.TextRange(footer.ContentStart, footer.ContentEnd).Text;
+        Assert.Contains("Prepared by: Test Administrator", footerText);
+        Assert.Contains("Signature:", footerText);
+        Assert.All(footer.Inlines.OfType<System.Windows.Documents.InlineUIContainer>(), inline =>
+            Assert.Equal(new Thickness(0, 0, 0, 1), Assert.IsType<Border>(inline.Child).BorderThickness));
+        Assert.Matches(@"^\d{2}/\d{2}/\d{4}$", ReportPagination.GetTopRightMetadata(document));
+        var preview = new ReportPrintPreviewWindow(document);
+        try
+        {
+            foreach (var paper in ReportPaperSize.Options)
+            {
+                Assert.IsType<ComboBox>(preview.FindName("PaperSizeBox")).SelectedItem = paper;
+                var paginator = ReportPagination.Create(document);
+                paginator.ComputePageCount();
+                Assert.True(paginator.PageCount >= 1);
+                IEnumerable<GlyphRunDrawing> Glyphs(Drawing drawing)
+                {
+                    if (drawing is GlyphRunDrawing glyph) yield return glyph;
+                    if (drawing is DrawingGroup group)
+                        foreach (var child in group.Children)
+                            foreach (var nested in Glyphs(child)) yield return nested;
+                }
+                for (var pageIndex = 0; pageIndex < paginator.PageCount; pageIndex++)
+                {
+                    var page = paginator.GetPage(pageIndex);
+                    var visual = Assert.IsType<DrawingVisual>(page.Visual);
+                    var glyphs = Glyphs(visual.Drawing).ToArray();
+                    var text = string.Concat(glyphs.Select(glyph => new string(glyph.GlyphRun.Characters.ToArray())));
+                    Assert.Contains("Page No.", text);
+                    Assert.Contains("Print Date", text);
+                    Assert.Contains($"{pageIndex + 1}/{paginator.PageCount}", text);
+                    Assert.Contains(ReportPagination.GetTopRightMetadata(document), text);
+                    Assert.DoesNotContain("Page " + (pageIndex + 1) + " of", text);
+                    Assert.DoesNotContain(glyphs, glyph => new string(glyph.GlyphRun.Characters.ToArray()) == ReportPagination.GetIdentity(document));
+                    var pageLabel = Assert.Single(glyphs, glyph => new string(glyph.GlyphRun.Characters.ToArray()) == "Page No.");
+                    Assert.Equal(10, pageLabel.GlyphRun.FontRenderingEmSize);
+                    Assert.InRange(pageLabel.Bounds.Top, pageIndex == 0 ? document.PagePadding.Top : 0,
+                        (pageIndex == 0 ? document.PagePadding.Top : 0) + 5);
+                    if (Environment.GetEnvironmentVariable("MYPOS_REPORT_CHROME_QA_DIR") is { Length: > 0 } folder)
+                    {
+                        System.IO.Directory.CreateDirectory(folder);
+                        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)Math.Ceiling(page.Size.Width),
+                            (int)Math.Ceiling(page.Size.Height), 96, 96, PixelFormats.Pbgra32);
+                        bitmap.Render(visual);
+                        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+                        using var stream = System.IO.File.Create(System.IO.Path.Combine(folder,
+                            $"{name}-{paper.Width:0}-{paper.Height:0}-{pageIndex + 1}.png"));
+                        encoder.Save(stream);
+                    }
+                }
+            }
+        }
+        finally { preview.Close(); }
+    }
+
+    private static void CaptureFormQa(FrameworkElement content, string name, int width, int height)
+    {
+        if (Environment.GetEnvironmentVariable("MYPOS_LOGIN_SHIFT_QA_DIR") is not { Length: > 0 } directory) return;
+        System.IO.Directory.CreateDirectory(directory);
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(content);
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var stream = System.IO.File.Create(System.IO.Path.Combine(directory, name + ".png"));
+        encoder.Save(stream);
     }
 
     private static void AssertTextInputFits(TextBox box)
@@ -1376,4 +2185,12 @@ public class ThemeResourceTests
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool ClientToScreen(IntPtr hwnd, ref WindowPoint point);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ShowWindow(IntPtr hwnd, int command);
 }

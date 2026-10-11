@@ -7,6 +7,8 @@ public class Sale : EntityBase
     public Guid BranchId { get; set; }
     public int SaleNumber { get; set; }               // gapless, per branch
     public Guid? CashierId { get; set; }
+    public Guid? CashShiftId { get; set; }
+    public Guid? VoidCashShiftId { get; set; }
     public DateTime SaleDate { get; set; }
 
     // Money snapshot — never recomputed after commit
@@ -55,6 +57,14 @@ public class SaleItem
     public decimal UnitPrice { get; set; }          // VAT-inclusive at time of sale
     public decimal LineGross { get; set; }
     public decimal UnitCost { get; set; }           // for the COGS journal line
+    public string? CategorySnapshot { get; set; }
+    public string? UnitSnapshot { get; set; }
+    public bool? IsVatExemptSnapshot { get; set; }
+    public string? TaxTreatmentSnapshot { get; set; }
+    public decimal? LineDiscount { get; set; }
+    public decimal? LineTotal { get; set; }
+    public decimal? LineNet { get; set; }
+    public decimal? LineVat { get; set; }
 }
 
 public class Payment

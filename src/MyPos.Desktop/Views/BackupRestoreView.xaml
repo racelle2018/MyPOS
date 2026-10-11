@@ -1,0 +1,39 @@
+<UserControl x:Class="MyPos.Desktop.Views.BackupRestoreView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+ FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12" Foreground="{StaticResource UiTextBrush}">
+ <UserControl.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries>
+  <ResourceDictionary Source="../Styles/UtilitySettingsChrome.xaml"/>
+ </ResourceDictionary.MergedDictionaries></ResourceDictionary></UserControl.Resources>
+ <Border Margin="8,6,8,8" Background="White" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}">
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+   <StackPanel Margin="12">                        <Border Style="{StaticResource SettingsSection}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="Backup &amp; Restore" Style="{StaticResource SettingsSectionHeading}"/>
+                                <Border Padding="12,10">
+                                    <StackPanel>
+                                        <TextBlock x:Name="BackupStatusText" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                        <TextBlock Text="Second backup copy folder (external drive or synced folder)" TextWrapping="Wrap"/>
+                                        <TextBox x:Name="BackupCopyFolderBox"
+                                                 materialDesign:HintAssist.Hint="External drive or synced-folder path"/>
+                                        <TextBlock Text="Local backups stay on this PC. Set a second location to protect against computer failure."
+                                                   Style="{StaticResource SettingsHelp}"/>
+                                        <WrapPanel>
+                                            <Button x:Name="BackupButton" Content="Backup Now"
+                                                    Style="{StaticResource SettingsButton}" Click="BackupButton_Click"/>
+                                            <Button x:Name="RestoreButton" Content="Restore Backup"
+                                                    Style="{StaticResource SettingsButton}" Click="RestoreButton_Click"/>
+                                        </WrapPanel>
+                                        <TextBlock Text="Recovery: choose a verified .db backup, confirm, then close and reopen MyPos. A pre-restore safety copy is made before the database is replaced. Keep a copy outside this computer."
+                                                   Style="{StaticResource SettingsHelp}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DockPanel>
+                        </Border>
+
+    <Button Content="Save backup preferences" Style="{StaticResource SettingsSaveButton}" HorizontalAlignment="Left" Click="SaveButton_Click"/>
+    <TextBlock x:Name="SavedFeedbackText" TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}"/></StackPanel>
+  </ScrollViewer>
+ </Border>
+</UserControl>

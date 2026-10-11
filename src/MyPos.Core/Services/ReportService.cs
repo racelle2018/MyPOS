@@ -7,6 +7,7 @@ namespace MyPos.Core.Services;
 public sealed class DailySalesReport
 {
     public DateOnly Date { get; init; }
+    public string? ScopeDescription { get; init; }
     public List<Sale> Sales { get; init; } = new();
     public IEnumerable<Sale> ActiveSales => Sales.Where(s => !s.IsVoided);
     public int TransactionCount => ActiveSales.Count();
@@ -29,16 +30,21 @@ public sealed class ReportService
 
     public ReportService(MyPosDbContext db) => _db = db;
 
-    public DailySalesReport GetDailySales(DateTime date, Guid branchId)
+    public DailySalesReport GetDailySales(DateTime date, Guid branchId, Guid? cashierId = null, PaymentMethod? payment = null, string search = "")
     {
         var start = date.Date;
         var end = start.AddDays(1);
         var sales = _db.Sales
+            .AsNoTracking()
             .Include(s => s.Items)
             .Include(s => s.Payments)
             .Where(s => s.BranchId == branchId && s.SaleDate >= start && s.SaleDate < end)
             .OrderBy(s => s.SaleNumber)
             .ToList();
+        if (cashierId.HasValue) sales = sales.Where(s => s.CashierId == cashierId).ToList();
+        if (payment.HasValue) sales = sales.Where(s => s.Payments.Any(p => p.Method == payment)).ToList();
+        if (!string.IsNullOrWhiteSpace(search)) sales = sales.Where(s => (s.ReceiptNumber ?? "").Contains(search.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            (s.CustomerName ?? "").Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
 
         return new DailySalesReport
         {

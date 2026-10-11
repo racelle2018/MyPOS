@@ -19,6 +19,7 @@ public partial class VoidSaleDialog : Window
 
     private void VoidButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!Permissions.RequireAdmin("approve a sale void")) return;
         ErrorText.Text = "";
         if (ConfirmBox.IsChecked != true)
         {

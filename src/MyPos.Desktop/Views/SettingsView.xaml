@@ -4,57 +4,11 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12">
     <UserControl.Resources>
-        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="MinHeight" Value="0"/>
-            <Setter Property="Padding" Value="8,0"/>
-            <Setter Property="Margin" Value="0,5,0,10"/>
-            <Setter Property="BorderBrush" Value="#CDD1D4"/>
-            <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
-        </Style>
-        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-            <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="MinHeight" Value="0"/>
-            <Setter Property="Padding" Value="8,0"/>
-            <Setter Property="Margin" Value="0,5,0,10"/>
-        </Style>
-        <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-        <Style x:Key="SettingsButton" TargetType="Button" BasedOn="{StaticResource ReportChromeButton}">
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="Margin" Value="0,5,5,5"/>
-        </Style>
-        <Style x:Key="SettingsSaveButton" TargetType="Button" BasedOn="{StaticResource SettingsButton}">
-            <Setter Property="Foreground" Value="{StaticResource UiAccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource UiAccentBrush}"/>
-            <Setter Property="Margin" Value="0,5,0,5"/>
-        </Style>
-        <Style x:Key="SettingsSection" TargetType="Border">
-            <Setter Property="Background" Value="#EEF0F1"/>
-            <Setter Property="BorderBrush" Value="#CDD1D4"/>
-            <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
-        <Style x:Key="SettingsSectionHeading" TargetType="TextBlock">
-            <Setter Property="Background" Value="#CDD1D4"/>
-            <Setter Property="Padding" Value="12,7"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-        <Style x:Key="SettingsHelp" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{StaticResource UiMutedBrush}"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/UtilitySettingsChrome.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Border Margin="8,6,8,8" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}" Background="White">
         <DockPanel>
@@ -165,32 +119,9 @@
                                         <TextBlock x:Name="PrinterWarningText" Foreground="{StaticResource UiDangerBrush}"
                                                    TextWrapping="Wrap" Margin="0,0,0,4" Visibility="Collapsed"/>
                                         <TextBlock Text="Blank = Windows default printer." Style="{StaticResource SettingsHelp}"/>
-                                        <Button x:Name="TestReceiptButton" Content="Preview / Test Receipt"
+                                        <Button x:Name="TestReceiptButton" Content="Preview Sample Receipt"
                                                 Style="{StaticResource SettingsButton}" HorizontalAlignment="Left"
                                                 Click="TestReceiptButton_Click"/>
-                                    </StackPanel>
-                                </Border>
-                            </DockPanel>
-                        </Border>
-                        <Border Style="{StaticResource SettingsSection}">
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Top" Text="Backup and recovery" Style="{StaticResource SettingsSectionHeading}"/>
-                                <Border Padding="12,10">
-                                    <StackPanel>
-                                        <TextBlock x:Name="BackupStatusText" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                                        <TextBlock Text="Second backup copy folder (external drive or synced folder)" TextWrapping="Wrap"/>
-                                        <TextBox x:Name="BackupCopyFolderBox"
-                                                 materialDesign:HintAssist.Hint="External drive or synced-folder path"/>
-                                        <TextBlock Text="Local backups stay on this PC. Set a second location to protect against computer failure."
-                                                   Style="{StaticResource SettingsHelp}"/>
-                                        <WrapPanel>
-                                            <Button x:Name="BackupButton" Content="Backup Now"
-                                                    Style="{StaticResource SettingsButton}" Click="BackupButton_Click"/>
-                                            <Button x:Name="RestoreButton" Content="Restore Backup"
-                                                    Style="{StaticResource SettingsButton}" Click="RestoreButton_Click"/>
-                                        </WrapPanel>
-                                        <TextBlock Text="Recovery: choose a verified .db backup, confirm, then close and reopen MyPos. A pre-restore safety copy is made before the database is replaced. Keep a copy outside this computer."
-                                                   Style="{StaticResource SettingsHelp}"/>
                                     </StackPanel>
                                 </Border>
                             </DockPanel>

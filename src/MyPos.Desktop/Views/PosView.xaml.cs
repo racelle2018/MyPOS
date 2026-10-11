@@ -140,10 +140,14 @@ public partial class PosView : UserControl
     private void UpdateShiftStatus()
     {
         var open = new ShiftService(App.Db).GetOpenShift();
-        _hasOpenShift = open != null;
+        _hasOpenShift = open != null && new ShiftService(App.Db).CanUseDrawer(open, App.CurrentUser!.Id);
         PayButton.IsEnabled = _hasOpenShift && _cart.Count > 0;
-        ShiftPrompt.Visibility = open == null ? Visibility.Visible : Visibility.Collapsed;
+        ShiftPrompt.Visibility = _hasOpenShift ? Visibility.Collapsed : Visibility.Visible;
+        OpenShiftButton.IsEnabled = open == null;
+        ShiftStatusText.Text = open == null ? "Shift closed · Open a shift before payment" :
+            "Drawer assigned to another cashier · Ask an administrator for access";
         PayButton.ToolTip = open == null ? "Open a shift before taking payment."
+            : !_hasOpenShift ? "This drawer is assigned to another cashier."
             : _cart.Count == 0 ? "Add a product to the current sale."
             : null;
     }
@@ -594,6 +598,12 @@ public partial class PosView : UserControl
         {
             UpdateShiftStatus();
             Status("No open shift - open one before selling (Shift button)");
+            return;
+        }
+        if (!shiftService.CanUseDrawer(shiftService.GetOpenShift()!, App.CurrentUser!.Id))
+        {
+            UpdateShiftStatus();
+            Status("This drawer is assigned to another cashier. Ask an administrator.");
             return;
         }
         InvoiceBox.BorderBrush = (Brush)FindResource("PosInputBorderBrush");

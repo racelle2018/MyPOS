@@ -2,7 +2,48 @@
 
 Reviewed: October 10, 2026 (Asia/Manila)
 
-Status: proposals for owner review — no report implementation or removal authorized by this document.
+Status: recommendations approved for staged implementation; completed batches are described below. No existing report has been removed.
+
+## Approved remaining implementation — October 11, 2026
+
+- Product Sales now provides product detail/category summary, historical category/unit/tax/line-money snapshots for new sales, category subtotals, period/branch/cashier/payment/category/product filters, CSV and Print/PDF. Old snapshot gaps remain explicitly unavailable; historical transactions are not reconstructed or rewritten. Quantities are only combined by compatible unit. Product identity remains tied to ProductId.
+- Sales Summary provides date-range presets and daily/monthly grouping, original sales/discount/VAT/net/average totals and payment-method breakdown. Daily Sales now supports cashier/payment/invoice-customer filtering and records active scope in print/CSV. Payment filters select whole matching invoices, not a partial invoice amount.
+- Admin-only Void Events lists cancellations by approval date, with original invoice/sale date/cashier, approver and reason. Existing sales reports still exclude all currently approved voids, even when approval was later.
+- Cash movements capture classification, expense category, destination, reference, recorded user and optional admin approval ID/timestamp. Admins may approve previously recorded entries. Search/classification filtering and separate class totals distinguish expenses from deposits/remittances; the original cash-out effect is counted once. Classifications are operational; they do not silently change generic journal mappings.
+- Closing a shift optionally counts bills/coins. Stored count rows must reconcile exactly to CountedDrawer; reconciliation CSV/print shows the recorded breakdown and close operator. A legacy single total is never presented as a denomination breakdown.
+- Printable reports share continuation identity, repeated active-table headers, and printed Page X of Y through the preview/print/PDF paginator, preserving portrait A4/Short/Long, font sizing and the paper guide. Signature paragraphs and cell paragraphs are kept together.
+- Shift history removes the 15-row limit, limits visibility to permitted drawers, and opens selected reconciliation/printing. Reconciliation retains its selected-shift movement table and print/CSV details; the duplicate Cash Movements button was removed by owner request. The standalone report remains under Reports & Inquiry.
+- Access decision: preserve current Admin/Cashier and branch-wide sales/product visibility, active-user guards on new reports, admin-only void-event review/approval, and existing shared/assigned drawer restrictions. No new read-only roles are needed for this agreed scope; Owner/Auditor roles can be a separate future request. New product/summary reports do not include costs or profit.
+- Completed the separate source review of inventory/journal risks in [report-accounting-review.md](report-accounting-review.md). Corrections to posting policy or historical journals require a separate implementation decision; accounting/valuation/profit reports remain deferred.
+
+Remaining items are the audit's explicitly deferred workflows, not missing approved operational report pages: A/R, checks, case conversion, profit/valuation, new roles and historical ledger correction. Image-based PDF remains supported; searchable text PDF was a later enhancement, not part of this audit implementation.
+
+## Implementation update — October 11, 2026
+
+This earlier basic-report batch is retained as implementation history. Its pending classifications and pagination were completed in the remaining-implementation batch above.
+
+- Added a dedicated Reports & Inquiry → Cash Movements report for existing cash-in/out entries, with inclusive date range, type filter, Today/Last 7 days, refresh, totals, CSV, and portrait Print/PDF.
+- Access follows existing shift drawer snapshots: active admins see all branch drawers; other active users see shared drawers and drawers assigned to them. Refresh, print, and export recheck access. Changes to next-shift settings do not change historical visibility.
+- Net movement means cash in minus cash out only, not sales, profit, opening float, or sale refunds. Cash out is not automatically classified as an expense. Structured deposits, remittances, and expenses remain pending.
+- Exports retain branch, date/filter scope, movement/shift/user identifiers, full timestamps, and invariant amounts. User names come from the current directory, not historical name snapshots. No existing journal entries or transactions were changed.
+- Existing A4/Short/Long portrait selection, direct Save as PDF, paper guide, and zoom controls are reused. Continuation headings and printed page numbering remain separate pending work.
+
+## Implementation update — October 10, 2026
+
+Owner decisions: drawer access may be shared or assigned to one cashier under admin control; only an admin account may approve a void; sales reports update when a sale is voided.
+
+First batch:
+
+- Daily Sales CSV now uses invariant ungrouped amounts, proper text escaping/formula protection, and full sale date/branch columns. Audit CSV uses the same text protection.
+- Daily Sales PDF default filename follows the selected sales date.
+- Admin configures Shared/Assigned access in System Utilities → Cash Drawer. Open Shift displays the saved policy read-only and collects opening float only. Changes apply to the next shift, never an already-open drawer; non-admins cannot override them. One active drawer remains the supported store model.
+- System Utilities → Backup & Restore now owns backup preferences, verified backup creation, and staged restore. General Settings no longer duplicates these controls; backup verification and pre-restore safety-copy behavior remain unchanged.
+- New sale and void/refund events link to the active drawer. Existing records are not rewritten; legacy reconciliation uses timestamps and discloses its legacy count.
+- Active admin approval is checked in VoidSale itself as well as the UI. Existing admin void flow is retained; cashier-side approval requests are not added.
+- Reports & Inquiry now includes Shift / Cashier Reconciliation with current sales, five payment-method totals, original closing accountability, cash-movement detail, CSV, Print/PDF, and signatures.
+- Later voids update current sales/payment totals. Original counted cash, expected drawer, variance and closing journal remain preserved. Refund cash is counted in the drawer active at the void; cash refunds without an open drawer need operational review and do not invent a drawer movement.
+
+Sections below document the **original audit baseline** and recommendations. Statements about missing functionality below describe that baseline; the completed batches and remaining deferred workflows are recorded above.
 
 ## 1. Recommendation in brief
 
@@ -226,7 +267,7 @@ Proposed Reports & Inquiry destinations:
 - Sales Summary (date-range view).
 - Product Sales (category summary/detail options).
 - Shift / Cashier Reconciliation (print the selected shift; also accessible from Shift history).
-- Cash Movements (can also be opened from a reconciliation report).
+- Cash Movements (standalone report; reconciliation already includes selected-shift movement details).
 - Audit Log (existing; admin only).
 
 Use filters/presets for daily, weekly, monthly, payment, and category views instead of creating a separate menu item for every variation. Keep Shift / Cash Drawer under operations for opening/counting/closing; reporting should reuse those records rather than duplicating the operational workflow.
@@ -257,20 +298,20 @@ Before a new report is considered complete:
 
 Nothing below is approved merely by appearing here. Tick or reply with the items you want implemented.
 
-- [ ] Approve Priority 0 CSV/date/PDF filename fixes.
-- [ ] Confirm current-status versus as-of-close void policy.
-- [ ] Confirm shared drawer versus individually assigned cashier shifts.
-- [ ] Add explicit sale-to-shift linkage and reproducible closing snapshots.
-- [ ] Add Shift / Cashier Reconciliation with payment breakdown and handover signatures.
-- [ ] Add Cash Movements detail with basic in/out first.
-- [ ] Add structured expense/deposit/remittance classifications and references.
-- [ ] Add denomination entry and print breakdown.
-- [ ] Add Product Sales with category summary/detail after historical snapshot changes.
-- [ ] Add Sales Summary date-range presets.
-- [ ] Add printed page numbering, continuation identity, and repeating headers.
-- [ ] Decide report access scopes and whether read-only Owner/Auditor roles are needed.
-- [ ] Defer A/R, checks, case conversions, and full net profit until their workflows exist.
-- [ ] Approve a separate review of inventory/journal posting issues before accounting reports.
+- [x] Implement Priority 0 CSV/date/PDF filename fixes.
+- [x] Confirm current sales update after approved voids, with original closing cash count preserved separately.
+- [x] Confirm admin-controlled shared versus individually assigned drawer access.
+- [x] Add explicit new-sale/void drawer linkage; preserve original closing expected/count/variance.
+- [x] Add Shift / Cashier Reconciliation with payment breakdown and handover signatures.
+- [x] Add Cash Movements detail with basic in/out first.
+- [x] Add structured expense/deposit/remittance classifications and references.
+- [x] Add denomination entry and print breakdown.
+- [x] Add Product Sales with category summary/detail after historical snapshot changes.
+- [x] Add Sales Summary date-range presets.
+- [x] Add printed page numbering, continuation identity, and repeating headers.
+- [x] Decide report access scopes and whether read-only Owner/Auditor roles are needed (current roles/scopes preserved).
+- [x] Defer A/R, checks, case conversions, and full net profit until their workflows exist.
+- [x] Complete the separate source review of inventory/journal posting issues before accounting reports; correction implementation remains separate.
 
 Suggested first implementation batch: **export correctness, report-date metadata, and Shift / Cashier Reconciliation design/data rules**. No existing report needs to be removed now.
 
@@ -291,4 +332,4 @@ Local evidence inspected:
 - [ReportsView.xaml.cs](src/MyPos.Desktop/Views/ReportsView.xaml.cs), [MainWindow.xaml](src/MyPos.Desktop/MainWindow.xaml), [Permissions.cs](src/MyPos.Desktop/Permissions.cs), and [User.cs](src/MyPos.Core/Entities/User.cs): navigation/access.
 - [ReportPrintPreviewWindow.xaml.cs](src/MyPos.Desktop/Dialogs/ReportPrintPreviewWindow.xaml.cs) and [ReportPdfExporter.cs](src/MyPos.Desktop/Dialogs/ReportPdfExporter.cs): paper/print/save behavior and image-based PDF generation.
 
-Only this audit document was added for the request. No application code, source images, saved transactions, reports, or permissions were changed.
+At the original audit checkpoint, only this document was added. The approved first implementation batch is recorded at the top; source reference images and original transaction amounts were not changed.

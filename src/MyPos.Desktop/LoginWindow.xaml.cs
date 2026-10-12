@@ -15,7 +15,7 @@ public partial class LoginWindow : Window
         Deactivated += (_, _) => HidePasswordPreview();
         Closed += (_, _) => { _closed = true; HidePasswordPreview(); PasswordBox.Clear(); };
         CompanyLabel.Text = AppSettings.Get("CompanyName", "MY STORE");
-        VersionText.Text = $"MYPOS {typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0"}";
+        VersionText.Text = $"MYPOS {AppVersion.Current}";
         Loaded += (_, _) =>
         {
             UsernameBox.Focus();
@@ -174,7 +174,7 @@ public partial class LoginWindow : Window
 
     private void ShowLoginWarning(string message)
     {
-        MessageBox.Show(this, message, "Sign-in warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MyPos.Desktop.Dialogs.ActionDialog.Show(this, message, "Sign-in warning", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
 }

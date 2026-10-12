@@ -79,8 +79,9 @@ public partial class UserEditDialog : Window
             App.Db.AuditLogs.Add(new AuditLog { Date = DateTime.Now, UserId = App.CurrentUser?.Id, Action = "UserEdit", EntityName = "User", EntityId = _editing.Id, Details = details });
         }
         App.Db.SaveChanges();
+        ActionDialog.Success(_editing == null ? "User added." : "User updated.", Title, this);
         DialogResult = true;
     }
 
-    private void Fail(string message) => ErrorText.Text = message;
+    private void Fail(string message) { ErrorText.Text = message; ActionDialog.Warning(message, Title, this); }
 }

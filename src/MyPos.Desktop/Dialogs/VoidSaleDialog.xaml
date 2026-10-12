@@ -12,7 +12,7 @@
     </Window.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel Margin="16">
-        <TextBlock Text="VOID SALE" FontSize="14" FontWeight="SemiBold" Foreground="#DC2626"/>
+        <TextBlock Text="VOID SALE" FontSize="{DynamicResource UiFontSize14}" FontWeight="SemiBold" Foreground="#DC2626"/>
         <TextBlock x:Name="SaleInfoText" Foreground="#475569" Margin="0,8,0,16" TextWrapping="Wrap"/>
         <TextBlock Text="Reason for voiding * (required, recorded in the audit log)"/>
         <TextBox x:Name="ReasonBox" Height="60" Margin="0,4,0,12" TextWrapping="Wrap"
@@ -24,8 +24,8 @@
                        TextWrapping="Wrap"/>
         </CheckBox>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Height="32" Content="Cancel" IsCancel="True" Margin="0,5,8,5"/>
-            <Button Height="32" Content="Void Sale" Style="{StaticResource DialogDangerButton}" Click="VoidButton_Click"/>
+            <Button Height="{DynamicResource UiControlHeight32}" Content="Cancel" IsCancel="True" Margin="0,5,8,5"/>
+            <Button Height="{DynamicResource UiControlHeight32}" Content="Void Sale" Style="{StaticResource DialogDangerButton}" Click="VoidButton_Click"/>
         </StackPanel>
       </StackPanel>
     </ScrollViewer>

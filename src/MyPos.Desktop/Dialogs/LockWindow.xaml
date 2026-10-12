@@ -29,22 +29,22 @@
                            HorizontalAlignment="Center" Margin="0,4,0,26"/>
 
                 <TextBlock Text="Password" FontWeight="SemiBold"/>
-                <PasswordBox x:Name="PasswordBox" Height="34" Margin="0,6,0,4"
+                <PasswordBox x:Name="PasswordBox" Height="{DynamicResource UiControlHeight34}" Margin="0,6,0,4"
                              AutomationProperties.Name="Password to unlock session"
                              PasswordChanged="PasswordBox_OnPasswordChanged"
                              PreviewKeyDown="PasswordBox_OnPreviewKeyDown"
                              KeyDown="PasswordBox_OnKeyDown"/>
                 <TextBlock x:Name="CapsLockHint" Text="Caps Lock is on"
-                           Foreground="#B45309" FontSize="12"
+                           Foreground="#B45309" FontSize="{DynamicResource UiFontSize12}"
                            Visibility="Collapsed"/>
 
                 <Button Content="Unlock" Style="{StaticResource PrimaryButton}"
-                        Height="32" Margin="0,5,0,5" IsDefault="True"
+                        Height="{DynamicResource UiControlHeight32}" Margin="0,5,0,5" IsDefault="True"
                         Click="UnlockButton_Click"/>
-                <Button Content="Switch user" Height="32" Margin="0,5,0,5"
+                <Button Content="Switch user" Height="{DynamicResource UiControlHeight32}" Margin="0,5,0,5"
                         Click="SwitchUserButton_Click"/>
                 <TextBlock x:Name="PendingCartText" Foreground="#92400E"
-                           FontSize="12" TextWrapping="Wrap"
+                           FontSize="{DynamicResource UiFontSize12}" TextWrapping="Wrap"
                            Margin="0,12,0,0" Visibility="Collapsed"/>
             </StackPanel>
         </ScrollViewer>

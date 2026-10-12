@@ -17,8 +17,28 @@
         <Thickness x:Key="UiBorderTopThickness">0,1,0,0</Thickness>
         <Thickness x:Key="UiBorderLeftThickness">1,0,0,0</Thickness>
         <Thickness x:Key="UiBorderCellThickness">0,0,1,1</Thickness>
-        <FontFamily x:Key="UiFontFamily">/MyPos.Desktop;component/Assets/Fonts/#Wix Madefor Text</FontFamily>
+        <FontFamily x:Key="UiFontFamily">/MyPos.Desktop;component/Assets/Fonts/#Inter</FontFamily>
         <FontFamily x:Key="ReportInterFontFamily">/MyPos.Desktop;component/Assets/Fonts/#Inter</FontFamily>
+        <FontFamily x:Key="PrintInterFontFamily">/MyPos.Desktop;component/Assets/Fonts/#Inter</FontFamily>
+        <sys:Double x:Key="UiFontSize11">11</sys:Double>
+        <sys:Double x:Key="UiFontSize12">12</sys:Double>
+        <sys:Double x:Key="UiFontSize13">13</sys:Double>
+        <sys:Double x:Key="UiFontSize14">14</sys:Double>
+        <sys:Double x:Key="UiControlHeight16">16</sys:Double>
+        <sys:Double x:Key="UiControlHeight24">24</sys:Double>
+        <sys:Double x:Key="UiControlHeight26">26</sys:Double>
+        <sys:Double x:Key="UiControlHeight27">27</sys:Double>
+        <sys:Double x:Key="UiControlHeight28">28</sys:Double>
+        <sys:Double x:Key="UiControlHeight30">30</sys:Double>
+        <sys:Double x:Key="UiControlHeight32">32</sys:Double>
+        <sys:Double x:Key="UiControlHeight34">34</sys:Double>
+        <sys:Double x:Key="UiControlHeight36">36</sys:Double>
+        <sys:Double x:Key="UiControlHeight40">40</sys:Double>
+        <sys:Double x:Key="UiControlHeight48">48</sys:Double>
+        <sys:Double x:Key="UiTableRowHeight28">28</sys:Double>
+        <sys:Double x:Key="UiTableRowHeight30">30</sys:Double>
+        <sys:Double x:Key="UiTableHeaderHeight26">26</sys:Double>
+        <sys:Double x:Key="UiTableHeaderHeight32">32</sys:Double>
         <!-- Shared light-theme tokens; use these before adding screen-specific colors. -->
         <SolidColorBrush x:Key="UiBackgroundBrush" Color="#F4F7FB"/>
         <SolidColorBrush x:Key="UiSurfaceBrush" Color="#FFFFFF"/>
@@ -52,12 +72,12 @@
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
         </Style>
         <Style x:Key="SectionHeading" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{StaticResource UiMutedBrush}"/>
         </Style>
         <Style x:Key="FieldHint" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="Foreground" Value="{StaticResource UiMutedBrush}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
@@ -82,15 +102,15 @@
 
         <!-- Compact, readable typography across every screen. -->
         <Style TargetType="Window">
-            <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize13}"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="{StaticResource UiSurfaceBrush}"/>
             <Setter Property="UseLayoutRounding" Value="True"/>
         </Style>
         <Style TargetType="UserControl">
-            <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize13}"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
         </Style>
 
@@ -101,16 +121,16 @@
 
         <Style x:Key="MyPosButton" TargetType="Button"
                BasedOn="{StaticResource MaterialDesignFlatMidBgButton}">
-            <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}"/>
             <Setter Property="Background" Value="{StaticResource UiSurfaceBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource UiBorderBrush}"/>
             <Setter Property="FocusVisualStyle" Value="{StaticResource MyPosFocusVisual}"/>
             <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
             <Setter Property="Padding" Value="10,0"/>
-            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="MinHeight" Value="{DynamicResource UiControlHeight34}"/>
             <Setter Property="MinWidth" Value="70"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize13}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="8"/>
         </Style>
@@ -134,7 +154,7 @@
         <!-- Preserve existing Tag-based placeholders through Material hints. -->
         <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-            <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}"/>
             <Setter Property="Padding" Value="10,4"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="BorderBrush" Value="{StaticResource UiBorderBrush}"/>
@@ -225,7 +245,7 @@
                                        Focusable="{TemplateBinding Focusable}"/>
                     <Button x:Name="PART_Button" Grid.Column="1"
                             Template="{StaticResource ReportDateDropDownButtonTemplate}"
-                            Height="26" MinHeight="0" MinWidth="0" Padding="0"
+                            Height="{DynamicResource UiControlHeight26}" MinHeight="0" MinWidth="0" Padding="0"
                             Focusable="False" IsTabStop="False"
                             AutomationProperties.Name="Open calendar"
                             ToolTip="Open calendar"/>
@@ -242,7 +262,7 @@
                                 BorderThickness="{StaticResource UiBorderThickness}" Padding="8,5">
                             <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=Popup}}"
                                        Foreground="{StaticResource UiDangerBrush}"
-                                       FontSize="11" TextWrapping="Wrap" MaxWidth="220"/>
+                                       FontSize="{DynamicResource UiFontSize11}" TextWrapping="Wrap" MaxWidth="220"/>
                         </Border>
                     </Popup>
                 </Grid>
@@ -270,8 +290,8 @@
         </ControlTemplate>
 
         <Style x:Key="ReportDatePicker" TargetType="DatePicker">
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="MinHeight" Value="0"/>
             <Setter Property="SelectedDateFormat" Value="Short"/>
             <Setter Property="controls:ReportDatePickerBehavior.ClearSelectionOnCalendarClose" Value="True"/>
@@ -281,8 +301,8 @@
 
         <!-- Report-only WinBox-inspired button chrome. POS and shell buttons stay unchanged. -->
         <Style x:Key="ReportChromeButton" TargetType="Button">
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="#F7F8F9"/>
@@ -334,7 +354,7 @@
         <!-- Login and lock stay compact windows; only their input chrome changes. -->
         <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-            <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}"/>
             <Setter Property="Padding" Value="10,4"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="BorderBrush" Value="{StaticResource UiBorderBrush}"/>
@@ -346,8 +366,8 @@
 
         <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignComboBox}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-            <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}"/>
+            <Setter Property="MinHeight" Value="{DynamicResource UiControlHeight32}"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="BorderBrush" Value="{StaticResource UiBorderBrush}"/>
@@ -356,8 +376,8 @@
         </Style>
 
         <Style TargetType="DatePicker" BasedOn="{StaticResource MaterialDesignDatePicker}">
-            <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}"/>
+            <Setter Property="MinHeight" Value="{DynamicResource UiControlHeight34}"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource UiBorderBrush}"/>
@@ -376,7 +396,7 @@
         <!-- Dense, readable register tables. -->
 
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="#334155"/>
             <Setter Property="Background" Value="{StaticResource UiAccentSoftBrush}"/>
@@ -437,10 +457,10 @@
 
         <Style TargetType="DataGrid" BasedOn="{StaticResource MaterialDesignDataGrid}">
             <Setter Property="controls:DataGridBehaviors.ScrollBarSpansHeader" Value="True"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-            <Setter Property="RowHeight" Value="30"/>
-            <Setter Property="ColumnHeaderHeight" Value="32"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}"/>
+            <Setter Property="RowHeight" Value="{DynamicResource UiTableRowHeight30}"/>
+            <Setter Property="ColumnHeaderHeight" Value="{DynamicResource UiTableHeaderHeight32}"/>
             <Setter Property="AlternationCount" Value="2"/>
             <Setter Property="AlternatingRowBackground" Value="#FAFCFE"/>
             <Setter Property="BorderBrush" Value="#AEBECD"/>

@@ -130,6 +130,30 @@ public sealed class ShiftService
     }
 
     public static readonly decimal[] Denominations = { 1000, 500, 200, 100, 50, 20, 10, 5, 1, 0.25m, 0.10m, 0.05m, 0.01m };
+    public const string MinimumCountingDenominationKey = "MinimumCountingDenomination";
+    public decimal GetMinimumCountingDenomination()
+    {
+        var value = _db.Settings.AsNoTracking().Where(s => s.Key == MinimumCountingDenominationKey).Select(s => s.Value).FirstOrDefault();
+        if (value == null) return 0.25m;
+        if (!decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var minimum) || !Denominations.Contains(minimum))
+            throw new InvalidOperationException("Invalid cash-counting minimum. Ask an administrator to update Cash Counting Settings.");
+        return minimum;
+    }
+    public decimal[] GetCountingDenominations()
+    {
+        var minimum = GetMinimumCountingDenomination();
+        return Denominations.Where(d => d >= minimum).ToArray();
+    }
+    public void ConfigureCountingMinimum(Guid adminId, decimal minimum)
+    {
+        if (!_db.Users.AsNoTracking().Any(u => u.Id == adminId && u.IsActive && u.Role == UserRole.Admin))
+            throw new InvalidOperationException("Only active administrators can change cash counting settings.");
+        if (!Denominations.Contains(minimum)) throw new InvalidOperationException("Choose a supported bill or coin denomination.");
+        SetDrawerSetting(MinimumCountingDenominationKey, minimum.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+        _db.AuditLogs.Add(new AuditLog { Date = DateTime.Now, UserId = adminId, Action = "CashCountingSettings",
+            EntityName = "Setting", Details = $"Minimum counting denomination: {minimum:0.00}" });
+        _db.SaveChanges();
+    }
 
     public sealed record ShiftTotals(decimal CashSales, decimal VoidedCashSales, decimal NonCashSales, decimal CashIn, decimal CashOut, int TransactionCount);
 
@@ -189,6 +213,9 @@ public sealed class ShiftService
         {
             if (denominations.Any(p => !Denominations.Contains(p.Key) || p.Value < 0))
                 throw new InvalidOperationException("Invalid denomination or negative count.");
+            var minimum = GetMinimumCountingDenomination();
+            if (denominations.Any(p => p.Value > 0 && p.Key < minimum))
+                throw new InvalidOperationException($"The minimum counting denomination is now ₱{minimum:0.00}. Reopen counting and review the entered quantities.");
             if (denominations.Sum(p => p.Key * p.Value) != countedDrawer)
                 throw new InvalidOperationException("Denomination counts must equal the counted drawer.");
         }

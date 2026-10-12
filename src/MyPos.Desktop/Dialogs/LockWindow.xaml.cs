@@ -72,7 +72,7 @@ public partial class LockWindow : Window
             });
             App.Db.SaveChanges();
             PasswordBox.Clear();
-            MessageBox.Show(this, "Incorrect password. Please try again.",
+            MyPos.Desktop.Dialogs.ActionDialog.Show(this, "Incorrect password. Please try again.",
                 "Unable to unlock", MessageBoxButton.OK, MessageBoxImage.Warning);
             PasswordBox.Focus();
             return;
@@ -86,7 +86,7 @@ public partial class LockWindow : Window
     {
         if (_pendingCartCount > 0)
         {
-            var result = MessageBox.Show(
+            var result = MyPos.Desktop.Dialogs.ActionDialog.Show(
                 $"This sale has {_pendingCartCount} item(s). Switching users will discard it. Continue?",
                 "Discard current sale?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result != MessageBoxResult.Yes) return;

@@ -154,7 +154,7 @@ public partial class ProductCatalogView : UserControl
         var product = Selected;
         if (product == null)
         {
-            MessageBox.Show("Select a product first.", "MyPos",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("Select a product first.", "MyPos",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -169,7 +169,7 @@ public partial class ProductCatalogView : UserControl
         var product = Selected;
         if (product == null)
         {
-            MessageBox.Show("Select a product first.", "MyPos",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("Select a product first.", "MyPos",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -185,14 +185,14 @@ public partial class ProductCatalogView : UserControl
         var selected = Selected;
         if (selected == null)
         {
-            MessageBox.Show("Select a product first.", "MyPos",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("Select a product first.", "MyPos",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         var p = App.Db.Products.First(product => product.Id == selected.Id);
         App.Db.Entry(p).Reload();
 
-        var confirm = MessageBox.Show(p.IsActive
+        var confirm = MyPos.Desktop.Dialogs.ActionDialog.Show(p.IsActive
             ? $"Deactivate '{p.Name}'?\nIt disappears from the catalog, but sales history stays intact."
             : $"Reactivate '{p.Name}'?\nIt returns to the catalog and POS immediately.",
             "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -208,6 +208,7 @@ public partial class ProductCatalogView : UserControl
         });
         App.Db.SaveChanges();
         LoadProducts();
+        ActionDialog.Success(activating ? "Product activated." : "Product deactivated.", "Products", Window.GetWindow(this));
     }
 
     private void ProductsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)

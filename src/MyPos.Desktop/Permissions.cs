@@ -30,7 +30,7 @@ public static class Permissions
         });
         App.Db.SaveChanges();
 
-        MessageBox.Show($"Only administrators can {action}.", "MyPos",
+        MyPos.Desktop.Dialogs.ActionDialog.Show($"Only administrators can {action}.", "MyPos",
             MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
     }

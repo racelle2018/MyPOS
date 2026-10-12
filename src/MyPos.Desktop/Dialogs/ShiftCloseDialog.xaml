@@ -14,7 +14,7 @@
         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <ScrollViewer x:Name="FormScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16,12,16,8">
-            <TextBlock Text="CLOSE SHIFT" FontSize="14" FontWeight="SemiBold"/>
+            <TextBlock Text="CLOSE SHIFT" FontSize="{DynamicResource UiFontSize14}" FontWeight="SemiBold"/>
             <TextBlock x:Name="ShiftIdentityText" TextWrapping="Wrap" Margin="0,6,0,0"/>
             <TextBlock x:Name="ClosingOperatorText" TextWrapping="Wrap" Margin="0,4,0,0"/>
             <TextBlock Text="Count the physical drawer cash before closing." Style="{StaticResource FieldHint}"
@@ -42,14 +42,14 @@
             <TextBlock Text="Counted drawer cash (₱)" FontWeight="SemiBold" Margin="0,0,0,4"/>
             <CheckBox x:Name="UseDenominationsBox" Content="Count by bills / coins" Margin="0,5,0,5" Checked="UseDenominations_Changed" Unchecked="UseDenominations_Changed"/>
             <DataGrid x:Name="DenominationGrid" Visibility="Collapsed" Height="180" AutoGenerateColumns="False" CanUserAddRows="False"
-                      HeadersVisibility="Column" RowHeaderWidth="0" RowHeight="28" ColumnHeaderHeight="26">
+                      HeadersVisibility="Column" RowHeaderWidth="0" RowHeight="{DynamicResource UiTableRowHeight28}" ColumnHeaderHeight="{DynamicResource UiTableHeaderHeight26}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Face value" Binding="{Binding FaceValue, StringFormat=₱{0:N2}}" IsReadOnly="True" Width="*" MinWidth="120"/>
                     <DataGridTextColumn Header="Count" Binding="{Binding CountText, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
                     <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=₱{0:N2}}" IsReadOnly="True" Width="110" ElementStyle="{StaticResource RightCell}"/>
                 </DataGrid.Columns>
             </DataGrid>
-            <TextBox x:Name="CountedBox" Height="40" Tag="Counted cash in drawer"
+            <TextBox x:Name="CountedBox" Height="{DynamicResource UiControlHeight40}" Tag="Counted cash in drawer"
                      AutomationProperties.Name="Counted drawer cash"
                      TextChanged="CountedBox_TextChanged"/>
             <TextBlock Text="Notes (optional)" FontWeight="SemiBold" Margin="0,10,0,4"/>
@@ -64,8 +64,8 @@
             <TextBlock x:Name="ErrorText" Foreground="{StaticResource UiDangerBrush}" TextWrapping="Wrap" Margin="0,4"/>
             <TextBlock x:Name="VariancePreview" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,4"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="CancelButton" Height="32" Content="Cancel" IsCancel="True" Width="80" Margin="0,5,8,5"/>
-                <Button x:Name="CloseShiftButton" Height="32" Content="Close Shift" IsDefault="True" Width="110"
+                <Button x:Name="CancelButton" Height="{DynamicResource UiControlHeight32}" Content="Cancel" IsCancel="True" Width="80" Margin="0,5,8,5"/>
+                <Button x:Name="CloseShiftButton" Height="{DynamicResource UiControlHeight32}" Content="Close Shift" IsDefault="True" Width="110"
                         Style="{StaticResource PrimaryButton}" Click="SaveButton_Click"/>
             </StackPanel>
         </StackPanel>

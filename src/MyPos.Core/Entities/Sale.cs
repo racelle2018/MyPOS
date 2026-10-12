@@ -76,4 +76,4 @@ public class Payment
     public string? Reference { get; set; }          // GCash ref, card approval code...
 }
 
-public enum PaymentMethod { Cash = 1, Card = 2, Gcash = 3, Maya = 4, Bank = 5 }
+public enum PaymentMethod { Cash = 1, Card = 2, Gcash = 3, Maya = 4, Bank = 5, QRPh = 6 }

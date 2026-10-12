@@ -14,7 +14,7 @@ public partial class SaleCompleteDialog : Window
         ChangeLabel.Text = sale.ChangeAmount > 0 ? "CHANGE" : "FULLY PAID";
         ChangeText.Text = sale.ChangeAmount > 0 ? $"₱{sale.ChangeAmount:N2}" : $"₱{sale.TotalAmount:N2}";
         if (!receiptsExpected) PrintStatusText.Text = "MANUAL RECEIPT MODE - WRITE THE OR BY HAND";
-        else if (printed) { PrintStatusText.Text = "RECEIPT PRINTED"; PrintStatusText.Foreground = Brushes.Green; }
+        else if (printed) { PrintStatusText.Text = "RECEIPT SENT TO PRINTER"; PrintStatusText.Foreground = Brushes.Green; }
         else { PrintStatusText.Text = "RECEIPT NOT PRINTED - PRESS VIEW RECEIPT TO SEE AND RETRY"; PrintStatusText.Foreground = Brushes.Red; }
     }
     private void ReceiptButton_Click(object sender, RoutedEventArgs e)
@@ -23,7 +23,7 @@ public partial class SaleCompleteDialog : Window
         preview.ShowDialog();
         if (!preview.PrintedSuccessfully) return;
         ReceiptPrinted = true;
-        PrintStatusText.Text = "RECEIPT PRINTED";
+        PrintStatusText.Text = "RECEIPT SENT TO PRINTER";
         PrintStatusText.Foreground = Brushes.Green;
     }
     private void Done_Click(object sender, RoutedEventArgs e) => DialogResult = true;

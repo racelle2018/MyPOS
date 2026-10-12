@@ -7,6 +7,33 @@ namespace MyPos.Tests;
 
 public class ApprovedAuditCompletionTests
 {
+    [Fact]
+    public void QRPh_is_a_separate_non_cash_method_without_reclassifying_wallet_payments()
+    {
+        using var db = Db(); var scope = Scope(db); var product = Product(db, "QR item", 112);
+        var shifts = new ShiftService(db); var shift = shifts.OpenShift(scope.BranchId, scope.UserId, 0);
+        var sales = new SaleService(db);
+        Sale? qrSale = null;
+        foreach (var method in new[] { PaymentMethod.Gcash, PaymentMethod.Maya, PaymentMethod.QRPh })
+        {
+            var sale = sales.PostSale(scope.BranchId, scope.UserId, new[] { new CartLine(product.Id, 1) },
+                tendered: 112, method: method, reference: "ONLINE-REF");
+            Assert.Equal(method, sale.Payments.Single().Method);
+            if (method == PaymentMethod.QRPh) qrSale = sale;
+        }
+        Assert.Equal(3, (int)PaymentMethod.Gcash); Assert.Equal(4, (int)PaymentMethod.Maya);
+        Assert.Equal(5, (int)PaymentMethod.Bank); Assert.Equal(6, (int)PaymentMethod.QRPh);
+        Assert.Equal(0m, shifts.GetShiftTotals(shift.Id).CashSales);
+        Assert.Equal(336m, shifts.GetShiftTotals(shift.Id).NonCashSales);
+        var report = new ExpandedReportService(db).SalesSummary(scope with { Payment = PaymentMethod.QRPh });
+        Assert.Contains("112.00", report.Summary);
+        Assert.Contains("Payment: QRPh", report.PresentationScope);
+        Assert.Single(report.Rows, r => r.Kind == "Payment" && r.Cells[0] == "QRPh" && r.Cells[4] == "112.00");
+        sales.VoidSale(qrSale!.Id, scope.UserId, "QR cancellation");
+        Assert.Equal(224m, shifts.GetShiftTotals(shift.Id).NonCashSales);
+        Assert.Equal(0m, shifts.GetShiftTotals(shift.Id).CashSales);
+    }
+
     private static MyPosDbContext Db()
     {
         var db = new MyPosDbContext(new DbContextOptionsBuilder<MyPosDbContext>().UseSqlite("Data Source=:memory:").Options);

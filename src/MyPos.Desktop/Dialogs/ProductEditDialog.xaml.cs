@@ -141,11 +141,12 @@ public partial class ProductEditDialog : Window
         }
 
         App.Db.SaveChanges();
+        ActionDialog.Success(_editing == null ? "Product added." : "Product updated.", Title, this);
         DialogResult = true;
     }
 
     private void Fail(string message)
     {
-        ErrorText.Text = message;
+        ErrorText.Text = message; ActionDialog.Warning(message, Title, this);
     }
 }

@@ -71,20 +71,21 @@ public partial class ShiftView : UserControl
             new ShiftService(App.Db).OpenShift(App.Db.Branches.OrderBy(b => b.CreatedAt).First().Id,
                 App.CurrentUser!.Id, d.OpeningFloat);
             Load();
+            MyPos.Desktop.Dialogs.ActionDialog.Success("Shift opened.", "Open Shift", Window.GetWindow(this));
         }
-        catch (InvalidOperationException ex) { MessageBox.Show(ex.Message, "Open Shift", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        catch (InvalidOperationException ex) { MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Open Shift", MessageBoxButton.OK, MessageBoxImage.Warning); }
     }
     private void CashIOButton_Click(object sender, RoutedEventArgs e) { if (new CashMovementDialog().ShowDialog() == true) Load(); }
     private void CloseShiftButton_Click(object sender, RoutedEventArgs e) { if (new ShiftCloseDialog().ShowDialog() == true) Load(); }
     private void Reconciliation_Click(object sender, RoutedEventArgs e)
     {
         if (ShiftsGrid.SelectedItem is not ShiftRowVM row)
-        { MessageBox.Show("Select a shift first.", "Shift history", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        { MyPos.Desktop.Dialogs.ActionDialog.Show("Select a shift first.", "Shift history", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
         try
         {
             CreateReconciliationDialog(row.ShiftId).ShowDialog();
         }
-        catch (InvalidOperationException ex) { MessageBox.Show(ex.Message, "Shift history", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        catch (InvalidOperationException ex) { MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Shift history", MessageBoxButton.OK, MessageBoxImage.Warning); }
     }
 
     internal ReportHostWindow CreateReconciliationDialog(Guid shiftId)

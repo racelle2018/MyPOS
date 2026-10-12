@@ -11,7 +11,7 @@
     </Window.Resources>
     <DockPanel Margin="16">
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
-            <TextBlock x:Name="HeaderText" FontSize="14" FontWeight="SemiBold"/>
+            <TextBlock x:Name="HeaderText" FontSize="{DynamicResource UiFontSize14}" FontWeight="SemiBold"/>
             <TextBlock x:Name="SubHeaderText" Foreground="#475569" Margin="0,4,0,0"/>
             <TextBlock x:Name="VoidedText" Foreground="#DC2626" FontWeight="SemiBold" Visibility="Collapsed"/>
         </StackPanel>
@@ -21,7 +21,7 @@
                 <TextBlock x:Name="DiscountText"/>
                 <TextBlock x:Name="VatText"/>
                 <TextBlock x:Name="NetText"/>
-                <TextBlock x:Name="TotalText" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock x:Name="TotalText" FontSize="{DynamicResource UiFontSize14}" FontWeight="SemiBold"/>
                 <TextBlock x:Name="ChangeText" Foreground="#475569"/>
             </StackPanel>
         </Border>

@@ -103,17 +103,17 @@ public partial class ExpandedReportsView : UserControl
     private string FileStem => $"{_kind}-{FromPick.SelectedDate:yyyy-MM-dd}-to-{ToPick.SelectedDate:yyyy-MM-dd}-{ModeBox.SelectedIndex}";
     private void Print_Click(object sender, RoutedEventArgs e)
     {
-        LoadReport(); if (_data == null) return;
+        LoadReport(); if (_data == null) { MyPos.Desktop.Dialogs.ActionDialog.Warning("Load a valid report first.", "Print report", Window.GetWindow(this)); return; }
         new ReportPrintPreviewWindow(BuildDocument(), _data.Title, FileStem + ".pdf") { Owner = Window.GetWindow(this) }.ShowDialog();
     }
     private void Export_Click(object sender, RoutedEventArgs e)
     {
-        LoadReport(); if (_data == null) return;
+        LoadReport(); if (_data == null) { MyPos.Desktop.Dialogs.ActionDialog.Warning("Load a valid report first.", "Export CSV", Window.GetWindow(this)); return; }
         var picker = new Microsoft.Win32.SaveFileDialog { FileName = FileStem + ".csv", Filter = "CSV file (*.csv)|*.csv" };
         if (picker.ShowDialog() != true) return;
-        try { File.WriteAllText(picker.FileName, _data.ToCsv(), System.Text.Encoding.UTF8); }
+        try { File.WriteAllText(picker.FileName, _data.ToCsv(), System.Text.Encoding.UTF8); MyPos.Desktop.Dialogs.ActionDialog.Success($"CSV saved to:\n{picker.FileName}", "Export CSV", Window.GetWindow(this)); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        { MessageBox.Show(ex.Message, "Export CSV", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        { MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Export CSV", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
     private sealed record Choice(object? Value, string Label);
 }

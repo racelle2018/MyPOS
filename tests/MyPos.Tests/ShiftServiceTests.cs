@@ -9,6 +9,44 @@ namespace MyPos.Tests;
 public class ShiftServiceTests
 {
     [Fact]
+    public void Counting_minimum_is_persistent_admin_only_and_preserves_saved_history()
+    {
+        using var db = CreateDb(); var admin = db.Users.Single(); var service = new ShiftService(db);
+        Assert.Equal(0.25m, service.GetMinimumCountingDenomination());
+        Assert.DoesNotContain(0.10m, service.GetCountingDenominations());
+        Assert.Contains(0.25m, service.GetCountingDenominations());
+        var cashier = new User { Username = "count-cashier", FullName = "Cashier", Role = UserRole.Cashier };
+        db.Users.Add(cashier); db.SaveChanges();
+        Assert.Throws<InvalidOperationException>(() => service.ConfigureCountingMinimum(cashier.Id, 1));
+        Assert.Throws<InvalidOperationException>(() => service.ConfigureCountingMinimum(admin.Id, 0.20m));
+        service.ConfigureCountingMinimum(admin.Id, 0.01m);
+        var shift = service.OpenShift(db.Branches.Single().Id, admin.Id, 0.10m);
+        service.CloseShift(admin.Id, 0.10m, null, new Dictionary<decimal, int> { [0.10m] = 1 });
+        service.ConfigureCountingMinimum(admin.Id, 1m);
+        Assert.Equal(1m, new ShiftService(db).GetMinimumCountingDenomination());
+        Assert.All(service.GetCountingDenominations(), d => Assert.True(d >= 1m));
+        Assert.Equal(0.10m, db.DenominationCounts.Single(c => c.ShiftId == shift.Id).FaceValue);
+        Assert.Equal("1.00", db.Settings.Single(s => s.Key == ShiftService.MinimumCountingDenominationKey).Value);
+        Assert.Equal(2, db.AuditLogs.Count(a => a.Action == "CashCountingSettings"));
+        admin.IsActive = false; db.SaveChanges();
+        Assert.Throws<InvalidOperationException>(() => service.ConfigureCountingMinimum(admin.Id, 0.25m));
+    }
+
+    [Fact]
+    public void Counting_rechecks_changed_minimum_without_rounding_manual_cash_totals()
+    {
+        using var db = CreateDb(); var admin = db.Users.Single(); var service = new ShiftService(db);
+        var shift = service.OpenShift(db.Branches.Single().Id, admin.Id, 0.25m);
+        service.ConfigureCountingMinimum(admin.Id, 1m);
+        Assert.Throws<InvalidOperationException>(() => service.CloseShift(admin.Id, 0.25m, null,
+            new Dictionary<decimal, int> { [0.25m] = 1 }));
+        Assert.Null(shift.ClosedAt);
+        service.CloseShift(admin.Id, 0.25m, null);
+        Assert.Equal(0.25m, shift.CountedDrawer);
+        Assert.Equal(0m, shift.Variance);
+    }
+
+    [Fact]
     public void Closing_requires_review_of_fresh_totals_and_preserves_shift_on_rejection()
     {
         using var db = CreateDb();

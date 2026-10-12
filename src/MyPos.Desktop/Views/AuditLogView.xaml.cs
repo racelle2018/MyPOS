@@ -88,13 +88,18 @@ public partial class AuditLogView : UserControl
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_rows.Count == 0) { MessageBox.Show("Nothing to export with these filters.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+        if (_rows.Count == 0) { MyPos.Desktop.Dialogs.ActionDialog.Show("Nothing to export with these filters.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Information); return; }
         var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "CSV file (*.csv)|*.csv", FileName = $"AUDIT-LOG-{DateTime.Now:yyyyMMdd-HHmm}.csv" };
         if (dialog.ShowDialog() != true) return;
         var csv = new StringBuilder("Date,Time,User,Action,Entity,Details\n");
         foreach (var row in _rows) csv.AppendLine(string.Join(",", Quote(row.Log.Date.ToString("MM/dd/yyyy")), Quote(row.Log.Date.ToString("HH:mm:ss")), Quote(row.UserText), Quote(row.Action), Quote(row.Entity), Quote(row.Details)));
-        File.WriteAllText(dialog.FileName, csv.ToString(), Encoding.UTF8);
-        MessageBox.Show($"Exported {_rows.Count} entries to:\n{dialog.FileName}", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+        try
+        {
+            File.WriteAllText(dialog.FileName, csv.ToString(), Encoding.UTF8);
+            MyPos.Desktop.Dialogs.ActionDialog.Success($"Exported {_rows.Count} entries to:\n{dialog.FileName}", "Export Complete", Window.GetWindow(this));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        { MyPos.Desktop.Dialogs.ActionDialog.Error(ex.Message, "Export CSV", Window.GetWindow(this)); }
     }
 
     private static string Quote(string value) => MyPos.Core.Services.ReportCsv.Text(value);

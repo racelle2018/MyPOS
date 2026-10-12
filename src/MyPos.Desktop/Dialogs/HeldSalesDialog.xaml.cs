@@ -43,7 +43,7 @@ public partial class HeldSalesDialog : Window
         var held = Selected;
         if (held == null)
         {
-            MessageBox.Show("Select a held sale first.");
+            MyPos.Desktop.Dialogs.ActionDialog.Show("Select a held sale first.");
             return;
         }
         try
@@ -54,19 +54,20 @@ public partial class HeldSalesDialog : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Held sale could not be read", MessageBoxButton.OK, MessageBoxImage.Error);
+            MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Held sale could not be read", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
     private void DiscardButton_Click(object sender, RoutedEventArgs e)
     {
         var held = Selected;
         if (held == null) return;
-        if (MessageBox.Show($"Discard the held sale for '{held.CustomerName}'?", "Confirm",
+        if (MyPos.Desktop.Dialogs.ActionDialog.Show($"Discard the held sale for '{held.CustomerName}'?", "Confirm",
                 MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             return;
 
         new HeldSaleService(App.Db).Discard(held.Id, App.CurrentUser!.Id);
         Load();
+        ActionDialog.Success("Held sale discarded.", "Held sales", this);
     }
 }
 

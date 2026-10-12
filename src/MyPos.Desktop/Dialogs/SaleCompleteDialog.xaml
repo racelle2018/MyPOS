@@ -14,17 +14,17 @@
         <StackPanel Margin="16" VerticalAlignment="Center">
             <TextBlock Text="SALE COMPLETE" Foreground="#16A34A"
                        FontWeight="SemiBold" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="SaleNumberText" FontSize="14"
+            <TextBlock x:Name="SaleNumberText" FontSize="{DynamicResource UiFontSize14}"
                        HorizontalAlignment="Center" Margin="0,12"/>
             <TextBlock x:Name="ChangeLabel" Text="CHANGE" Foreground="#475569"
                        HorizontalAlignment="Center"/>
             <TextBlock x:Name="ChangeText" FontSize="24" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="PrintStatusText" FontSize="12" TextWrapping="Wrap"
+            <TextBlock x:Name="PrintStatusText" FontSize="{DynamicResource UiFontSize12}" TextWrapping="Wrap"
                        HorizontalAlignment="Center" Margin="0,8"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
-                <Button x:Name="ReceiptButton" Content="View Receipt" Width="120" Height="32"
+                <Button x:Name="ReceiptButton" Content="View Receipt" Width="120" Height="{DynamicResource UiControlHeight32}"
                         Margin="0,5,12,5" Click="ReceiptButton_Click"/>
-                <Button Content="New Sale (Enter)" Width="150" Height="32"
+                <Button Content="New Sale (Enter)" Width="150" Height="{DynamicResource UiControlHeight32}"
                         IsDefault="True" Click="Done_Click"/>
             </StackPanel>
         </StackPanel>

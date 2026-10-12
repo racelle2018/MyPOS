@@ -5,15 +5,15 @@
     <Style x:Key="DialogWindow" TargetType="Window" BasedOn="{StaticResource {x:Type Window}}">
         <Setter Property="ResizeMode" Value="NoResize"/>
         <Setter Property="WindowStyle" Value="SingleBorderWindow"/>
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
         <Setter Property="Background" Value="#EEF0F1"/>
     </Style>
     <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource UiControlHeight32}"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
         <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
@@ -26,9 +26,9 @@
     </Style>
     <Style TargetType="PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource UiControlHeight32}"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
         <Setter Property="Background" Value="White"/>
@@ -36,9 +36,9 @@
     </Style>
     <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource UiControlHeight32}"/>
         <Setter Property="Padding" Value="8,0"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
@@ -47,11 +47,11 @@
         <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="2"/>
     </Style>
     <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
     </Style>
     <Style TargetType="Button" BasedOn="{StaticResource ReportChromeButton}">
-        <Setter Property="Height" Value="32"/>
+        <Setter Property="Height" Value="{DynamicResource UiControlHeight32}"/>
         <Setter Property="Margin" Value="0,5,0,5"/>
     </Style>
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -64,21 +64,21 @@
         <Setter Property="BorderBrush" Value="{StaticResource UiDangerBrush}"/>
     </Style>
     <Style x:Key="PageTitle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize14}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
     </Style>
     <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="RowHeight" Value="28"/>
-        <Setter Property="ColumnHeaderHeight" Value="26"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
+        <Setter Property="RowHeight" Value="{DynamicResource UiTableRowHeight28}"/>
+        <Setter Property="ColumnHeaderHeight" Value="{DynamicResource UiTableHeaderHeight26}"/>
         <Setter Property="Background" Value="White"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
         <Setter Property="BorderThickness" Value="{StaticResource UiBorderThickness}"/>
     </Style>
     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
         <Setter Property="Background" Value="#EEF0F1"/>
         <Setter Property="BorderBrush" Value="#CDD1D4"/>
         <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>

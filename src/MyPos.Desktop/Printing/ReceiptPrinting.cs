@@ -45,40 +45,7 @@ public static class ReceiptPrinting
             var opt = LoadOptions(sale);
             // WPF sizes are device-independent pixels (1/96 inch).
             var paperWidth = opt.Width == 48 ? 302d : 219d;
-            var document = new System.Windows.Documents.FlowDocument
-            {
-                PageWidth = paperWidth, PageHeight = 1100, PagePadding = new Thickness(14, 20, 14, 20),
-                ColumnWidth = double.PositiveInfinity, FontFamily = new System.Windows.Media.FontFamily("Consolas"), FontSize = 10
-            };
-            foreach (var line in ReceiptPrinter.BuildLines(sale, opt, reprint))
-            {
-                var paragraph = new System.Windows.Documents.Paragraph
-                {
-                    Margin = new Thickness(0, 1, 0, 1),
-                    TextAlignment = line.Align switch
-                    {
-                        ReceiptAlign.Center => TextAlignment.Center,
-                        ReceiptAlign.Right => TextAlignment.Right,
-                        _ => TextAlignment.Left
-                    }
-                };
-                var run = new System.Windows.Documents.Run(line.Text);
-                if (line.Bold) run.FontWeight = FontWeights.Bold;
-                if (line.Big) { run.FontSize = 14; run.FontWeight = FontWeights.Bold; }
-                paragraph.Inlines.Add(run); document.Blocks.Add(paragraph);
-            }
-            if (opt.ShowQr && sale.SaleNumber != 0)
-            {
-                var qr = new System.Windows.Controls.Image
-                {
-                    Source = CreateQrImage(sale),
-                    Width = 112,
-                    Height = 112
-                };
-                var block = new System.Windows.Documents.BlockUIContainer(qr);
-                block.TextAlignment = TextAlignment.Center;
-                document.Blocks.Add(block);
-            }
+            var document = ReceiptDocument.Build(sale, opt, reprint);
             var printer = ResolvePrinter(opt);
             var queue = new PrintServer().GetPrintQueues().FirstOrDefault(q => q.FullName == printer)
                 ?? throw new InvalidOperationException($"Printer '{printer}' was not found on this computer.");

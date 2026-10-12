@@ -122,11 +122,14 @@ public partial class ReportPrintPreviewWindow : Window
         {
             Mouse.OverrideCursor = Cursors.Wait;
             ReportPdfExporter.Save(_document, dialog.FileName);
+            Mouse.OverrideCursor = null;
+            ActionDialog.Success($"PDF saved to:\n{dialog.FileName}", "Save PDF", this);
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"The PDF could not be saved.\n{ex.Message}", "Save PDF",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            Mouse.OverrideCursor = null;
+            MyPos.Desktop.Dialogs.ActionDialog.Show(this, $"The PDF could not be saved.\n{ex.Message}", "Save PDF",
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally { Mouse.OverrideCursor = null; }
     }
@@ -152,18 +155,19 @@ public partial class ReportPrintPreviewWindow : Window
                 Math.Abs(width - paper.Width) > 3 || Math.Abs(height - paper.Height) > 3 ||
                 validated.PageOrientation != orientation)
             {
-                MessageBox.Show("This printer does not support the selected paper size in portrait. Choose another paper size or printer to avoid clipped output.",
+                MyPos.Desktop.Dialogs.ActionDialog.Show("This printer does not support the selected paper size in portrait. Choose another paper size or printer to avoid clipped output.",
                     "Paper size not supported", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
             dialog.PrintTicket = validated;
             dialog.PrintDocument(ReportPagination.Create(_document),
                 $"MyPos {_reportTitle} Report");
+            ActionDialog.Success("Report sent to the printer.", "Print report", this);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"The report could not be printed.\n{ex.Message}", "Print report",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            MyPos.Desktop.Dialogs.ActionDialog.Show($"The report could not be printed.\n{ex.Message}", "Print report",
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

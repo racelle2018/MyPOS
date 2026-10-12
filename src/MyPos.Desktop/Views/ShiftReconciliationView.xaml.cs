@@ -105,8 +105,8 @@ public partial class ShiftReconciliationView : UserControl
         foreach (var row in _movements) Row("Cash movements", row.Type + ": " + row.Reason, row.Amount, row.User, row.Date);
         foreach (var count in _report.Shift.DenominationCounts) Row("Denomination", Money(count.FaceValue), count.Count.ToString() + " × " + Money(count.FaceValue * count.Count));
         Row("Policy", "Later voids", "Current sales update; original closing cash and variance are preserved.");
-        try { System.IO.File.WriteAllText(dialog.FileName, csv.ToString(), System.Text.Encoding.UTF8); }
-        catch (System.IO.IOException ex) { MessageBox.Show(ex.Message, "Export CSV", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        try { System.IO.File.WriteAllText(dialog.FileName, csv.ToString(), System.Text.Encoding.UTF8); MyPos.Desktop.Dialogs.ActionDialog.Success($"CSV saved to:\n{dialog.FileName}", "Export CSV", Window.GetWindow(this)); }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException) { MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Export CSV", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
     private void Print_Click(object sender, RoutedEventArgs e)
@@ -122,7 +122,7 @@ public partial class ShiftReconciliationView : UserControl
     internal FlowDocument BuildDocument()
     {
         var report = _report!;
-        var document = new FlowDocument { FontFamily = (FontFamily)FindResource("ReportInterFontFamily"),
+        var document = new FlowDocument { FontFamily = (FontFamily)FindResource("PrintInterFontFamily"),
             FontSize = 12, ColumnWidth = double.PositiveInfinity };
         void Paragraph(string text, double size = 10, bool bold = false, bool center = false, double bottomMargin = 4)
             => document.Blocks.Add(new Paragraph(new Run(text)) { FontSize = size,

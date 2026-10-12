@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        VersionText.Text = $"MyPos {AppVersion.Current}";
         UpdateClock();
         _clock.Tick += (_, _) => UpdateClock();
         Loaded += (_, _) => { UpdateClock(); _clock.Start(); };
@@ -157,6 +158,15 @@ public partial class MainWindow : Window
                 view = new CashDrawerSettingsView();
                 title = "Drawer Access Settings";
                 break;
+            case "counting-settings":
+                if (!Permissions.RequireAdmin("configure cash counting")) return;
+                view = new CashCountingSettingsView();
+                title = "Cash Counting Settings";
+                break;
+            case "appearance":
+                if (!Permissions.RequireAdmin("change appearance")) return;
+                view = new AppearanceSettingsView(); title = "Appearance";
+                break;
             case "backup":
                 if (!Permissions.RequireAdmin("manage backups")) return;
                 view = new BackupRestoreView();
@@ -179,7 +189,7 @@ public partial class MainWindow : Window
             "pos" or "products" or "shift" => "Sales & Inventory",
             "reports" or "audit" or "reconciliation" or "cash-movements" or "sales-summary" or "product-sales" or "void-events" => "Reports & Inquiry",
             "users" => "Master File",
-            "settings" or "drawer-settings" or "backup" or "shortcuts" => "System Utilities",
+            "settings" or "drawer-settings" or "counting-settings" or "appearance" or "backup" or "shortcuts" => "System Utilities",
             _ => null
         };
         ViewTitleText.Text = parent == null ? title : $"{parent} › {title}";
@@ -212,7 +222,7 @@ public partial class MainWindow : Window
     {
         if (_posView is not { HasItems: true }) return true;
 
-        var result = MessageBox.Show(
+        var result = MyPos.Desktop.Dialogs.ActionDialog.Show(
             $"This sale has {_posView.CartCount} item(s). {action} will discard the current sale. Continue?",
             "Discard current sale?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         return result == MessageBoxResult.Yes;

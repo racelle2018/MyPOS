@@ -69,12 +69,12 @@ public partial class PaymentDialog : Window
         {
             if (!decimal.TryParse(TenderedBox.Text.Trim(), out var tendered))
             {
-                ErrorText.Text = "Enter the cash amount received.";
+                ErrorText.Text = "Enter the cash amount received."; ActionDialog.Warning("Enter the cash amount received.", Title, this);
                 return;
             }
             if (tendered < _total)
             {
-                ErrorText.Text = "Cash tendered is less than the amount due.";
+                ErrorText.Text = "Cash tendered is less than the amount due."; ActionDialog.Warning("Cash tendered is less than the amount due.", Title, this);
                 return;
             }
             Tendered = tendered;

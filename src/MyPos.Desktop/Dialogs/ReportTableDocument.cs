@@ -9,7 +9,7 @@ public static class ReportTableDocument
 {
     public static FlowDocument Build(ReportTableData data)
     {
-        var doc = new FlowDocument { FontFamily = (FontFamily)System.Windows.Application.Current.FindResource("ReportInterFontFamily"),
+        var doc = new FlowDocument { FontFamily = (FontFamily)System.Windows.Application.Current.FindResource("PrintInterFontFamily"),
             FontSize = 12, ColumnWidth = double.PositiveInfinity, PageWidth = 794, PageHeight = 1123, PagePadding = new Thickness(48) };
         void Text(string value, double size = 10, bool bold = false, bool center = false, double bottom = 4)
             => doc.Blocks.Add(new Paragraph(new Run(value)) { FontSize = size, FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,

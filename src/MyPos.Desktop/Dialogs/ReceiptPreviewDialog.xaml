@@ -20,7 +20,9 @@
         </StackPanel>
         <Image x:Name="QrImage" DockPanel.Dock="Bottom" Width="112" Height="112"
                Margin="0,12" Visibility="Collapsed"/>
-        <TextBox x:Name="ReceiptText" FontFamily="Consolas" FontSize="12"
-                 IsReadOnly="True" VerticalScrollBarVisibility="Auto"/>
+        <RichTextBox x:Name="ReceiptText" Style="{x:Null}" FontSize="12"
+                 BorderBrush="{DynamicResource UiBorderBrush}" BorderThickness="{DynamicResource UiBorderThickness}"
+                 Background="White" IsReadOnly="True" IsDocumentEnabled="True"
+                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"/>
     </DockPanel>
 </Window>

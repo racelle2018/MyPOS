@@ -7,17 +7,17 @@
     <SolidColorBrush x:Key="MaterialDesign.Brush.Background" Color="White"/>
 
     <Style TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
     </Style>
 
     <Style x:Key="LoginMaterialTextBox" TargetType="TextBox"
            BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="Width" Value="240"/>
-        <Setter Property="Height" Value="48"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="Width" Value="280"/>
+        <Setter Property="Height" Value="{DynamicResource UiControlHeight48}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
         <Setter Property="Padding" Value="12,8"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
@@ -30,10 +30,10 @@
     <Style x:Key="LoginMaterialPasswordBox" TargetType="PasswordBox"
            BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-        <Setter Property="Width" Value="240"/>
-        <Setter Property="Height" Value="48"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+        <Setter Property="Width" Value="280"/>
+        <Setter Property="Height" Value="{DynamicResource UiControlHeight48}"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
         <Setter Property="Padding" Value="12,8"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
@@ -45,11 +45,11 @@
     </Style>
     <Style x:Key="LoginMaterialButton" TargetType="Button"
            BasedOn="{StaticResource ReportChromeButton}">
-        <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="Width" Value="240"/>
-        <Setter Property="Height" Value="28"/>
+        <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
+        <Setter Property="Width" Value="280"/>
+        <Setter Property="Height" Value="{DynamicResource UiControlHeight28}"/>
         <Setter Property="Margin" Value="0,5"/>
         <Setter Property="BorderBrush" Value="{StaticResource UiAccentBrush}"/>
         <Setter Property="Background" Value="{StaticResource UiAccentBrush}"/>

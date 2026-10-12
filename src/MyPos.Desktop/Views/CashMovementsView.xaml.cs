@@ -98,18 +98,18 @@ public partial class CashMovementsView : UserControl
     private void Export_Click(object sender, RoutedEventArgs e)
     {
         LoadReport(); // Recheck access and refresh data before exporting.
-        if (_report == null) return;
+        if (_report == null) { MyPos.Desktop.Dialogs.ActionDialog.Warning("Load a valid cash movements report first.", "Export CSV", Window.GetWindow(this)); return; }
         var picker = new Microsoft.Win32.SaveFileDialog { Filter = "CSV file (*.csv)|*.csv", FileName = FileStem + ".csv" };
         if (picker.ShowDialog() != true) return;
-        try { File.WriteAllText(picker.FileName, _report.ToCsv(), System.Text.Encoding.UTF8); }
+        try { File.WriteAllText(picker.FileName, _report.ToCsv(), System.Text.Encoding.UTF8); MyPos.Desktop.Dialogs.ActionDialog.Success($"CSV saved to:\n{picker.FileName}", "Export CSV", Window.GetWindow(this)); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        { MessageBox.Show(ex.Message, "Export CSV", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        { MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Export CSV", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
     private void Print_Click(object sender, RoutedEventArgs e)
     {
         LoadReport();
-        if (_report == null) return;
+        if (_report == null) { MyPos.Desktop.Dialogs.ActionDialog.Warning("Load a valid cash movements report first.", "Print report", Window.GetWindow(this)); return; }
         new ReportPrintPreviewWindow(BuildDocument(), "Cash Movements", FileStem + ".pdf")
             { Owner = Window.GetWindow(this) }.ShowDialog();
     }
@@ -149,9 +149,9 @@ public partial class CashMovementsView : UserControl
     {
         if (!Permissions.RequireAdmin("approve cash movements")) return;
         if (MovementsGrid.SelectedItem is not MovementRow row)
-        { MessageBox.Show("Select a movement first.", "Cash movements", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
-        try { new ShiftService(App.Db).ApproveCashMovement(row.Id, App.CurrentUser!.Id); LoadReport(); }
-        catch (InvalidOperationException ex) { MessageBox.Show(ex.Message, "Cash movements", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        { MyPos.Desktop.Dialogs.ActionDialog.Show("Select a movement first.", "Cash movements", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        try { new ShiftService(App.Db).ApproveCashMovement(row.Id, App.CurrentUser!.Id); LoadReport(); MyPos.Desktop.Dialogs.ActionDialog.Success("Cash movement approved.", "Cash movements", Window.GetWindow(this)); }
+        catch (InvalidOperationException ex) { MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Cash movements", MessageBoxButton.OK, MessageBoxImage.Warning); }
     }
 
     private sealed class MovementRow(CashMovementReportRow entry)

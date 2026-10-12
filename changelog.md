@@ -1,11 +1,23 @@
 # Changelog
 
-Notable MyPos changes, newest first. Historical entries are based on repository commit subjects/bodies, not GitHub push timestamps. Dates are commit dates; no release tags or version numbers are implied. New entries describe the changes delivered with this checkpoint.
+Notable MyPos changes, newest first. Historical entries are based on repository commit subjects/bodies, not GitHub push timestamps. Older unversioned entries retain their commit dates; explicit version headings identify application checkpoints, not necessarily GitHub release tags or production acceptance.
 
-## 2026-10-12 — Report cleanup and Phase 1 status (working changes, not yet pushed)
+## 1.1.0 — 2026-10-12 — Appearance, notifications and Phase 1 decisions
 
 ### Changed
 
+- Bump the application from 1.0.0 to 1.1.0. Centralize login/main-window version labels through build metadata so both stay consistent.
+- Record the owner's approved Basic/single-computer Phase 1 scope and later LAN/multi-branch tiers in `phase1-decisions.md`. Document either/both Dropbox and Google Drive, AES-256 encrypted ZIP/retention requirements, fixed PHP/Asia/Manila, paid purchases/opening inventory first, XP-58IIH plus compatible 80-mm support, and Owner/System Administrator/Cashier naming with the approved business/technical settings split. These are decisions, not claims that cloud encryption/upload, new roles/licensing or posting corrections are already implemented.
+- Resize login to 350 × 450 DIP and rebalance its content with 280-DIP username/password fields and Login button, matching Caps Lock hint alignment and centered branding. Preserve floating labels, password reveal, selected appearance, close-only controls and authentication behavior.
+- Add Windows sound-scheme feedback once when a shared action dialog opens: success/information Asterisk, warning Exclamation, error Hand and confirmation Question. Respect Windows mute/sound preferences, do not block dialogs on audio failure, and leave native-fallback sound handling to Windows.
+- Standardize user-triggered action feedback through shared success/warning/error/information/confirmation dialogs: Appearance and utility saves, product/user changes, cash movements, shifts, held sales, validation/access warnings, CSV/PDF exports, backup/restore staging and printing. Preserve active-window ownership, close-only chrome, safe confirmation defaults and scrollable long messages. Keep live/unsaved/field-location feedback inline and the existing Sale Complete result dialog; retain a native startup/theme-failure fallback. Record coverage in `notification-audit.md` and the UI skill; no new transaction/audit-log behavior is implied.
+- Apply the saved appearance font family to printed/PDF reports, regular-printer receipts and receipt preview, with Inter as Default. Keep output sizes/emphasis, paper dimensions and borders independent of UI readability presets. Replace padded receipt amount text with measured WPF columns; preserve native thermal text, style commands and QR output. Newly built documents use the applied font; open documents retain their snapshot.
+- Remove the redundant standalone Inter dropdown choice; display older explicit Inter preferences as Default (Inter) without changing saved values on page load. Trim Appearance explanations and feedback while retaining the short Save/print-scope note and resolved sample details.
+- Make Inter the sole factory/default on-screen font in both shared UI font resources. Show Default (Inter); keep Wix Madefor Text as an explicit alternative and preserve existing explicit font preferences. Default sizes, colors and borders are preserved; output font-family behavior follows the rule above.
+- Fix bundled appearance font loading with an explicit application pack base URI; verify resolved glyph families instead of only stored names. Add installed Segoe UI/Arial/Calibri/Tahoma choices, immediate sample updates, resolved-font/size feedback, and explicit default labels while preserving stable stored preference codes and output sizes.
+- Add admin-only System Utilities → Appearance with bundled font choices, Standard/Comfortable/Large text presets, Compact/Comfortable table spacing, sample-only Preview, Save, and Reset to Default. Persist and audit approved choices; safely fall back for invalid stored values. Centralize dynamic UI typography/control-height tokens, keep colors and 1-DIP borders fixed, and isolate printed report/receipt sizes from screen presets. Adapt the short POS layout to retain fields, Pay and usable table rows at larger presets; record the approved policy in the UI skill.
+- Add QRPh as a separate noncash payment option while retaining GCash/Maya and all existing stored enum values. Include QRPh in payment filters, breakdowns, receipt/held-sale paths, and drawer noncash totals; this records payments, not an online payment-provider integration.
+- Add admin-only System Utilities → Cash Counting Settings with an audited, persistent minimum denomination (default ₱0.25). New bill/coin forms show that minimum and higher; close validation rechecks the saved minimum. Preserve historical counts and manual counted totals without rounding sale/VAT amounts.
 - Apply selected-filters-only presentation across printable reports: omit default All/empty search labels and the entire Filters line when unused, retain date/period and required shift/grouping context, and identify branch scope when multiple branches exist. Preserve queries, permissions, and full CSV metadata. Record the rule in the MyPos WinBox UI skill.
 - Simplify Sales Summary preview/print/PDF: remove the introductory explanatory sentence and duplicate top totals; keep one final totals line below the table. Date-range filtering remains available, including a single day through Today or matching From/To dates; Daily/Monthly controls grouping rather than limiting the range.
 - Remove the repeated report-name footer from every report page. Retain continuation headings, upper-right page number/print date, and preparation/signature sections.
@@ -15,11 +27,11 @@ Notable MyPos changes, newest first. Historical entries are based on repository 
 
 ### Verification and remaining work
 
-- Latest verified solution test run: 61 passing tests (49 Core, 12 Desktop). Rendered report layouts checked; portrait A4/Short/Long pagination remains covered. This is not physical-printer or production acceptance certification.
+- Latest verified solution test run: 79 passing tests (60 Core, 19 Desktop). Rendered report layouts checked; portrait A4/Short/Long pagination remains covered. Appearance checks cover actual resolved font faces, preset combinations, admin/invalid-value guards, sample isolation, persistence/reset, layout, selected output fonts and fixed output sizes. Both receipt widths have native thermal byte/style regression fixtures. Notification checks cover result severity, close-only styles, confirmation defaults and selected appearance; UI tests explicitly bypass live startup/database/backup work. This is not physical-printer or production acceptance certification.
 - Approved operational report additions are implemented. The broader Phase 1 rollout is not yet fully accepted: backup retention/free-space warnings, first-run setup checklist, and an explicit transaction time-zone policy remain outstanding, along with real scanner/drawer/printer/scaling checks, an external-profile/computer restore drill, external-backup verification, and local receipt-wording review. See [Phase 1 plan](phase1.md).
 - Stock-receipt posting direction, inventory-adjustment journal coverage, and related ledger/valuation/profit readiness require separately approved corrections. No historical transaction/journal rewrite is included. See [accounting-posting review](report-accounting-review.md).
 
-## 2026-10-11 — Approved operational reports (working changes, not yet pushed)
+## 2026-10-11 — Approved operational reports
 
 - Simplify Product/Category Sales presentation: hide the single-branch selector without removing branch filtering, show Period and selected filters only, use distinct report titles and one summary, and move a short explanatory note below the table. Explicitly label incomplete product totals as partial and warn about missing historical sale-item amounts; compare invoice totals only for unfiltered products/categories. Preserve historical unknowns, calculation logic and full CSV filter metadata.
 - Centralize approved report headers/footers for Daily Sales, Shift/Cashier Reconciliation, Cash Movements, Sales Summary, Product Sales/category summary and Void Events. Use left-aligned 10-DIP bold company/10-DIP business details, centered 14-DIP bold titles, upper-right 10-DIP Page No. current/total and Print Date, and matching Prepared by/1-DIP signature lines. Keep optional branch details compact, preserve reconciliation reviewer sign-offs and all body data/filters, and remove lower Generated/page-count lines and repeated filter scope from page identity. Receipts and CSV are unchanged.
@@ -70,7 +82,7 @@ Notable MyPos changes, newest first. Historical entries are based on repository 
 
 ## 2026-10-10 — Home, navigation, report printing, and documentation
 
-### Follow-up working changes — not yet pushed
+### Follow-up updates
 
 - Split System Utilities into Settings, Cash Drawer, Backup & Restore, and the existing Shortcuts hint.
 - Moved admin-only drawer configuration out of Open Shift; policy changes apply to the next shift without changing an active drawer.

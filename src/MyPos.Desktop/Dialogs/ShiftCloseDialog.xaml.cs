@@ -20,7 +20,7 @@ public partial class ShiftCloseDialog : Window
         // Bound the window before centering; expanded counting scrolls only the body.
         MaxHeight = Math.Min(MaxHeight, Math.Max(160, SystemParameters.WorkArea.Height - 32));
         Height = Math.Min(Height, MaxHeight);
-        _counts.AddRange(ShiftService.Denominations.Select(value => new CountRow(value, UpdateDenominations)));
+        _counts.AddRange(_service.GetCountingDenominations().Select(value => new CountRow(value, UpdateDenominations)));
         DenominationGrid.ItemsSource = _counts;
         _shift = _service.GetOpenShift();
         if (_shift == null)
@@ -80,7 +80,7 @@ public partial class ShiftCloseDialog : Window
         DenominationGrid.CommitEdit(System.Windows.Controls.DataGridEditingUnit.Row, true);
         if (_shift == null || !decimal.TryParse(CountedBox.Text, out var counted) || counted < 0 || Math.Round(counted, 2) != counted)
         {
-            ErrorText.Text = "Enter a nonnegative counted amount with at most two decimal places.";
+            ErrorText.Text = "Enter a nonnegative counted amount with at most two decimal places."; ActionDialog.Warning("Enter a nonnegative counted amount with at most two decimal places.", Title, this);
             return;
         }
 
@@ -90,27 +90,28 @@ public partial class ShiftCloseDialog : Window
         try
         {
             if (UseDenominationsBox.IsChecked == true && _counts.Any(r => !r.Valid))
-            { ErrorText.Text = "Enter whole nonnegative denomination counts."; return; }
+            { ErrorText.Text = "Enter whole nonnegative denomination counts."; ActionDialog.Warning("Enter whole nonnegative denomination counts.", Title, this); return; }
             var reviewed = _reviewedTotals;
             RefreshTotals();
             if (reviewed != _reviewedTotals)
             {
-                ErrorText.Text = "Shift activity changed. Review the updated totals, then click Close Shift again.";
+                ErrorText.Text = "Shift activity changed. Review the updated totals, then click Close Shift again."; ActionDialog.Warning("Shift activity changed. Review the updated totals, then click Close Shift again.", Title, this);
                 return;
             }
-            var result = MessageBox.Show(this,
+            var result = MyPos.Desktop.Dialogs.ActionDialog.Show(this,
                 $"Expected cash: ₱{_expected:N2}\nCounted cash: ₱{counted:N2}\n{DescribeVariance(Math.Round(counted - _expected, 2, MidpointRounding.AwayFromZero))}\n\nClosing operator: {App.CurrentUser?.FullName}\n\nClose this shift?",
                 "Confirm shift closing", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
             if (result != MessageBoxResult.Yes) return;
             _service.CloseShift(App.CurrentUser!.Id, counted, NotesBox.Text,
                 UseDenominationsBox.IsChecked == true ? _counts.ToDictionary(r => r.FaceValue, r => r.Count) : null,
                 shiftId: _shift.Id, reviewedTotals: _reviewedTotals);
+            ActionDialog.Success("Shift closed. Counted cash and variance have been saved.", Title, this);
             DialogResult = true;
         }
         catch (Exception ex)
         {
             RefreshTotals();
-            ErrorText.Text = ex.Message;
+            ErrorText.Text = ex.Message; ActionDialog.Error(ex.Message, Title, this);
         }
         finally
         {

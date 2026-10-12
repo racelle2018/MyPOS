@@ -17,8 +17,11 @@ public partial class CashMovementDialog : Window
     }
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!decimal.TryParse(AmountBox.Text, out var amount) || amount <= 0 || string.IsNullOrWhiteSpace(ReasonBox.Text)) { ErrorText.Text = "Enter a positive amount and a reason."; return; }
+        if (!decimal.TryParse(AmountBox.Text, out var amount) || amount <= 0 || string.IsNullOrWhiteSpace(ReasonBox.Text)) { ErrorText.Text = "Enter a positive amount and a reason."; ActionDialog.Warning("Enter a positive amount and a reason.", Title, this); return; }
         try { new ShiftService(App.Db).RecordCashMovement(App.CurrentUser!.Id, TypeBox.SelectedIndex == 0 ? CashMovementType.CashIn : CashMovementType.CashOut, amount, ReasonBox.Text,
-            (CashMovementCategory)CategoryBox.SelectedItem, ReferenceBox.Text, DestinationBox.Text, ExpenseCategoryBox.Text, ApproveNowBox.IsChecked == true); DialogResult = true; } catch (Exception ex) { ErrorText.Text = ex.Message; }
+            (CashMovementCategory)CategoryBox.SelectedItem, ReferenceBox.Text, DestinationBox.Text, ExpenseCategoryBox.Text, ApproveNowBox.IsChecked == true);
+            ActionDialog.Success("Cash movement recorded.", Title, this); DialogResult = true;
+        } catch (InvalidOperationException ex) { ErrorText.Text = ex.Message; ActionDialog.Warning(ex.Message, Title, this); }
+        catch (Exception ex) { ErrorText.Text = ex.Message; ActionDialog.Error(ex.Message, Title, this); }
     }
 }

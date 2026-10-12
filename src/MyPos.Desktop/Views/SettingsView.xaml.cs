@@ -78,6 +78,7 @@ public partial class SettingsView : UserControl
         {
             LowStockErrorText.Text = "Enter a whole number (0 or more).";
             SavedFeedbackText.Text = "Settings were not saved.";
+            MyPos.Desktop.Dialogs.ActionDialog.Warning("Enter a whole number (0 or more) for the low-stock threshold. Settings were not saved.", "Settings", Window.GetWindow(this));
             LowStockBox.BringIntoView();
             LowStockBox.Focus();
             return;
@@ -115,9 +116,9 @@ public partial class SettingsView : UserControl
             App.Db.SaveChanges();
         }
 
-        SavedFeedbackText.Text = changed.Count == 0
-            ? "No changes to save."
-            : "Settings saved. New sales and prints use the updated values.";
+        SavedFeedbackText.Text = "";
+        if (changed.Count == 0) MyPos.Desktop.Dialogs.ActionDialog.Information("No changes to save.", "Settings", Window.GetWindow(this));
+        else MyPos.Desktop.Dialogs.ActionDialog.Success("Settings saved. New sales and prints use the updated values.", "Settings", Window.GetWindow(this));
     }
 
     private void TestReceiptButton_Click(object sender, RoutedEventArgs e)

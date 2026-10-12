@@ -21,17 +21,18 @@ public partial class BackupRestoreView : UserControl
         var folder = BackupCopyFolderBox.Text.Trim();
         if (folder.Length > 0 && !System.IO.Path.IsPathFullyQualified(folder))
         {
-            MessageBox.Show("Enter a full folder path, or leave it blank for local backups only.",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("Enter a full folder path, or leave it blank for local backups only.",
                 "Backup preferences", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         if (AppSettings.Get("BackupCopyFolder", "") == folder)
-        { SavedFeedbackText.Text = "No changes to save."; return; }
+        { SavedFeedbackText.Text = ""; MyPos.Desktop.Dialogs.ActionDialog.Information("No changes to save.", "Backup preferences", Window.GetWindow(this)); return; }
         AppSettings.Set("BackupCopyFolder", folder);
         App.Db.AuditLogs.Add(new AuditLog { Date = DateTime.Now, UserId = App.CurrentUser!.Id,
             Action = "SettingChanged", EntityName = "Setting", Details = "BackupCopyFolder" });
         App.Db.SaveChanges();
-        SavedFeedbackText.Text = "Backup preferences saved.";
+        SavedFeedbackText.Text = "";
+        MyPos.Desktop.Dialogs.ActionDialog.Success("Backup preferences saved.", "Backup preferences", Window.GetWindow(this));
     }
 
     private async void BackupButton_Click(object sender, RoutedEventArgs e)
@@ -43,14 +44,13 @@ public partial class BackupRestoreView : UserControl
             var path = await Task.Run(BackupService.BackupNow);
             RefreshBackupStatus();
             var issue = BackupService.LastError;
-            MessageBox.Show(path != null ? $"Verified backup saved:\n{path}" +
-                (string.IsNullOrWhiteSpace(issue) ? "" : $"\n\nWarning: {issue}") : $"Backup failed: {issue}",
-                "MyPos", MessageBoxButton.OK, path != null && string.IsNullOrWhiteSpace(issue)
-                    ? MessageBoxImage.Information : MessageBoxImage.Warning);
+            if (path == null) MyPos.Desktop.Dialogs.ActionDialog.Error($"Backup failed: {issue}", "Backup", Window.GetWindow(this));
+            else if (!string.IsNullOrWhiteSpace(issue)) MyPos.Desktop.Dialogs.ActionDialog.Warning($"Local backup verified:\n{path}\n\n{issue}", "Backup", Window.GetWindow(this));
+            else MyPos.Desktop.Dialogs.ActionDialog.Success($"Verified backup saved:\n{path}", "Backup", Window.GetWindow(this));
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Backup failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MyPos.Desktop.Dialogs.ActionDialog.Error(ex.Message, "Backup failed", Window.GetWindow(this));
         }
         finally { BackupButton.IsEnabled = RestoreButton.IsEnabled = true; }
     }
@@ -65,7 +65,7 @@ public partial class BackupRestoreView : UserControl
             InitialDirectory = BackupService.BackupFolder
         };
         if (picker.ShowDialog() != true) return;
-        if (MessageBox.Show(
+        if (MyPos.Desktop.Dialogs.ActionDialog.Show(
                 "Restore this backup on the next start? Current sales and settings will be replaced. " +
                 "MyPos will first create a safety backup of the current database.",
                 "Confirm database restore", MessageBoxButton.YesNo, MessageBoxImage.Warning)
@@ -74,12 +74,11 @@ public partial class BackupRestoreView : UserControl
         try
         {
             BackupService.StageRestore(picker.FileName);
-            MessageBox.Show("Backup verified and staged. Close MyPos normally, then reopen it to finish restoring.",
-                "Restore ready", MessageBoxButton.OK, MessageBoxImage.Information);
+            MyPos.Desktop.Dialogs.ActionDialog.Success("Backup verified and staged. Close MyPos normally, then reopen it to finish restoring.", "Restore ready", Window.GetWindow(this));
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Restore could not be staged", MessageBoxButton.OK, MessageBoxImage.Error);
+            MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Restore could not be staged", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

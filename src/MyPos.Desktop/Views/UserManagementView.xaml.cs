@@ -61,22 +61,23 @@ public partial class UserManagementView : UserControl
 
     private void EditButton_Click(object sender, RoutedEventArgs e)
     {
-        if (Selected == null) { MessageBox.Show("Select a user first.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+        if (Selected == null) { MyPos.Desktop.Dialogs.ActionDialog.Show("Select a user first.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Information); return; }
         if (new UserEditDialog(Selected.User).ShowDialog() == true) LoadUsers();
     }
 
     private void ToggleActiveButton_Click(object sender, RoutedEventArgs e)
     {
         var row = Selected;
-        if (row == null) { MessageBox.Show("Select a user first.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Information); return; }
-        if (row.User.Id == App.CurrentUser!.Id) { MessageBox.Show("You cannot deactivate your own account while logged in.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        if (row == null) { MyPos.Desktop.Dialogs.ActionDialog.Show("Select a user first.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+        if (row.User.Id == App.CurrentUser!.Id) { MyPos.Desktop.Dialogs.ActionDialog.Show("You cannot deactivate your own account while logged in.", "MyPos", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
         var activating = !row.User.IsActive;
         var message = activating ? $"Reactivate '{row.User.Username}'?" : $"Deactivate '{row.User.Username}'?\nTheir history stays intact.";
-        if (MessageBox.Show(message, "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (MyPos.Desktop.Dialogs.ActionDialog.Show(message, "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         row.User.IsActive = activating;
         App.Db.AuditLogs.Add(new AuditLog { Date = DateTime.Now, UserId = App.CurrentUser.Id, Action = activating ? "UserActivate" : "UserDeactivate", EntityName = "User", EntityId = row.User.Id, Details = row.User.Username });
         App.Db.SaveChanges();
         LoadUsers();
+        ActionDialog.Success(activating ? "User activated." : "User deactivated.", "Users", Window.GetWindow(this));
     }
 }
 

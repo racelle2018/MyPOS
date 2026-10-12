@@ -4,7 +4,7 @@
              xmlns:behaviors="clr-namespace:MyPos.Desktop.Controls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="MyPos.Desktop.Views.PosView"
-             FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12"
+             FontFamily="{DynamicResource ReportInterFontFamily}" FontSize="{DynamicResource UiFontSize12}"
              SizeChanged="PosView_SizeChanged"
              PreviewKeyDown="UserControl_PreviewKeyDown" d:DesignWidth="1276.55" d:DesignHeight="542.05">
     <UserControl.Resources>
@@ -12,8 +12,8 @@
         <SolidColorBrush x:Key="PosInputBorderBrush" Color="#CDD1D4"/>
         <Style x:Key="PosInput" TargetType="TextBox" BasedOn="{StaticResource InputBox}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="Padding" Value="8,0"/>
@@ -23,8 +23,8 @@
         </Style>
         <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
             <Setter Property="materialDesign:TextFieldAssist.OutlinedBorderActiveThickness" Value="{StaticResource UiBorderThickness}"/>
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="{StaticResource PosInputBorderBrush}"/>
@@ -53,14 +53,14 @@
             </Style.Triggers>
         </Style>
         <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="RowHeight" Value="28"/>
-            <Setter Property="ColumnHeaderHeight" Value="26"/>
+            <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
+            <Setter Property="RowHeight" Value="{DynamicResource UiTableRowHeight28}"/>
+            <Setter Property="ColumnHeaderHeight" Value="{DynamicResource UiTableHeaderHeight26}"/>
         </Style>
         <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="Background" Value="#EEF0F1"/>
             <Setter Property="BorderBrush" Value="#CDD1D4"/>
             <Setter Property="BorderThickness" Value="{StaticResource UiBorderCellThickness}"/>
@@ -80,7 +80,7 @@
         <!-- Only the product and current-sale lists scroll; the POS chrome stays fixed. -->
         <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4"
                 BorderThickness="{StaticResource UiBorderTopThickness}" Padding="8,4" Margin="0,6,0,0">
-            <TextBlock x:Name="StatusText" Foreground="#334155" FontSize="12"
+            <TextBlock x:Name="StatusText" Foreground="#334155" FontSize="{DynamicResource UiFontSize12}"
                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
         </Border>
 
@@ -89,7 +89,7 @@
                         BorderBrush="#F59E0B" BorderThickness="{StaticResource UiBorderThickness}" Padding="10,8"
                         Margin="0,0,0,10" Visibility="Collapsed">
                 <DockPanel>
-                    <Button Content="Retry receipt" DockPanel.Dock="Right" Height="32"
+                    <Button Content="Retry receipt" DockPanel.Dock="Right" Height="{DynamicResource UiControlHeight32}"
                                 Click="RetryReceiptButton_Click"/>
                     <TextBlock x:Name="PrintFailureText" VerticalAlignment="Center"
                                    TextWrapping="Wrap" Foreground="#78350F"/>
@@ -116,7 +116,7 @@
                                 BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}"
                                 Padding="12,6" Margin="0,0,0,6">
                         <StackPanel>
-                            <TextBlock x:Name="SaleDetailsTitle" Text="Sale details" FontSize="12" FontWeight="SemiBold"
+                            <TextBlock x:Name="SaleDetailsTitle" Text="Sale details" FontSize="{DynamicResource UiFontSize12}" FontWeight="SemiBold"
                                            Foreground="#1F2937" Margin="0,0,0,4"/>
                             <Grid x:Name="HeaderFields">
                                 <Grid.RowDefinitions>
@@ -131,7 +131,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
-                                    <TextBlock x:Name="InvoiceLabel" FontSize="11" Foreground="#526071"
+                                    <TextBlock x:Name="InvoiceLabel" FontSize="{DynamicResource UiFontSize11}" Foreground="#526071"
                                                Margin="0,0,0,2">
                                         <Run FontWeight="Bold" Text="Invoice "/>
                                         <Run Text="("/>
@@ -139,21 +139,21 @@
                                              Text="Required"/>
                                         <Run Text=")"/>
                                     </TextBlock>
-                                    <TextBox x:Name="InvoiceBox" Height="34" MaxLength="24" CharacterCasing="Upper"
+                                    <TextBox x:Name="InvoiceBox" Height="{DynamicResource UiControlHeight34}" MaxLength="24" CharacterCasing="Upper"
                                                  Style="{StaticResource InvoiceHoverToolTipBox}"
                                                  materialDesign:HintAssist.Hint="Enter invoice / OR number"
                                                  materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
                                                  TextChanged="InvoiceBox_TextChanged"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
-                                    <TextBlock FontSize="11" FontWeight="Bold" Foreground="#526071"
+                                    <TextBlock FontSize="{DynamicResource UiFontSize11}" FontWeight="Bold" Foreground="#526071"
                                                Margin="0,0,0,2" Text="Pay Mode"/>
-                                    <ComboBox x:Name="PayModeBox" Height="34"/>
+                                    <ComboBox x:Name="PayModeBox" Height="{DynamicResource UiControlHeight34}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="0" Grid.Column="2">
-                                    <TextBlock FontSize="11" FontWeight="Bold" Foreground="#526071"
+                                    <TextBlock FontSize="{DynamicResource UiFontSize11}" FontWeight="Bold" Foreground="#526071"
                                                Margin="0,0,0,2" Text="Delivery / Type"/>
-                                    <ComboBox x:Name="TypeBox" Height="34"/>
+                                    <ComboBox x:Name="TypeBox" Height="{DynamicResource UiControlHeight34}"/>
                                 </StackPanel>
 
                                 <Grid x:Name="CustomerFields" Grid.Row="1" Grid.ColumnSpan="3"
@@ -163,25 +163,25 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Margin="0,0,5,0">
-                                        <TextBlock Text="Name" FontSize="11" FontWeight="Bold"
+                                        <TextBlock Text="Name" FontSize="{DynamicResource UiFontSize11}" FontWeight="Bold"
                                                    Foreground="#526071" Margin="0,0,0,2"/>
-                                        <TextBox x:Name="CustomerNameBox" Height="34" CharacterCasing="Upper"
+                                        <TextBox x:Name="CustomerNameBox" Height="{DynamicResource UiControlHeight34}" CharacterCasing="Upper"
                                                  Style="{StaticResource PosInput}" Tag="Enter customer name"
                                                  TextChanged="CustomerNameBox_TextChanged"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="5,0,0,0">
-                                        <TextBlock Text="Address" FontSize="11" FontWeight="Bold"
+                                        <TextBlock Text="Address" FontSize="{DynamicResource UiFontSize11}" FontWeight="Bold"
                                                    Foreground="#526071" Margin="0,0,0,2"/>
-                                        <TextBox x:Name="AddressBox" Height="34" CharacterCasing="Upper"
+                                        <TextBox x:Name="AddressBox" Height="{DynamicResource UiControlHeight34}" CharacterCasing="Upper"
                                                  Style="{StaticResource PosInput}" Tag="Enter customer address"
                                                  TextChanged="AddressBox_TextChanged"/>
                                     </StackPanel>
                                 </Grid>
 
                                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,8,10,0">
-                                    <TextBlock FontSize="11" FontWeight="Bold" Foreground="#526071"
+                                    <TextBlock FontSize="{DynamicResource UiFontSize11}" FontWeight="Bold" Foreground="#526071"
                                                Margin="0,0,0,2" Text="DISCOUNT TYPE"/>
-                                    <ComboBox x:Name="DiscountKindBox" Height="34"
+                                    <ComboBox x:Name="DiscountKindBox" Height="{DynamicResource UiControlHeight34}"
                                                   SelectionChanged="DiscountKindBox_SelectionChanged">
                                         <ComboBoxItem Content="NONE"/>
                                         <ComboBoxItem Content="AMOUNT"/>
@@ -191,15 +191,15 @@
                                 <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
                                                 Margin="0,8,0,0">
                                     <TextBlock x:Name="DiscountDetailLabel" Text="DISCOUNT DETAIL"
-                                               FontSize="11" FontWeight="Bold" Foreground="#526071"
+                                               FontSize="{DynamicResource UiFontSize11}" FontWeight="Bold" Foreground="#526071"
                                                Margin="0,0,0,2"/>
-                                    <TextBox x:Name="DiscountBox" Height="34" IsEnabled="False"
+                                    <TextBox x:Name="DiscountBox" Height="{DynamicResource UiControlHeight34}" IsEnabled="False"
                                                  Style="{StaticResource PosInput}"
                                                  Tag="Choose a discount type first"
                                                  KeyDown="DiscountBox_KeyDown"
                                                  TextChanged="DiscountBox_TextChanged"/>
                                     <TextBlock x:Name="DiscountErrorText" Foreground="#B91C1C"
-                                                   FontSize="11" TextWrapping="Wrap"/>
+                                                   FontSize="{DynamicResource UiFontSize11}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -214,19 +214,19 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Grid>
+                            <Grid x:Name="ProductsHeadingRow">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Products" FontSize="12" FontWeight="SemiBold"
+                                <TextBlock Text="Products" FontSize="{DynamicResource UiFontSize12}" FontWeight="SemiBold"
                                                Foreground="#1F2937"/>
                                 <TextBlock Grid.Column="1" Text="Double-click / Enter to add"
-                                               FontSize="11" Foreground="#64748B"
+                                               FontSize="{DynamicResource UiFontSize11}" Foreground="#64748B"
                                                VerticalAlignment="Center"/>
                             </Grid>
-                            <Grid Grid.Row="1" Margin="0,5,0,5">
-                                <TextBox x:Name="SearchBox" Height="28" FontSize="12"
+                            <Grid x:Name="ProductSearchRow" Grid.Row="1" Margin="0,5,0,5">
+                                <TextBox x:Name="SearchBox" Height="{DynamicResource UiControlHeight28}" FontSize="{DynamicResource UiFontSize12}"
                                              Style="{StaticResource PosInput}" Padding="34,0,10,0"
                                              Tag="Scan barcode or search product"
                                              VerticalContentAlignment="Center"
@@ -282,10 +282,10 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Current sale" FontSize="12" FontWeight="SemiBold"
+                            <TextBlock Text="Current sale" FontSize="{DynamicResource UiFontSize12}" FontWeight="SemiBold"
                                            Foreground="#1F2937"/>
                             <TextBlock x:Name="CartSummaryText" Grid.Column="1"
-                                           Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
+                                           Foreground="#64748B" FontSize="{DynamicResource UiFontSize11}" VerticalAlignment="Center"/>
                         </Grid>
 
                         <Grid Grid.Row="1">
@@ -331,22 +331,22 @@
                                             <ColumnDefinition Width="0.7*"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel x:Name="TotalBlock" Grid.Column="0">
-                                            <TextBlock Text="TOTAL AMOUNT" FontSize="11" Foreground="White"/>
+                                            <TextBlock Text="TOTAL AMOUNT" FontSize="{DynamicResource UiFontSize11}" Foreground="White"/>
                                             <TextBlock x:Name="TotalText" Text="₱0.00" FontSize="22"
                                                            FontWeight="Bold" Foreground="White"/>
                                         </StackPanel>
                                         <StackPanel x:Name="NetBlock" Grid.Column="1" VerticalAlignment="Bottom">
-                                            <TextBlock Text="Net before VAT" FontSize="11" Foreground="White"/>
+                                            <TextBlock Text="Net before VAT" FontSize="{DynamicResource UiFontSize11}" Foreground="White"/>
                                             <TextBlock x:Name="NetText" Text="₱0.00" Foreground="White"
                                                        FontWeight="SemiBold"/>
                                         </StackPanel>
                                         <StackPanel x:Name="VatBlock" Grid.Column="2" VerticalAlignment="Bottom">
-                                            <TextBlock x:Name="VatLabel" Text="VAT" FontSize="11" Foreground="White"/>
+                                            <TextBlock x:Name="VatLabel" Text="VAT" FontSize="{DynamicResource UiFontSize11}" Foreground="White"/>
                                             <TextBlock x:Name="VatText" Text="₱0.00" Foreground="White"
                                                        FontWeight="SemiBold"/>
                                         </StackPanel>
                                         <StackPanel x:Name="ItemsBlock" Grid.Column="3" VerticalAlignment="Bottom">
-                                            <TextBlock Text="No. of items" FontSize="11" Foreground="White"/>
+                                            <TextBlock Text="No. of items" FontSize="{DynamicResource UiFontSize11}" Foreground="White"/>
                                             <TextBlock x:Name="ItemCountText" Text="0" Foreground="White"
                                                        FontWeight="SemiBold"/>
                                         </StackPanel>
@@ -361,12 +361,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Subtotal" Foreground="White" FontSize="11"/>
+                                            <TextBlock Text="Subtotal" Foreground="White" FontSize="{DynamicResource UiFontSize11}"/>
                                             <TextBlock x:Name="GrossText" Grid.Column="1" Foreground="White"
-                                                           FontWeight="SemiBold" FontSize="11" Margin="7,0,20,0"/>
-                                            <TextBlock Grid.Column="2" Text="Discount" Foreground="White" FontSize="11"/>
+                                                           FontWeight="SemiBold" FontSize="{DynamicResource UiFontSize11}" Margin="7,0,20,0"/>
+                                            <TextBlock Grid.Column="2" Text="Discount" Foreground="White" FontSize="{DynamicResource UiFontSize11}"/>
                                             <TextBlock x:Name="DiscountSummaryText" Grid.Column="3" Foreground="White"
-                                                           FontWeight="SemiBold" FontSize="11" Margin="7,0,0,0"/>
+                                                           FontWeight="SemiBold" FontSize="{DynamicResource UiFontSize11}" Margin="7,0,0,0"/>
                                         </Grid>
                                     </Border>
                                 </StackPanel>
@@ -384,11 +384,11 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="ShiftStatusText"
                                                    Text="Shift closed · Open a shift before payment"
-                                                   Foreground="#6B4D18" FontSize="12"
+                                                   Foreground="#6B4D18" FontSize="{DynamicResource UiFontSize12}"
                                                    VerticalAlignment="Center" TextWrapping="Wrap"
                                                    Margin="0,0,8,0"/>
                                     <Button x:Name="OpenShiftButton" Grid.Column="1"
-                                                Content="Open shift" Height="32" MinWidth="88"
+                                                Content="Open shift" Height="{DynamicResource UiControlHeight32}" MinWidth="88"
                                                 Padding="10,0" Click="OpenShiftButton_Click"/>
                                 </Grid>
                             </Border>
@@ -403,19 +403,19 @@
                                     <ColumnDefinition Width="6"/>
                                     <ColumnDefinition Width="2*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button x:Name="HoldButton" Grid.Column="0" Content="Hold (F3)" Height="40"
+                                <Button x:Name="HoldButton" Grid.Column="0" Content="Hold (F3)" Height="{DynamicResource UiControlHeight40}"
                                             MinWidth="0" Padding="0"
                                             Click="HoldButton_Click"/>
-                                <Button x:Name="RecallButton" Grid.Column="2" Height="40"
+                                <Button x:Name="RecallButton" Grid.Column="2" Height="{DynamicResource UiControlHeight40}"
                                             MinWidth="0" Padding="0"
                                             Click="RecallButton_Click">
                                     <TextBlock x:Name="RecallLabel" Text="Recall (F6)"
                                                TextWrapping="Wrap" TextAlignment="Center"/>
                                 </Button>
-                                <Button x:Name="ClearButton" Grid.Column="4" Content="Clear (F4)" Height="40"
+                                <Button x:Name="ClearButton" Grid.Column="4" Content="Clear (F4)" Height="{DynamicResource UiControlHeight40}"
                                             MinWidth="0" Padding="0"
                                             Click="ClearButton_Click"/>
-                                <Button x:Name="PayButton" Grid.Column="6" Content="Pay (F2)" Height="40"
+                                <Button x:Name="PayButton" Grid.Column="6" Content="Pay (F2)" Height="{DynamicResource UiControlHeight40}"
                                             MinWidth="0" Padding="0" IsEnabled="False"
                                             Style="{StaticResource PosPayButton}" Click="PayButton_Click"/>
                             </Grid>

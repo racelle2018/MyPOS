@@ -58,13 +58,14 @@ public partial class PosView : UserControl
             });
         };
 
-        PayModeBox.ItemsSource = new[] { "Cash", "Card", "GCash", "Maya", "Bank" };
+        PayModeBox.ItemsSource = new[] { "Cash", "Card", "GCash", "Maya", "Bank", "QRPh" };
         PayModeBox.SelectedIndex = 0;
         TypeBox.ItemsSource = new[] { "Walk-in", "Pick-up", "Delivery" };
         TypeBox.SelectedIndex = 0;
         DiscountKindBox.SelectedIndex = 0;
 
         _productRefreshTimer.Tick += (_, _) => RefreshProducts(onlyIfChanged: true);
+        LayoutUpdated += (_, _) => UpdateCompactAppearance(ActualHeight);
         Unloaded += (_, _) =>
         {
             _productRefreshTimer.Stop();
@@ -83,6 +84,22 @@ public partial class PosView : UserControl
         SaleDetailsTitle.Visibility = e.NewSize.Height < 470
             ? Visibility.Collapsed
             : Visibility.Visible;
+        UpdateCompactAppearance(e.NewSize.Height);
+    }
+
+    private bool _compactAppearance;
+    private void UpdateCompactAppearance(double height)
+    {
+        var compact = height > 0 && height < 450 && (FontSize > 12 || ProductsGrid.RowHeight > 28);
+        if (compact == _compactAppearance) return;
+        _compactAppearance = compact;
+        ProductsHeadingRow.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        SaleDetailsPanel.Padding = new Thickness(12, compact ? 4 : 6, 12, compact ? 4 : 6);
+        ProductsPanel.Padding = new Thickness(10, compact ? 4 : 6, 10, compact ? 4 : 6);
+        CustomerFields.Margin = new Thickness(0, compact ? 4 : 8, 0, 0);
+        foreach (var field in HeaderFields.Children.OfType<FrameworkElement>().Where(f => Grid.GetRow(f) == 2))
+            field.Margin = new Thickness(field.Margin.Left, compact ? 4 : 8, field.Margin.Right, 0);
+        ProductSearchRow.Margin = new Thickness(0, compact ? 3 : 5, 0, compact ? 3 : 5);
     }
 
     // ---------- header (date / invoice / customer) ----------
@@ -172,11 +189,12 @@ public partial class PosView : UserControl
             new ShiftService(App.Db).OpenShift(_branchId, App.CurrentUser!.Id, dialog.OpeningFloat);
             UpdateShiftStatus();
             Status("Shift opened. Ready to take payment.");
+            ActionDialog.Success("Shift opened. Ready to take payment.", "Open Shift", Window.GetWindow(this));
         }
         catch (InvalidOperationException ex)
         {
             UpdateShiftStatus();
-            MessageBox.Show(ex.Message, "Shift not opened", MessageBoxButton.OK,
+            MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Shift not opened", MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
         SearchBox.Focus();
@@ -195,6 +213,7 @@ public partial class PosView : UserControl
         "GCash" => PaymentMethod.Gcash,
         "Maya" => PaymentMethod.Maya,
         "Bank" => PaymentMethod.Bank,
+        "QRPh" => PaymentMethod.QRPh,
         _ => PaymentMethod.Cash
     };
 
@@ -263,10 +282,11 @@ public partial class PosView : UserControl
     private void ClearCart()
     {
         if (_cart.Count == 0 && InvoiceBox.Text.Length == 0 && CustomerNameBox.Text.Length == 0) return;
-        if (MessageBox.Show("Clear this sale (items, discount, invoice, customer)?", "Confirm",
+        if (MyPos.Desktop.Dialogs.ActionDialog.Show("Clear this sale (items, discount, invoice, customer)?", "Confirm",
                 MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         ResetSaleDraft();
         Status("Sale cleared");
+        ActionDialog.Success("Current sale cleared. No posted sale was changed.", "Current sale", Window.GetWindow(this));
     }
 
     private void ResetSaleDraft()
@@ -291,7 +311,7 @@ public partial class PosView : UserControl
 
     private void HoldCart()
     {
-        if (_cart.Count == 0) { Status("Nothing to hold - cart is empty"); return; }
+        if (_cart.Count == 0) { ActionDialog.Warning("Nothing to hold—the cart is empty.", "Hold sale", Window.GetWindow(this)); return; }
         var count = _cart.Count;
         var held = new HeldSaleService(App.Db).Hold(_branchId, App.CurrentUser!.Id,
             _cart.Select(l => new HeldCartLine(l.ProductId, l.Name, null, l.Price, l.UnitCost, l.IsVatExempt, l.Qty, l.StockAvailable)).ToList(),
@@ -307,11 +327,12 @@ public partial class PosView : UserControl
         ResetSaleDraft();
         UpdateHeldCount();
         Status($"Held - {(string.IsNullOrWhiteSpace(held.CustomerName) ? "WALK-IN" : held.CustomerName)} ({count} item(s))");
+        ActionDialog.Success("Sale held. Recall it to continue checkout.", "Hold sale", Window.GetWindow(this));
     }
 
     private void RecallHeld()
     {
-        if (_cart.Count > 0 && MessageBox.Show($"Recalling will discard the current {_cart.Count} item(s) in the cart. Continue?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (_cart.Count > 0 && MyPos.Desktop.Dialogs.ActionDialog.Show($"Recalling will discard the current {_cart.Count} item(s) in the cart. Continue?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         var dialog = new HeldSalesDialog(_branchId);
         var recalled = dialog.ShowDialog() == true;
         UpdateHeldCount();
@@ -332,7 +353,7 @@ public partial class PosView : UserControl
         }
         if (restored.Count == 0)
         {
-            MessageBox.Show("No items from this held sale are currently available. The held sale is still saved.",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("No items from this held sale are currently available. The held sale is still saved.",
                 "Recall unavailable", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
@@ -341,7 +362,7 @@ public partial class PosView : UserControl
         {
             var warning = $"Current stock has changed: {skipped} unavailable item(s) will be skipped and " +
                           $"{reduced} item quantity/quantities will be reduced. Recall the available items?";
-            if (MessageBox.Show(warning, "Review held sale", MessageBoxButton.YesNo,
+            if (MyPos.Desktop.Dialogs.ActionDialog.Show(warning, "Review held sale", MessageBoxButton.YesNo,
                     MessageBoxImage.Warning) != MessageBoxResult.Yes)
                 return;
         }
@@ -361,6 +382,7 @@ public partial class PosView : UserControl
         new HeldSaleService(App.Db).CompleteRecall(draft.Id, App.CurrentUser!.Id);
         UpdateHeldCount();
         Status($"Recalled. {skipped} unavailable item(s) skipped; {reduced} quantity/quantities reduced to current stock.");
+        ActionDialog.Success($"Held sale recalled. {skipped} unavailable item(s) skipped; {reduced} quantity/quantities reduced to current stock.", "Recall sale", Window.GetWindow(this));
         SearchBox.Focus();
     }
 
@@ -555,13 +577,13 @@ public partial class PosView : UserControl
             var line = _cart[i];
             if (!products.TryGetValue(line.ProductId, out var product) || !product.IsActive)
             {
-                MessageBox.Show($"{line.Name} is no longer active. Remove it from the cart before payment.",
+                MyPos.Desktop.Dialogs.ActionDialog.Show($"{line.Name} is no longer active. Remove it from the cart before payment.",
                     "Product changed", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
             if (product.StockQty < line.Qty)
             {
-                MessageBox.Show($"Only {product.StockQty:0.##} of {product.Name} remain. Adjust its quantity before payment.",
+                MyPos.Desktop.Dialogs.ActionDialog.Show($"Only {product.StockQty:0.##} of {product.Name} remain. Adjust its quantity before payment.",
                     "Stock changed", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
@@ -586,7 +608,7 @@ public partial class PosView : UserControl
         if (!priceChanged) return true;
 
         Status("A product price changed. Review the new total before paying.");
-        MessageBox.Show("A product price or VAT setting changed. The cart total has been updated. Review it, then press Pay again.",
+        MyPos.Desktop.Dialogs.ActionDialog.Show("A product price or VAT setting changed. The cart total has been updated. Review it, then press Pay again.",
             "Price changed", MessageBoxButton.OK, MessageBoxImage.Information);
         return false;
     }
@@ -598,17 +620,19 @@ public partial class PosView : UserControl
         {
             UpdateShiftStatus();
             Status("No open shift - open one before selling (Shift button)");
+            ActionDialog.Warning("Open a shift before taking payment.", "Payment", Window.GetWindow(this));
             return;
         }
         if (!shiftService.CanUseDrawer(shiftService.GetOpenShift()!, App.CurrentUser!.Id))
         {
             UpdateShiftStatus();
             Status("This drawer is assigned to another cashier. Ask an administrator.");
+            ActionDialog.Warning("This drawer is assigned to another cashier. Ask an administrator.", "Payment", Window.GetWindow(this));
             return;
         }
         InvoiceBox.BorderBrush = (Brush)FindResource("PosInputBorderBrush");
 
-        if (_cart.Count == 0) { Status("Cart is empty"); return; }
+        if (_cart.Count == 0) { ActionDialog.Warning("The cart is empty.", "Payment", Window.GetWindow(this)); return; }
         if (!SynchronizeCartBeforePay()) return;
 
         if (!ReceiptsEnabled && string.IsNullOrWhiteSpace(InvoiceBox.Text))
@@ -617,7 +641,7 @@ public partial class PosView : UserControl
             InvoiceBox.BorderBrush = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
             InvoiceBox.Focus();
             InvoiceBox.SelectAll();
-            MessageBox.Show(
+            MyPos.Desktop.Dialogs.ActionDialog.Show(
                 "Invoice / OR No. is required before payment.\n\n" +
                 "Enter the number of the manual receipt issued for this sale.",
                 "Invoice Required", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -629,6 +653,7 @@ public partial class PosView : UserControl
         {
             Status("Senior/PWD ID number is required");
             DiscountErrorText.Text = "Required for SC/PWD sale";
+            ActionDialog.Warning("Senior/PWD ID number is required.", "Payment", Window.GetWindow(this));
             DiscountBox.Focus();
             return;
         }
@@ -636,6 +661,7 @@ public partial class PosView : UserControl
         {
             Status("Enter a valid discount amount");
             DiscountErrorText.Text = "Enter an amount greater than zero";
+            ActionDialog.Warning("Enter a discount amount greater than zero.", "Payment", Window.GetWindow(this));
             DiscountBox.Focus();
             return;
         }
@@ -645,7 +671,7 @@ public partial class PosView : UserControl
         var discount = ParseDiscount();
         var calc = SaleCalculator.Compute(lines, discount, _vatRate, kind);
 
-        if (discount > calc.Gross) { Status("Discount exceeds the subtotal"); return; }
+        if (discount > calc.Gross) { ActionDialog.Warning("Discount exceeds the subtotal.", "Payment", Window.GetWindow(this)); return; }
 
         var method = SelectedMethod;
         var dlg = new PaymentDialog(calc.Total, method) { Owner = Window.GetWindow(this) };
@@ -683,7 +709,7 @@ public partial class PosView : UserControl
         }
         catch (InvalidOperationException ex)
         {
-            MessageBox.Show(ex.Message, "Sale not completed",
+            MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Sale not completed",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             SearchBox.Focus();
             return;
@@ -720,7 +746,7 @@ public partial class PosView : UserControl
             "Sale already saved. This action prints its receipt only; it will not charge the customer again.");
         preview.ShowDialog();
         if (!preview.PrintedSuccessfully) return;
-        Status($"Receipt printed for sale #{_saleAwaitingPrint.SaleNumber}");
+        Status($"Receipt sent to printer for sale #{_saleAwaitingPrint.SaleNumber}");
         _saleAwaitingPrint = null;
         PrintFailureBanner.Visibility = Visibility.Collapsed;
     }

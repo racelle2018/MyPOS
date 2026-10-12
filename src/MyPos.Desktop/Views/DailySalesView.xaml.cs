@@ -207,13 +207,13 @@ public partial class DailySalesView : UserControl
         if (!Permissions.RequireAdmin("void sales")) return;
         if (SalesGrid.SelectedItem is not SaleRowVM row)
         {
-            MessageBox.Show("Select a sale in the table first.", "MyPos",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("Select a sale in the table first.", "MyPos",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         if (row.Sale.IsVoided)
         {
-            MessageBox.Show("This sale is already voided.", "MyPos",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("This sale is already voided.", "MyPos",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -232,7 +232,7 @@ public partial class DailySalesView : UserControl
         LoadDate(DatePick.SelectedDate ?? DateTime.Today);
         if (_report == null || _report.Sales.Count == 0)
         {
-            MessageBox.Show("No sales to export for this date.", "MyPos");
+            MyPos.Desktop.Dialogs.ActionDialog.Show("No sales to export for this date.", "MyPos");
             return;
         }
 
@@ -244,8 +244,13 @@ public partial class DailySalesView : UserControl
         if (dialog.ShowDialog() != true) return;
 
         var branch = App.Db.Branches.First(b => b.Id == _branchId).Name;
-        File.WriteAllText(dialog.FileName, ReportCsv.DailySales(_report, branch), Encoding.UTF8);
-        MessageBox.Show($"Exported {_report.Sales.Count} rows to:\n{dialog.FileName}", "Export Complete");
+        try
+        {
+            File.WriteAllText(dialog.FileName, ReportCsv.DailySales(_report, branch), Encoding.UTF8);
+            MyPos.Desktop.Dialogs.ActionDialog.Success($"Exported {_report.Sales.Count} rows to:\n{dialog.FileName}", "Export Complete", Window.GetWindow(this));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        { MyPos.Desktop.Dialogs.ActionDialog.Error(ex.Message, "Export CSV", Window.GetWindow(this)); }
     }
 
     private void PrintButton_Click(object sender, RoutedEventArgs e)
@@ -253,7 +258,7 @@ public partial class DailySalesView : UserControl
         LoadDate(DatePick.SelectedDate ?? DateTime.Today);
         if (_report == null || _report.Sales.Count == 0)
         {
-            MessageBox.Show("No sales to print for this date.", "MyPos",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("No sales to print for this date.", "MyPos",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -273,7 +278,7 @@ public partial class DailySalesView : UserControl
             PageWidth = 794,
             PageHeight = 1123,
             PagePadding = new Thickness(40, 30, 40, 30),
-            FontFamily = (System.Windows.Media.FontFamily)FindResource("ReportInterFontFamily"),
+            FontFamily = (System.Windows.Media.FontFamily)FindResource("PrintInterFontFamily"),
             FontSize = 12,
             ColumnWidth = double.PositiveInfinity
         };

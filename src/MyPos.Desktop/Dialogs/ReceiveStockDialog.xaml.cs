@@ -23,13 +23,14 @@ public partial class ReceiveStockDialog : Window
         ErrorText.Text = "";
 
         if (!decimal.TryParse(QtyBox.Text.Trim(), out var qty) || qty <= 0)
-        { ErrorText.Text = "Enter a quantity greater than zero."; return; }
+        { ErrorText.Text = "Enter a quantity greater than zero."; ActionDialog.Warning("Enter a quantity greater than zero.", Title, this); return; }
         if (!decimal.TryParse(CostBox.Text.Trim(), out var cost) || cost < 0)
-        { ErrorText.Text = "Enter a valid unit cost."; return; }
+        { ErrorText.Text = "Enter a valid unit cost."; ActionDialog.Warning("Enter a valid unit cost.", Title, this); return; }
 
         // One call = movement + weighted-average update + balanced journal entry, all atomic
         new SaleService(App.Db).ReceiveStock(
             _product.Id, qty, cost, App.CurrentUser!.Id, NotesBox.Text.Trim());
+        ActionDialog.Success("Stock received.", Title, this);
 
         DialogResult = true;
     }

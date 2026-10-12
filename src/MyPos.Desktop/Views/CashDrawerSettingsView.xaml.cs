@@ -44,11 +44,12 @@ public partial class CashDrawerSettingsView : UserControl
                 DrawerModeBox.SelectedIndex == 1 ? DrawerMode.Assigned : DrawerMode.Shared,
                 AssignedCashierBox.SelectedValue as Guid?);
             RefreshCurrentPolicy();
-            SavedFeedbackText.Text = "Drawer policy saved for the next shift. Any open shift is unchanged.";
+            SavedFeedbackText.Text = "";
+            MyPos.Desktop.Dialogs.ActionDialog.Success("Drawer policy saved for the next shift. Any open shift is unchanged.", "Drawer Access Settings", Window.GetWindow(this));
         }
         catch (InvalidOperationException ex)
         {
-            MessageBox.Show(ex.Message, "Drawer Access Settings", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MyPos.Desktop.Dialogs.ActionDialog.Show(ex.Message, "Drawer Access Settings", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }

@@ -19,7 +19,17 @@ public sealed class ReceiptOptions
     public bool ShowQr { get; set; } = true;
 }
 public enum ReceiptAlign { Left = 0, Center = 1, Right = 2 }
-public sealed class ReceiptLine { public string Text { get; set; } = ""; public ReceiptAlign Align { get; set; } public bool Bold { get; set; } public bool Big { get; set; } }
+public sealed class ReceiptLine
+{
+    // Text remains the original fixed-width ESC/POS payload. WPF uses the structured fields.
+    public string Text { get; set; } = "";
+    public ReceiptAlign Align { get; set; }
+    public bool Bold { get; set; }
+    public bool Big { get; set; }
+    public string? LeftText { get; set; }
+    public string? RightText { get; set; }
+    public bool IsSeparator { get; set; }
+}
 public static class ReceiptPrinter
 {
     public static List<ReceiptLine> BuildLines(Sale sale, ReceiptOptions opt, bool reprint = false)
@@ -27,6 +37,11 @@ public static class ReceiptPrinter
         var lines = new List<ReceiptLine>(); var w = opt.Width;
         void Add(string text, ReceiptAlign align = ReceiptAlign.Left, bool bold = false, bool big = false) => lines.Add(new ReceiptLine { Text = text, Align = align, Bold = bold, Big = big });
         string Sep() => new('-', w); string Pair(string left, string right) => left.Length + right.Length >= w ? Trunc(left, Math.Max(0, w - right.Length - 1)) + " " + right : left + new string(' ', w - left.Length - right.Length) + right;
+        void AddPair(string left, string right, bool bold = false) => lines.Add(new ReceiptLine
+        {
+            Text = Pair(left, right), LeftText = left, RightText = right, Bold = bold
+        });
+        void AddSeparator() => lines.Add(new ReceiptLine { Text = Sep(), IsSeparator = true });
         if (opt.CompanyName.Length > 0) Add(Trunc(opt.CompanyName, w), ReceiptAlign.Center, true, true);
         if (opt.BranchName.Length > 0) Add(Trunc(opt.BranchName, w), ReceiptAlign.Center, true);
         foreach (var part in Wrap(opt.CompanyAddress, w)) Add(part, ReceiptAlign.Center);
@@ -35,17 +50,17 @@ public static class ReceiptPrinter
         if (opt.Min.Length > 0) Add(Trunc($"MIN: {opt.Min}", w), ReceiptAlign.Center);
         if (opt.Sn.Length > 0) Add(Trunc($"SN: {opt.Sn}", w), ReceiptAlign.Center);
         Add(""); Add(sale.SaleNumber == 0 ? "*** TEST PRINT ***" : "SALES INVOICE", ReceiptAlign.Center, true); Add("");
-        Add(Pair($"DATE: {sale.SaleDate:MM/dd/yy}", $"TIME: {sale.SaleDate:HH:mm}"));
+        AddPair($"DATE: {sale.SaleDate:MM/dd/yy}", $"TIME: {sale.SaleDate:HH:mm}");
         if (opt.CashierName.Length > 0) Add(Trunc($"CASHIER: {opt.CashierName}", w));
         if (!string.IsNullOrWhiteSpace(sale.CustomerName)) Add(Trunc($"CUSTOMER: {sale.CustomerName}", w));
         if (!string.IsNullOrWhiteSpace(sale.CustomerAddress)) Add(Trunc($"ADDR: {sale.CustomerAddress}", w));
         if (sale.DiscountKind == DiscountKind.SeniorPwd) Add(Trunc($"SC/PWD ID: {sale.SeniorIdNumber}", w));
-        if (!string.IsNullOrWhiteSpace(sale.ReceiptNumber) && sale.SaleNumber != 0) Add(Trunc($"INVOICE/OR NO.: {sale.ReceiptNumber}", w)); Add(Sep());
-        foreach (var item in sale.Items) { Add(Trunc(item.ProductName, w)); Add(Pair($"  {item.Qty:0.##} X {item.UnitPrice:N2}", item.LineGross.ToString("N2"))); }
-        Add(Sep()); Add($"{sale.Items.Count} ITEM(S)"); Add(Pair("SUBTOTAL", sale.GrossAmount.ToString("N2")));
-        if (sale.DiscountAmount != 0) Add(Pair(sale.DiscountKind == DiscountKind.SeniorPwd ? "SC/PWD 20% + VAT-EX" : "DISCOUNT", "-" + sale.DiscountAmount.ToString("N2")));
-        Add(Pair($"VAT ({sale.VatRate * 100:0.#}%)", sale.VatAmount.ToString("N2"))); Add(Pair("AMOUNT DUE", sale.TotalAmount.ToString("N2")), bold: true);
-        Add(Pair(sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH", sale.TenderedAmount.ToString("N2"))); Add(Pair("CHANGE", sale.ChangeAmount.ToString("N2"))); Add(Sep());
+        if (!string.IsNullOrWhiteSpace(sale.ReceiptNumber) && sale.SaleNumber != 0) Add(Trunc($"INVOICE/OR NO.: {sale.ReceiptNumber}", w)); AddSeparator();
+        foreach (var item in sale.Items) { Add(Trunc(item.ProductName, w)); AddPair($"  {item.Qty:0.##} X {item.UnitPrice:N2}", item.LineGross.ToString("N2")); }
+        AddSeparator(); Add($"{sale.Items.Count} ITEM(S)"); AddPair("SUBTOTAL", sale.GrossAmount.ToString("N2"));
+        if (sale.DiscountAmount != 0) AddPair(sale.DiscountKind == DiscountKind.SeniorPwd ? "SC/PWD 20% + VAT-EX" : "DISCOUNT", "-" + sale.DiscountAmount.ToString("N2"));
+        AddPair($"VAT ({sale.VatRate * 100:0.#}%)", sale.VatAmount.ToString("N2")); AddPair("AMOUNT DUE", sale.TotalAmount.ToString("N2"), bold: true);
+        AddPair(sale.Payments.FirstOrDefault()?.Method.ToString().ToUpperInvariant() ?? "CASH", sale.TenderedAmount.ToString("N2")); AddPair("CHANGE", sale.ChangeAmount.ToString("N2")); AddSeparator();
         if (sale.ReceiptType == ReceiptType.System && sale.SaleNumber != 0) { Add("THIS SERVES AS YOUR", ReceiptAlign.Center); Add("OFFICIAL RECEIPT", ReceiptAlign.Center, true); }
         if (sale.IsVoided) Add("*** VOIDED ***", ReceiptAlign.Center, true); if (reprint) Add("*** REPRINT ***", ReceiptAlign.Center, true);
         foreach (var part in Wrap(opt.FooterMessage, w)) Add(part, ReceiptAlign.Center);

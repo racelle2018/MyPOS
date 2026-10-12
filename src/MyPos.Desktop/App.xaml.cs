@@ -16,9 +16,12 @@ public partial class App : Application
     private DispatcherTimer? _backupTimer;
     public static MyPosDbContext Db { get; private set; } = null!;
     public static User? CurrentUser { get; set; }
+    // UI tests use an in-memory context and must not run live startup while pumping modal windows.
+    internal bool IsolatedTestHost { get; set; }
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        if (IsolatedTestHost) return;
         base.OnStartup(e);
 
         // Keep dialogs inside the usable desktop area at 125%/150% scaling.
@@ -39,7 +42,7 @@ public partial class App : Application
         _singleInstance = new Mutex(true, @"Local\MyPosDesktop", out _ownsInstance);
         if (!_ownsInstance)
         {
-            MessageBox.Show("MyPos is already running. Return to the open window.",
+            MyPos.Desktop.Dialogs.ActionDialog.Show("MyPos is already running. Return to the open window.",
                 "MyPos", MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return;
@@ -63,6 +66,7 @@ public partial class App : Application
 
         Db = new MyPosDbContext(options);
         DbInitializer.Initialize(Db);
+        Controls.AppearanceResources.Apply(new MyPos.Core.Services.AppearanceSettingsService(Db).Load());
         _ = Task.Run(BackupService.RunIfDue);
         _backupTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(30) };
         _backupTimer.Tick += (_, _) => _ = Task.Run(BackupService.RunIfDue);
@@ -74,7 +78,7 @@ public partial class App : Application
             var message = args.Exception is SqliteException
                 ? "The database is busy or locked. Close other programs using the database and try again."
                 : "An unexpected error occurred and was logged.\n\n" + args.Exception.Message;
-            System.Windows.MessageBox.Show(message, "MyPos", MessageBoxButton.OK,
+            MyPos.Desktop.Dialogs.ActionDialog.Show(message, "MyPos", MessageBoxButton.OK,
                 args.Exception is SqliteException ? MessageBoxImage.Warning : MessageBoxImage.Error);
             args.Handled = true;
         };

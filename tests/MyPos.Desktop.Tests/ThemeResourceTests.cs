@@ -13,6 +13,7 @@ using MyPos.Core.Entities;
 using MyPos.Core.Services;
 using MyPos.Desktop;
 using MyPos.Desktop.Controls;
+using MyPos.Desktop.Printing;
 using MyPos.Desktop.Dialogs;
 using MyPos.Desktop.Views;
 using Xunit;
@@ -30,7 +31,16 @@ public class ThemeResourceTests
             try
             {
                 var app = new App();
+                typeof(App).GetProperty("IsolatedTestHost", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.SetValue(app, true);
                 app.InitializeComponent();
+                app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                var actionNotifications = new List<NotificationRequest>();
+                var presenterProperty = typeof(ActionDialog).GetProperty("Presenter", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+                presenterProperty.SetValue(null, (Func<NotificationRequest, MessageBoxResult>)(request =>
+                {
+                    actionNotifications.Add(request);
+                    return request.Buttons == MessageBoxButton.OK ? MessageBoxResult.OK : MessageBoxResult.No;
+                }));
 
                 Assert.NotNull(app.TryFindResource("MaterialDesignFlatButton"));
                 Assert.NotNull(app.TryFindResource("MaterialDesignOutlinedTextBox"));
@@ -41,6 +51,41 @@ public class ThemeResourceTests
                 Assert.NotNull(app.TryFindResource("PrimaryButton"));
                 Assert.NotNull(app.TryFindResource("UiTextBrush"));
                 Assert.NotNull(app.TryFindResource("UiMutedBrush"));
+                foreach (var kind in Enum.GetValues<NotificationKind>())
+                {
+                    var notification = new NotificationDialog(new("The requested action has completed.\nThis message can wrap without hiding its buttons.", "MyPos action", kind));
+                    Assert.Equal(ResizeMode.NoResize, notification.ResizeMode);
+                    Assert.Equal(WindowStyle.SingleBorderWindow, notification.WindowStyle);
+                    Assert.False(notification.ShowInTaskbar);
+                    Assert.Equal(MessageBoxResult.OK, notification.Result);
+                    Assert.Equal(kind.ToString(), Assert.IsType<TextBlock>(notification.FindName("KindText")).Text);
+                    var notificationBody = Assert.IsAssignableFrom<FrameworkElement>(notification.Content);
+                    notificationBody.Measure(new Size(388, 300)); notificationBody.Arrange(new Rect(0, 0, 388, 180)); notificationBody.UpdateLayout();
+                    Assert.Equal(1, Assert.IsType<Thickness>(app.FindResource("UiBorderThickness")).Left);
+                    CaptureFormQa(notificationBody, "notification-" + kind, 388, 180);
+                    notification.Close();
+                }
+                var confirmation = new NotificationDialog(new("Continue?", "Confirm", NotificationKind.Confirmation, MessageBoxButton.YesNo));
+                Assert.Equal(MessageBoxResult.No, confirmation.Result);
+                var confirmationButtons = Assert.IsType<StackPanel>(confirmation.FindName("ButtonsPanel")).Children.OfType<Button>().ToArray();
+                Assert.True(confirmationButtons.Single(b => b.Content.ToString() == "No").IsDefault);
+                Assert.True(confirmationButtons.Single(b => b.Content.ToString() == "No").IsCancel);
+                confirmationButtons.Single(b => b.Content.ToString() == "Yes").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Assert.Equal(MessageBoxResult.Yes, confirmation.Result);
+                var longNotice = new NotificationDialog(new(string.Join("\n", Enumerable.Repeat("A longer notification must keep its buttons visible and scroll its message.", 60)), "Warning", NotificationKind.Warning, MessageBoxButton.OKCancel));
+                var longBody = Assert.IsAssignableFrom<FrameworkElement>(longNotice.Content);
+                longBody.Measure(new Size(388, longNotice.MaxHeight));
+                longBody.Arrange(new Rect(0, 0, 388, longBody.DesiredSize.Height)); longBody.UpdateLayout();
+                var longScroller = Assert.IsType<ScrollViewer>(longNotice.FindName("MessageScroller"));
+                Assert.True(longScroller.ScrollableHeight > 0);
+                Assert.True(longBody.DesiredSize.Height < longNotice.MaxHeight);
+                Assert.Equal(MessageBoxResult.Cancel, longNotice.Result);
+                CaptureFormQa(longBody, "notification-long", 388, (int)Math.Ceiling(longBody.DesiredSize.Height));
+                longNotice.Close();
+                ActionDialog.Error("Test failure", "Test action");
+                Assert.Equal(NotificationKind.Error, actionNotifications.Last().Kind);
+                ActionDialog.Show("Test warning", "Test action", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Assert.Equal(NotificationKind.Warning, actionNotifications.Last().Kind);
                 Assert.NotNull(app.TryFindResource("UiAccentSoftBrush"));
                 Assert.NotNull(app.TryFindResource("MyPosFocusVisual"));
                 var hiddenFocusStyle = Assert.IsType<Style>(app.FindResource("MyPosFocusVisual"));
@@ -63,7 +108,7 @@ public class ThemeResourceTests
                 underline.Style = Assert.IsType<Style>(app.FindResource(typeof(Underline)));
                 Assert.Equal(1d, underline.Height);
                 var uiFont = Assert.IsType<FontFamily>(app.TryFindResource("UiFontFamily"));
-                Assert.Contains("Wix Madefor Text", uiFont.Source);
+                Assert.Contains("#Inter", uiFont.Source);
                 Assert.NotNull(Application.GetResourceStream(
                     new Uri("pack://application:,,,/MyPos.Desktop;component/Assets/Fonts/WixMadeforText-VariableFont_wght.ttf")));
                 Assert.Contains(Fonts.GetFontFamilies(new Uri("pack://application:,,,/"),
@@ -101,8 +146,8 @@ public class ThemeResourceTests
                     var login = new LoginWindow();
                     var username = Assert.IsType<TextBox>(login.FindName("UsernameBox"));
                     var password = Assert.IsType<PasswordBox>(login.FindName("PasswordBox"));
-                    Assert.Equal(240, username.Width);
-                    Assert.Equal(240, password.Width);
+                    Assert.Equal(280, username.Width);
+                    Assert.Equal(280, password.Width);
                     Assert.Equal(48, username.Height);
                     Assert.Equal(48, password.Height);
                     Assert.Equal(12, username.FontSize);
@@ -144,7 +189,7 @@ public class ThemeResourceTests
                     Assert.Equal(WindowStyle.SingleBorderWindow, login.WindowStyle);
                     Assert.Equal(ResizeMode.NoResize, login.ResizeMode);
                     Assert.Equal(WindowState.Normal, login.WindowState);
-                    Assert.Equal(300, login.Width);
+                    Assert.Equal(350, login.Width);
                     Assert.Equal(450, login.Height);
                     Assert.IsType<ScrollViewer>(login.Content);
                     var signIn = Assert.IsType<Button>(login.FindName("LoginButton"));
@@ -153,17 +198,20 @@ public class ThemeResourceTests
                     Assert.Equal(40, signIn.Height);
                     Assert.Equal(Colors.White, Assert.IsType<SolidColorBrush>(signIn.Foreground).Color);
                     Assert.Equal(Color.FromRgb(0x28, 0x78, 0xBD), Assert.IsType<SolidColorBrush>(signIn.Background).Color);
-                    Assert.Equal(240, signIn.Width);
-                    Assert.Equal(new Thickness(0, 10, 0, 10), signIn.Margin);
+                    Assert.Equal(280, signIn.Width);
+                    Assert.Equal(new Thickness(0), signIn.Margin);
                     Assert.Equal(new Thickness(1), signIn.BorderThickness);
                     var loginBody = Assert.IsType<ScrollViewer>(login.Content);
                     Assert.Equal(HorizontalAlignment.Center, Assert.IsType<Border>(login.FindName("LoginLogo")).HorizontalAlignment);
                     Assert.Equal(TextAlignment.Center, Assert.IsType<TextBlock>(login.FindName("CompanyLabel")).TextAlignment);
                     Assert.Equal(HorizontalAlignment.Center, Assert.IsType<TextBlock>(login.FindName("VersionText")).HorizontalAlignment);
+                    Assert.Equal($"MYPOS {AppVersion.Current}", Assert.IsType<TextBlock>(login.FindName("VersionText")).Text);
                     var loginLayout = Assert.IsType<StackPanel>(loginBody.Content);
                     var welcomeLabel = Assert.IsType<TextBlock>(login.FindName("WelcomeLabel"));
                     Assert.Equal(20, welcomeLabel.FontSize);
                     var capsHint = Assert.IsType<TextBlock>(login.FindName("CapsLockHint"));
+                    Assert.Equal(280, capsHint.Width);
+                    Assert.Equal(HorizontalAlignment.Center, capsHint.HorizontalAlignment);
                     Assert.Equal(Visibility.Hidden, capsHint.Visibility);
                     var passwordPreview = Assert.IsType<TextBox>(login.FindName("VisiblePasswordBox"));
                     Assert.True(passwordPreview.IsReadOnly);
@@ -200,30 +248,30 @@ public class ThemeResourceTests
                     Assert.Equal(Visibility.Collapsed, passwordPreview.Visibility);
                     Assert.Empty(passwordPreview.Text);
                     Assert.Same(login.FindName("CompanyLabel"), loginLayout.Children[loginLayout.Children.IndexOf(welcomeLabel) + 1]);
-                    loginBody.Measure(new Size(284, 410));
-                    loginBody.Arrange(new Rect(0, 0, 284, 410)); loginBody.UpdateLayout();
+                    loginBody.Measure(new Size(334, 410));
+                    loginBody.Arrange(new Rect(0, 0, 334, 410)); loginBody.UpdateLayout();
                     var loginButtonTop = signIn.TranslatePoint(new Point(), loginBody).Y;
                     capsHint.Visibility = Visibility.Visible;
                     loginBody.UpdateLayout();
                     Assert.Equal(loginButtonTop, signIn.TranslatePoint(new Point(), loginBody).Y);
                     capsHint.Visibility = Visibility.Hidden;
                     loginBody.UpdateLayout();
-                    AssertInside(signIn, loginBody, 284, 410);
-                    AssertInside(username, loginBody, 284, 410);
-                    AssertInside(password, loginBody, 284, 410);
+                    AssertInside(signIn, loginBody, 334, 410);
+                    AssertInside(username, loginBody, 334, 410);
+                    AssertInside(password, loginBody, 334, 410);
                     foreach (var field in new FrameworkElement[] { username, password, signIn })
                     {
                         var bounds = field.TransformToAncestor(loginBody).TransformBounds(new Rect(field.RenderSize));
-                        Assert.InRange(bounds.Left, 0, 284);
-                        Assert.InRange(bounds.Right, 0, 284);
-                        Assert.True(Math.Abs(bounds.Left - (284 - bounds.Right)) <= 1,
+                        Assert.InRange(bounds.Left, 0, 334);
+                        Assert.InRange(bounds.Right, 0, 334);
+                        Assert.True(Math.Abs(bounds.Left - (334 - bounds.Right)) <= 1,
                             $"{field.Name}: {bounds}; parent {((FrameworkElement)field.Parent).ActualWidth}; body {loginBody.ActualWidth}");
                     }
-                    CaptureFormQa(loginBody, "login", 284, 410);
+                    CaptureFormQa(loginBody, "login", 334, 410);
                     password.Password = "Preview.Check123";
                     InvokeLogin("ShowPasswordPreview");
                     loginBody.UpdateLayout();
-                    CaptureFormQa(loginBody, "login-password-reveal", 284, 410);
+                    CaptureFormQa(loginBody, "login-password-reveal", 334, 410);
                     InvokeLogin("HidePasswordPreview");
                     password.Clear();
                     Assert.Null(login.FindName("MinimizeButton"));
@@ -240,6 +288,7 @@ public class ThemeResourceTests
                     Assert.True(mainMenu.IsMainMenu);
                     var shellClock = Assert.IsType<TextBlock>(mainWindow.FindName("DateTimeText"));
                     var versionText = Assert.IsType<TextBlock>(mainWindow.FindName("VersionText"));
+                    Assert.Equal($"MyPos {AppVersion.Current}", versionText.Text);
                     Assert.False(string.IsNullOrWhiteSpace(shellClock.Text));
                     Assert.Equal(11, shellClock.FontSize);
                     Assert.Same(shellClock.Parent, versionText.Parent);
@@ -256,6 +305,14 @@ public class ThemeResourceTests
                     Assert.Equal("Sales & Inventory › New Sale", navigationGuide.Text);
                     Assert.Equal("_Sales & Inventory", Assert.Single(mainMenu.Items.OfType<MenuItem>(), item => item.IsChecked).Header);
                     var retainedPos = Assert.IsType<PosView>(screenHost.Content);
+                    var paymentOptions = Assert.IsType<ComboBox>(retainedPos.FindName("PayModeBox"));
+                    Assert.Contains("GCash", paymentOptions.Items.Cast<string>());
+                    Assert.Contains("Maya", paymentOptions.Items.Cast<string>());
+                    Assert.Contains("QRPh", paymentOptions.Items.Cast<string>());
+                    paymentOptions.SelectedItem = "QRPh";
+                    Assert.Equal(PaymentMethod.QRPh, typeof(PosView).GetProperty("SelectedMethod",
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(retainedPos));
+                    paymentOptions.SelectedIndex = 0;
                     var retainedCart = Assert.IsType<System.Collections.ObjectModel.ObservableCollection<CartLineVM>>(
                         Assert.IsType<DataGrid>(retainedPos.FindName("CartGrid")).ItemsSource);
                     var retainedLine = new CartLineVM(new Product { Name = "DRAFT ITEM", Price = 10m, StockQty = 30m }) { Qty = 1m };
@@ -277,11 +334,27 @@ public class ThemeResourceTests
                         ("product-sales", typeof(ExpandedReportsView)), ("sales-summary", typeof(ExpandedReportsView)),
                         ("void-events", typeof(ExpandedReportsView)),
                         ("users", typeof(UserManagementView)), ("drawer-settings", typeof(CashDrawerSettingsView)),
+                        ("counting-settings", typeof(CashCountingSettingsView)),
+                        ("appearance", typeof(AppearanceSettingsView)),
                         ("backup", typeof(BackupRestoreView)), ("settings", typeof(SettingsView))
                     })
                     {
                         destinations[destination].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
                         Assert.Equal(viewType, screenHost.Content.GetType());
+                        if (destination == "counting-settings")
+                        {
+                            var countingView = (CashCountingSettingsView)screenHost.Content;
+                            var minimumChoice = Assert.IsType<ComboBox>(countingView.FindName("MinimumBox"));
+                            Assert.Equal(0.25m, minimumChoice.SelectedValue);
+                            Assert.Equal("System Utilities › Cash Counting Settings", navigationGuide.Text);
+                            minimumChoice.SelectedValue = 1m;
+                            Assert.IsType<Button>(countingView.FindName("SaveButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                            Assert.Equal(1m, new ShiftService(db).GetMinimumCountingDenomination());
+                            minimumChoice.SelectedValue = 0.25m;
+                            Assert.IsType<Button>(countingView.FindName("SaveButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                            countingView.Measure(new Size(760, 500)); countingView.Arrange(new Rect(0, 0, 760, 500)); countingView.UpdateLayout();
+                            CaptureFormQa(countingView, "cash-counting-settings", 760, 500);
+                        }
                         if (destination is "shift" or "drawer-settings" or "settings")
                         {
                             var label = destinations[destination].Header.ToString()!.Replace("_", "");
@@ -347,6 +420,7 @@ public class ThemeResourceTests
                     runLocked.Invoke(null, new object[] { mainWindow, (Func<bool>)(() =>
                     {
                         Assert.All(sessionWindows, window => Assert.False(NativeVisible(window)));
+                        Assert.False((bool)typeof(ActionDialog).GetMethod("IsAvailableOwner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.Invoke(null, new object[] { mainWindow })!);
                         Assert.False(dialogClosed);
                         return true;
                     }), (Action)(() => switched = true) });
@@ -478,6 +552,8 @@ public class ThemeResourceTests
                     App.CurrentUser = new User { Username = "cashier", FullName = "Cashier", Role = UserRole.Cashier };
                     Assert.Throws<UnauthorizedAccessException>(() => new CashDrawerSettingsView());
                     Assert.Throws<UnauthorizedAccessException>(() => new BackupRestoreView());
+                    Assert.Throws<UnauthorizedAccessException>(() => new CashCountingSettingsView());
+                    Assert.Throws<UnauthorizedAccessException>(() => new AppearanceSettingsView());
                     var cashierWindow = new MainWindow();
                     Assert.Equal(Visibility.Collapsed, Assert.IsType<MenuItem>(cashierWindow.FindName("MasterFileMenuItem")).Visibility);
                     Assert.Equal(Visibility.Collapsed, Assert.IsType<MenuItem>(cashierWindow.FindName("UtilitiesMenuItem")).Visibility);
@@ -1422,6 +1498,8 @@ public class ThemeResourceTests
                         countToggle.IsChecked = true;
                         var denominationRows = Assert.IsAssignableFrom<IEnumerable<ShiftCloseDialog.CountRow>>(
                             Assert.IsType<DataGrid>(closeSizing.FindName("DenominationGrid")).ItemsSource).ToList();
+                        Assert.All(denominationRows, row => Assert.True(row.FaceValue >= 0.25m));
+                        Assert.Contains(denominationRows, row => row.FaceValue == 0.25m);
                         denominationRows[0].CountText = "2";
                         denominationRows[1].CountText = "";
                         Assert.Equal("0", denominationRows[1].CountText);
@@ -1924,6 +2002,177 @@ public class ThemeResourceTests
                         }
                         if (dialog is not LockWindow) dialog.Close();
                     }
+                    var appearancePage = new AppearanceSettingsView();
+                    var defaults = AppearanceResources.Build(new AppearancePreferences());
+                    foreach (var token in new[] { "UiFontFamily", "ReportInterFontFamily" })
+                    {
+                        var defaultFace = new Typeface((FontFamily)defaults[token], FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+                        Assert.True(defaultFace.TryGetGlyphTypeface(out var defaultGlyph));
+                        Assert.Contains("Inter", defaultGlyph.FamilyNames.Values);
+                    }
+                    foreach (var familyName in AppearanceResources.AvailableFonts.Where(f => f != "Default"))
+                    {
+                        var face = new Typeface(AppearanceResources.ResolveFont(familyName), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+                        Assert.True(face.TryGetGlyphTypeface(out var glyphFace), $"Cannot resolve {familyName}.");
+                        Assert.Contains(glyphFace.FamilyNames.Values, name => name == familyName);
+                    }
+                    var appearanceSize = Assert.IsType<ComboBox>(appearancePage.FindName("SizeBox"));
+                    var appearanceFont = Assert.IsType<ComboBox>(appearancePage.FindName("FontBox"));
+                    Assert.Contains("Default (Inter)", appearanceFont.Items.Cast<AppearanceSettingsView.AppearanceChoice>().Select(c => c.Label));
+                    Assert.DoesNotContain(appearanceFont.Items.Cast<AppearanceSettingsView.AppearanceChoice>(), c => c.Value == "Inter");
+                    Assert.Contains("Default (12 DIP tables)", appearanceSize.Items.Cast<AppearanceSettingsView.AppearanceChoice>().Select(c => c.Label));
+                    appearanceSize.SelectedValue = "Large"; appearanceFont.SelectedValue = "Wix Madefor Text";
+                    var actualPreviewFont = Assert.IsType<TextBox>(appearancePage.FindName("SampleInput")).FontFamily;
+                    Assert.True(new Typeface(actualPreviewFont, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal).TryGetGlyphTypeface(out var previewGlyph));
+                    Assert.Contains("Wix Madefor Text", previewGlyph.FamilyNames.Values);
+                    Assert.Contains("Sample font: Wix Madefor Text", Assert.IsType<TextBlock>(appearancePage.FindName("PreviewSummaryText")).Text);
+                    Assert.IsType<Button>(appearancePage.FindName("PreviewButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    Assert.Equal(12d, Application.Current.FindResource("UiFontSize12"));
+                    Assert.Equal(14d, Assert.IsType<TextBox>(appearancePage.FindName("SampleInput")).FontSize);
+                    Assert.Equal(new AppearancePreferences(), new AppearanceSettingsService(db).Load());
+                    var originalAccent = Assert.IsType<SolidColorBrush>(Application.Current.FindResource("UiAccentBrush")).Color;
+                    var appearanceHost = new Window { Content = pos };
+                    foreach (var font in AppearanceResources.AvailableFonts)
+                    foreach (var size in AppearancePreferences.Sizes)
+                    foreach (var spacing in AppearancePreferences.Spacings)
+                    {
+                        var preference = new AppearancePreferences(font, size, spacing);
+                        AppearanceResources.Apply(preference);
+                        var delta = size == "Large" ? 2d : size == "Comfortable" ? 1d : 0d;
+                        pos.Measure(new Size(1366, 768)); pos.Arrange(new Rect(0, 0, 1366, 768)); pos.UpdateLayout();
+                        Assert.Equal(12 + delta, pos.FontSize);
+                    var presetNotification = new NotificationDialog(new("Saved.", "Appearance", NotificationKind.Success));
+                    Assert.Equal(pos.FontFamily.Source, presetNotification.FontFamily.Source);
+                    Assert.Equal(12 + delta, presetNotification.FontSize);
+                    presetNotification.Close();
+                        var expectedScreenFont = font == "Default" ? "Inter" : font;
+                        Assert.True(new Typeface(pos.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal).TryGetGlyphTypeface(out var screenGlyph));
+                        Assert.Contains(expectedScreenFont, screenGlyph.FamilyNames.Values);
+                        Assert.Equal(28 + delta * 2 + (spacing == "Comfortable" ? 4 : 0), Assert.IsType<DataGrid>(pos.FindName("CartGrid")).RowHeight);
+                        Assert.Equal(originalAccent, Assert.IsType<SolidColorBrush>(Application.Current.FindResource("UiAccentBrush")).Color);
+                        Assert.Equal(new Thickness(1), Application.Current.FindResource("UiBorderThickness"));
+                        foreach (var screen in new[] { (1366d, 768d), (1093d, 614d), (911d, 512d), (911d, 395d) })
+                            AssertPosLayoutFits(pos, screen.Item1, screen.Item2);
+                        foreach (var field in new[] { "InvoiceBox", "CustomerNameBox", "AddressBox" })
+                            AssertTextInputFits(Assert.IsType<TextBox>(pos.FindName(field)));
+                        foreach (var factory in new Func<UserControl>[]
+                        {
+                            () => new ProductCatalogView(), () => new DailySalesView(), () => new CashMovementsView(),
+                            () => new ExpandedReportsView(ExpandedReportKind.SalesSummary), () => new UserManagementView(),
+                            () => new ShiftView(), () => new SettingsView()
+                        })
+                        {
+                            var presetView = factory();
+                            appearanceHost.Content = presetView;
+                            foreach (var width in new[] { 1300d, 760d })
+                            {
+                                presetView.Measure(new Size(width, 570)); presetView.Arrange(new Rect(0, 0, width, 570)); presetView.UpdateLayout();
+                                var presetBaseSize = presetView is DailySalesView ? 13d : 12d;
+                                Assert.True(presetView.FontSize == presetBaseSize + delta,
+                                    $"{presetView.GetType().Name}: expected {presetBaseSize + delta} DIP, got {presetView.FontSize} at {font}/{size}/{spacing}.");
+                                foreach (var presetGrid in FindVisualChildren<DataGrid>(presetView))
+                                {
+                                    Assert.Equal(12 + delta, presetGrid.FontSize);
+                                    Assert.True(presetGrid.ActualHeight >= presetGrid.RowHeight + presetGrid.ColumnHeaderHeight,
+                                        $"{presetView.GetType().Name} table cannot show one row at {font}/{size}/{spacing}.");
+                                }
+                            }
+                            appearanceHost.Content = pos;
+                        }
+                        var appearanceLogin = new LoginWindow();
+                        var appearanceLoginBody = Assert.IsAssignableFrom<FrameworkElement>(appearanceLogin.Content);
+                        appearanceLoginBody.Measure(new Size(334, 411)); appearanceLoginBody.Arrange(new Rect(0, 0, 334, 411)); appearanceLoginBody.UpdateLayout();
+                        AssertTextInputFits(Assert.IsType<TextBox>(appearanceLogin.FindName("UsernameBox")));
+                        AssertPasswordInputFits(Assert.IsType<PasswordBox>(appearanceLogin.FindName("PasswordBox")));
+                        AssertInside(Assert.IsType<Button>(appearanceLogin.FindName("LoginButton")),
+                            Assert.IsType<ScrollViewer>(appearanceLogin.FindName("LoginScroller")).Content as FrameworkElement ?? appearanceLoginBody, 310, 700);
+                        appearanceLogin.Close();
+                        var presetPayment = new PaymentDialog(112m, PaymentMethod.QRPh);
+                        var presetPaymentBody = Assert.IsAssignableFrom<FrameworkElement>(presetPayment.Content);
+                        presetPaymentBody.Measure(new Size(450, 550)); presetPaymentBody.Arrange(new Rect(0, 0, 450, 550)); presetPaymentBody.UpdateLayout();
+                        presetPayment.Close();
+                        var print = ReportTableDocument.Build(new ReportTableData("APPEARANCE TEST", "Period", "", "Totals",
+                            new[] { "Amount" }, new[] { 0 }, new() { new(new[] { "1250.00" }) }));
+                        Assert.True(new Typeface(print.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal).TryGetGlyphTypeface(out var printFace));
+                        Assert.Contains(font == "Default" ? "Inter" : font, printFace.FamilyNames.Values);
+                        var dailyFontDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(typeof(DailySalesView)
+                            .GetMethod("BuildReportDocument", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(printReportView, null));
+                        Assert.Equal(print.FontFamily.Source, dailyFontDocument.FontFamily.Source);
+                        var shiftFontDocument = Assert.IsType<System.Windows.Documents.FlowDocument>(typeof(ShiftReconciliationView)
+                            .GetMethod("BuildDocument", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reconciliation, null));
+                        Assert.Equal(print.FontFamily.Source, shiftFontDocument.FontFamily.Source);
+                        Assert.Equal(10, print.Blocks.FirstBlock.FontSize);
+                        Assert.Equal(14, print.Blocks.OfType<System.Windows.Documents.Paragraph>().Single(p => p.FontSize == 14).FontSize);
+                        Assert.Equal(10, print.Blocks.OfType<System.Windows.Documents.Table>().Single().FontSize);
+                        var thermalOptions = new ReceiptOptions { CompanyName = "TEST STORE", ShowQr = true };
+                        var receiptSale = new Sale
+                        {
+                            SaleNumber = 1, SaleDate = new DateTime(2026, 10, 12, 13, 30, 0),
+                            ReceiptNumber = "R000001", ReceiptType = ReceiptType.System,
+                            GrossAmount = 123456.75m, TotalAmount = 123456.75m, VatAmount = 13227.51m,
+                            VatRate = .12m, TenderedAmount = 123500m, ChangeAmount = 43.25m,
+                            Items = new() { new() { ProductName = "LONG PRODUCT DESCRIPTION FOR RECEIPT", Qty = 1, UnitPrice = 123456.75m, LineGross = 123456.75m } }
+                        };
+                        var thermalBefore = ReceiptPrinter.BuildEpsonBytes(receiptSale, thermalOptions, true);
+                        foreach (var width in new[] { 32, 48 })
+                        foreach (var isPreview in new[] { false, true })
+                        {
+                            var receipt = ReceiptDocument.Build(receiptSale,
+                                new ReceiptOptions { CompanyName = "TEST STORE", Width = width, ShowQr = true }, true, isPreview);
+                            Assert.Equal(print.FontFamily.Source, receipt.FontFamily.Source);
+                            Assert.Equal(isPreview ? 12 : 10, receipt.FontSize);
+                            Assert.Equal(isPreview ? 12 : 14, receipt.Blocks.FirstBlock.FontSize);
+                            Assert.Contains("*** REPRINT ***", new System.Windows.Documents.TextRange(receipt.ContentStart, receipt.ContentEnd).Text);
+                            foreach (var pairTable in receipt.Blocks.OfType<System.Windows.Documents.Table>())
+                            {
+                                Assert.Equal(receipt.PageWidth - 28, pairTable.Columns.Sum(c => c.Width.Value), 3);
+                                var cells = pairTable.RowGroups[0].Rows[0].Cells;
+                                Assert.Equal(TextAlignment.Left, cells[0].Blocks.FirstBlock.TextAlignment);
+                                Assert.Equal(TextAlignment.Right, cells[1].Blocks.FirstBlock.TextAlignment);
+                                Assert.Equal(receipt.FontSize, cells[1].Blocks.FirstBlock.FontSize);
+                            }
+                            Assert.Equal(isPreview ? 0 : 1, receipt.Blocks.OfType<System.Windows.Documents.BlockUIContainer>().Count());
+                            var paginator = ((System.Windows.Documents.IDocumentPaginatorSource)receipt).DocumentPaginator;
+                            paginator.ComputePageCount();
+                            Assert.True(paginator.PageCount >= 1);
+                            if (size == "Standard" && spacing == "Compact" && font is "Default" or "Arial")
+                                CaptureOutputQa(receipt, $"receipt-{font}-{width}-{isPreview}");
+                        }
+                        Assert.Equal(thermalBefore, ReceiptPrinter.BuildEpsonBytes(receiptSale, thermalOptions, true));
+                        if (size == "Standard" && spacing == "Compact" && font is "Default" or "Arial")
+                        {
+                            var receiptPreview = new ReceiptPreviewDialog(receiptSale, true);
+                            Assert.Equal(print.FontFamily.Source, Assert.IsType<RichTextBox>(receiptPreview.FindName("ReceiptText")).Document.FontFamily.Source);
+                            var receiptBody = Assert.IsAssignableFrom<FrameworkElement>(receiptPreview.Content);
+                            receiptBody.Measure(new Size(424, 581)); receiptBody.Arrange(new Rect(0, 0, 424, 581)); receiptBody.UpdateLayout();
+                            CaptureFormQa(receiptBody, "receipt-" + font, 424, 581);
+                            receiptPreview.Close();
+                            CaptureOutputQa(print, "report-" + font);
+                        }
+                        if (font == "Wix Madefor Text" && size == "Large" && spacing == "Comfortable")
+                        {
+                            AssertPosLayoutFits(pos, 911, 395); CaptureFormQa(pos, "pos-large-short", 911, 395);
+                        }
+                    }
+                    appearanceFont.SelectedValue = "Wix Madefor Text"; appearanceSize.SelectedValue = "Comfortable";
+                    Assert.IsType<Button>(appearancePage.FindName("SaveButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    Assert.Equal("Wix Madefor Text", new AppearanceSettingsService(db).Load().Font);
+                    Assert.Equal(NotificationKind.Success, actionNotifications.Last().Kind);
+                    Assert.Equal("Appearance", actionNotifications.Last().Title);
+                    Assert.Equal("", Assert.IsType<TextBlock>(appearancePage.FindName("SavedFeedbackText")).Text);
+                    Assert.IsType<Button>(appearancePage.FindName("ResetButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    Assert.IsType<Button>(appearancePage.FindName("SaveButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    Assert.Equal(new AppearancePreferences(), new AppearanceSettingsService(db).Load());
+                    Assert.Equal(NotificationKind.Success, actionNotifications.Last().Kind);
+                    new AppearanceSettingsService(db).Save(admin.Id, new AppearancePreferences("Inter"));
+                    var legacyAppearance = new AppearanceSettingsView();
+                    Assert.Equal("Default", Assert.IsType<ComboBox>(legacyAppearance.FindName("FontBox")).SelectedValue);
+                    Assert.Equal("Inter", new AppearanceSettingsService(db).Load().Font);
+                    new AppearanceSettingsService(db).Save(admin.Id, new AppearancePreferences());
+                    Assert.Equal(12d, pos.FontSize);
+                    appearanceHost.Content = null; appearanceHost.Close();
+                    appearancePage.Measure(new Size(760, 700)); appearancePage.Arrange(new Rect(0, 0, 760, 700)); appearancePage.UpdateLayout();
+                    CaptureFormQa(appearancePage, "appearance-settings", 760, 700);
                     if (Environment.GetEnvironmentVariable("MYPOS_REPORT_UI_QA_DIR") is { Length: > 0 } uiQaDirectory)
                     {
                         System.IO.Directory.CreateDirectory(uiQaDirectory);
@@ -1959,10 +2208,15 @@ public class ThemeResourceTests
                 }
 
                 app.Shutdown();
+                presenterProperty.SetValue(null, null);
             }
             catch (Exception ex)
             {
                 error = ex;
+            }
+            finally
+            {
+                typeof(ActionDialog).GetProperty("Presenter", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.SetValue(null, null);
             }
         });
         thread.SetApartmentState(ApartmentState.STA);
@@ -2045,9 +2299,46 @@ public class ThemeResourceTests
         finally { preview.Close(); }
     }
 
+    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T match) yield return match;
+            foreach (var descendant in FindVisualChildren<T>(child)) yield return descendant;
+        }
+    }
+
+    private static void CaptureOutputQa(System.Windows.Documents.FlowDocument document, string name)
+    {
+        if (Environment.GetEnvironmentVariable("MYPOS_LOGIN_SHIFT_QA_DIR") is not { Length: > 0 } folder) return;
+        System.IO.Directory.CreateDirectory(folder);
+        var paginator = ((System.Windows.Documents.IDocumentPaginatorSource)document).DocumentPaginator;
+        paginator.ComputePageCount();
+        var page = paginator.GetPage(0);
+        var visual = new DrawingVisual();
+        using (var drawing = visual.RenderOpen())
+        {
+            var bounds = new Rect(page.Size);
+            drawing.DrawRectangle(Brushes.White, null, bounds);
+            drawing.DrawRectangle(new VisualBrush(page.Visual)
+            {
+                ViewboxUnits = BrushMappingMode.Absolute, Viewbox = bounds, Stretch = Stretch.Fill
+            }, null, bounds);
+        }
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)Math.Ceiling(page.Size.Width),
+            (int)Math.Ceiling(page.Size.Height), 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var stream = System.IO.File.Create(System.IO.Path.Combine(folder, name + ".png"));
+        encoder.Save(stream);
+    }
+
     private static void CaptureFormQa(FrameworkElement content, string name, int width, int height)
     {
         if (Environment.GetEnvironmentVariable("MYPOS_LOGIN_SHIFT_QA_DIR") is not { Length: > 0 } directory) return;
+        content.UpdateLayout();
         System.IO.Directory.CreateDirectory(directory);
         var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
         bitmap.Render(content);
@@ -2123,18 +2414,19 @@ public class ThemeResourceTests
         Assert.Equal(7, actions.ColumnDefinitions.Count);
         var smallWidth = actions.ColumnDefinitions[0].ActualWidth;
         Assert.True(smallWidth > 40, $"Sale actions are too narrow at {width:0}px.");
-        Assert.Equal(smallWidth, actions.ColumnDefinitions[2].ActualWidth, 1);
-        Assert.Equal(smallWidth, actions.ColumnDefinitions[4].ActualWidth, 1);
-        Assert.Equal(smallWidth * 2, actions.ColumnDefinitions[6].ActualWidth, 1);
+        // A live Window rounds star columns independently to whole DIPs.
+        Assert.InRange(Math.Abs(smallWidth - actions.ColumnDefinitions[2].ActualWidth), 0, 1);
+        Assert.InRange(Math.Abs(smallWidth - actions.ColumnDefinitions[4].ActualWidth), 0, 1);
+        Assert.InRange(Math.Abs(smallWidth * 2 - actions.ColumnDefinitions[6].ActualWidth), 0, 1);
         Assert.Equal(actions.ActualWidth,
             actions.ColumnDefinitions.Sum(column => column.ActualWidth), 1);
         var customerFields = Assert.IsType<Grid>(pos.FindName("CustomerFields"));
-        Assert.Equal(customerFields.ColumnDefinitions[0].ActualWidth,
-            customerFields.ColumnDefinitions[1].ActualWidth, 1);
+        Assert.InRange(Math.Abs(customerFields.ColumnDefinitions[0].ActualWidth -
+            customerFields.ColumnDefinitions[1].ActualWidth), 0, 1);
         var nameField = Assert.IsType<TextBox>(pos.FindName("CustomerNameBox"));
         var address = Assert.IsType<TextBox>(pos.FindName("AddressBox"));
         Assert.Equal(Grid.GetRow(nameField), Grid.GetRow(address));
-        Assert.Equal(nameField.ActualWidth, address.ActualWidth, 1);
+        Assert.InRange(Math.Abs(nameField.ActualWidth - address.ActualWidth), 0, 1);
         Assert.Null(pos.FindName("DateTimeText"));
         var status = Assert.IsType<TextBlock>(pos.FindName("StatusText"));
         var statusBounds = status.TransformToAncestor(pos)

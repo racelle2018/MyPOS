@@ -10,6 +10,64 @@ namespace MyPos.Desktop.Tests;
 
 public class BackupAndReceiptTests
 {
+    [Theory]
+    [InlineData(32)]
+    [InlineData(48)]
+    public void Thermal_encoding_preserves_fixed_width_text_and_native_style_commands(int width)
+    {
+        var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+        try
+        {
+            var sale = new Sale
+            {
+                SaleNumber = 15, SaleDate = new DateTime(2026, 10, 4, 10, 30, 0),
+                ReceiptType = ReceiptType.System, ReceiptNumber = "R000015", IsVoided = true,
+                CustomerName = "CUSTOMER", CustomerAddress = "ADDRESS", SeniorIdNumber = "ID-1",
+                DiscountKind = DiscountKind.SeniorPwd, GrossAmount = 112, DiscountAmount = 32,
+                TotalAmount = 80, VatRate = .12m, TenderedAmount = 100, ChangeAmount = 20,
+                Items = new() { new() { ProductName = "Item", Qty = 1, UnitPrice = 112, LineGross = 112 } },
+                Payments = new() { new() { Method = PaymentMethod.QRPh, Amount = 80 } }
+            };
+            var opt = new ReceiptOptions
+            {
+                CompanyName = "Test Store", BranchName = "BRANCH", CompanyAddress = "STORE ADDRESS",
+                CompanyTin = "123", AccrNo = "456", Min = "789", Sn = "012", CashierName = "CASHIER",
+                FooterMessage = "THANK YOU", Width = width, ShowQr = false
+            };
+            string Pair(string left, string right) => left.PadRight(width - right.Length) + right;
+            var expected = new (string Text, byte Align, bool Bold, bool Big)[]
+            {
+                ("Test Store", 1, true, true), ("BRANCH", 1, true, false), ("STORE ADDRESS", 1, false, false),
+                ("VAT REG. TIN: 123", 1, false, false), ("ACCR NO.: 456", 1, false, false),
+                ("MIN: 789", 1, false, false), ("SN: 012", 1, false, false),
+                ("", 0, false, false), ("SALES INVOICE", 1, true, false), ("", 0, false, false),
+                (Pair("DATE: 10/04/26", "TIME: 10:30"), 0, false, false),
+                ("CASHIER: CASHIER", 0, false, false), ("CUSTOMER: CUSTOMER", 0, false, false),
+                ("ADDR: ADDRESS", 0, false, false), ("SC/PWD ID: ID-1", 0, false, false),
+                ("INVOICE/OR NO.: R000015", 0, false, false), (new string('-', width), 0, false, false),
+                ("Item", 0, false, false), (Pair("  1 X 112.00", "112.00"), 0, false, false),
+                (new string('-', width), 0, false, false), ("1 ITEM(S)", 0, false, false),
+                (Pair("SUBTOTAL", "112.00"), 0, false, false), (Pair("SC/PWD 20% + VAT-EX", "-32.00"), 0, false, false),
+                (Pair("VAT (12%)", "0.00"), 0, false, false), (Pair("AMOUNT DUE", "80.00"), 0, true, false),
+                (Pair("QRPH", "100.00"), 0, false, false), (Pair("CHANGE", "20.00"), 0, false, false),
+                (new string('-', width), 0, false, false), ("THIS SERVES AS YOUR", 1, false, false),
+                ("OFFICIAL RECEIPT", 1, true, false), ("*** VOIDED ***", 1, true, false),
+                ("*** REPRINT ***", 1, true, false), ("THANK YOU", 1, false, false)
+            };
+            var bytes = new List<byte> { 0x1B, 0x40 };
+            foreach (var line in expected)
+            {
+                bytes.AddRange(new byte[] { 0x1B, 0x61, line.Align, 0x1B, 0x45, (byte)(line.Bold ? 1 : 0), 0x1D, 0x21, (byte)(line.Big ? 0x11 : 0) });
+                bytes.AddRange(System.Text.Encoding.ASCII.GetBytes(line.Text));
+                bytes.Add(0x0A);
+            }
+            bytes.AddRange(new byte[] { 0x1B, 0x64, 3, 0x1D, 0x56, 1 });
+            Assert.Equal(bytes.ToArray(), ReceiptPrinter.BuildEpsonBytes(sale, opt, true));
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture = previousCulture; }
+    }
+
     [Fact]
     public void Verified_backup_contains_database_rows_and_rejects_corruption()
     {

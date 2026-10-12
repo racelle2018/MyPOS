@@ -7,18 +7,18 @@
     <UserControl.Resources>
         <Style x:Key="ReportToolbarButton" TargetType="{x:Type Button}"
                BasedOn="{StaticResource ReportChromeButton}">
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="Height" Value="{DynamicResource UiControlHeight28}"/>
             <Setter Property="Padding" Value="7,0"/>
             <Setter Property="Margin" Value="0,5,0,5"/>
         </Style>
         <Style x:Key="ReportActionButton" TargetType="{x:Type Button}"
                BasedOn="{StaticResource ReportChromeButton}">
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="Height" Value="{DynamicResource UiControlHeight28}"/>
             <Setter Property="Padding" Value="8,0"/>
             <Setter Property="Margin" Value="0,5,0,5"/>
         </Style>
         <Style x:Key="ReportMetricLabel" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize11}"/>
             <Setter Property="Foreground" Value="{StaticResource UiMutedBrush}"/>
         </Style>
         <Style x:Key="ReportMetricValue" TargetType="{x:Type TextBlock}">
@@ -36,7 +36,7 @@
         </Style>
         <Style x:Key="ReportColumnHeader" TargetType="{x:Type DataGridColumnHeader}"
                BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="#EEF0F1"/>
             <Setter Property="BorderBrush" Value="#CDD1D4"/>
@@ -69,12 +69,12 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Sales date" FontSize="12" FontWeight="SemiBold"
+                <TextBlock Text="Sales date" FontSize="{DynamicResource UiFontSize12}" FontWeight="SemiBold"
                            VerticalAlignment="Center" Margin="2,0,8,0"/>
                 <WrapPanel Grid.Column="5" Margin="8,0,0,0">
-                    <ComboBox x:Name="CashierFilterBox" DisplayMemberPath="Label" Width="155" Height="28" Margin="0,5,8,5" SelectionChanged="Filters_Changed" AutomationProperties.Name="Cashier filter"/>
-                    <ComboBox x:Name="PaymentFilterBox" DisplayMemberPath="Label" Width="140" Height="28" Margin="0,5,8,5" SelectionChanged="Filters_Changed" AutomationProperties.Name="Payment filter"/>
-                    <TextBox x:Name="SalesSearchBox" Width="215" Height="28" MinHeight="0" Margin="0,5,0,5" FontSize="12" Tag="Search invoice or customer" TextChanged="Search_Changed"/>
+                    <ComboBox x:Name="CashierFilterBox" DisplayMemberPath="Label" Width="155" Height="{DynamicResource UiControlHeight28}" Margin="0,5,8,5" SelectionChanged="Filters_Changed" AutomationProperties.Name="Cashier filter"/>
+                    <ComboBox x:Name="PaymentFilterBox" DisplayMemberPath="Label" Width="140" Height="{DynamicResource UiControlHeight28}" Margin="0,5,8,5" SelectionChanged="Filters_Changed" AutomationProperties.Name="Payment filter"/>
+                    <TextBox x:Name="SalesSearchBox" Width="215" Height="{DynamicResource UiControlHeight28}" MinHeight="0" Margin="0,5,0,5" FontSize="{DynamicResource UiFontSize12}" Tag="Search invoice or customer" TextChanged="Search_Changed"/>
                 </WrapPanel>
                 <Button x:Name="PrevDayButton" Grid.Column="1"
                         Content="‹" Width="28" FontSize="17"
@@ -82,7 +82,7 @@
                         Margin="0,5,3,5" ToolTip="Previous day"
                         Click="PrevDayButton_Click"/>
                 <DatePicker x:Name="DatePick" Grid.Column="2"
-                            Height="28" Margin="0,5,0,5"
+                            Height="{DynamicResource UiControlHeight28}" Margin="0,5,0,5"
                             Style="{StaticResource ReportDatePicker}"
                             behaviors:ReportDatePickerBehavior.IsRequiredDate="True"
                             ToolTip="Choose today or an earlier date"
@@ -162,7 +162,7 @@
                     <Border x:Name="ReconciliationPanel" Grid.Row="0" Grid.Column="0"
                             Margin="8,3,10,3" VerticalAlignment="Center">
                         <WrapPanel>
-                            <TextBlock x:Name="InvoiceCheckLabel" Text="INVOICE CHECK" FontSize="11" FontWeight="SemiBold"
+                            <TextBlock x:Name="InvoiceCheckLabel" Text="INVOICE CHECK" FontSize="{DynamicResource UiFontSize11}" FontWeight="SemiBold"
                                        VerticalAlignment="Center" Margin="0,0,16,0"/>
                             <TextBlock Width="100"><Run Text="System"/><Run Text=" In"/><Run Text="voice"/><Run Language="en-ph" Text=":"/></TextBlock>
                             <TextBlock x:Name="SystemReceiptsText" FontWeight="SemiBold" Margin="0,0,20,0"/>
@@ -204,12 +204,12 @@
                     BorderThickness="{StaticResource UiBorderBottomThickness}" IsHitTestVisible="False"/>
                 <Grid Grid.Row="1">
                     <DataGrid x:Name="SalesGrid" AutoGenerateColumns="False" IsReadOnly="True"
-                          FontFamily="{StaticResource ReportInterFontFamily}"
+                          FontFamily="{DynamicResource ReportInterFontFamily}"
                           behaviors:DataGridBehaviors.DeselectOnOutsideClick="True"
                           CanUserAddRows="False" SelectionMode="Single"
                           HeadersVisibility="Column" RowHeaderWidth="0"
                           BorderThickness="0" Background="White"
-                          RowHeight="28" ColumnHeaderHeight="26"
+                          RowHeight="{DynamicResource UiTableRowHeight28}" ColumnHeaderHeight="{DynamicResource UiTableHeaderHeight26}"
                           ColumnHeaderStyle="{StaticResource ReportColumnHeader}"
                           MouseDoubleClick="SalesGrid_MouseDoubleClick"
                           SelectionChanged="SalesGrid_SelectionChanged">
@@ -246,7 +246,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
                     <TextBlock x:Name="ReportEmptyHint" Text="No sales recorded for this date"
-                           Foreground="{StaticResource UiMutedBrush}" FontSize="13"
+                           Foreground="{StaticResource UiMutedBrush}" FontSize="{DynamicResource UiFontSize13}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            IsHitTestVisible="False" Visibility="Collapsed"/>
                 </Grid>
@@ -255,7 +255,7 @@
 
         <Border Grid.Row="3" Background="#EEF0F1" BorderBrush="#CDD1D4"
                 BorderThickness="{StaticResource UiBorderTopThickness}" Padding="8,3">
-            <TextBlock x:Name="TableStatusText" Text="0 sales" FontSize="11"
+            <TextBlock x:Name="TableStatusText" Text="0 sales" FontSize="{DynamicResource UiFontSize11}"
                        Foreground="{StaticResource UiMutedBrush}"/>
         </Border>
     </Grid>

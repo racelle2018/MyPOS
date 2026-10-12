@@ -2,15 +2,67 @@
 
 This is the Phase 1 review and delivery checklist for the local Windows POS. The original recommendations below are retained for context; implementation status is tracked here so the plan is not mistaken for a list of completed work.
 
-## Implementation status (October 4, 2026)
+Owner decisions and remaining implementation-policy details are recorded in [Phase 1 decisions](phase1-decisions.md). Phase 1 is the single-computer Basic tier; LAN multi-computer/multi-branch delivery is later work. Confirmed requirements include optionally enabling either/both Dropbox and Google Drive, AES-256 encrypted ZIP backups with approved retention safeguards, a full-access System Administrator role, paid purchases/opening inventory first, fixed PHP/Asia/Manila, XP-58IIH and compatible 80-mm receipt support. The Owner/Admin business-settings versus System Administrator-only licensing/installation/maintenance split is approved. These decisions do not mean those features or accounting corrections are already implemented or accepted; granular technical safeguards, licensing/provisioning and account mappings still need definition.
 
-Implemented in code: senior/PWD checkout argument fix and regression test; bounded shift reconciliation with void scenarios; verified SQLite backup, second-copy option, scheduled checks, staged restore with a pre-restore safety copy and isolated restore test; safe held-sale recall with full draft fields and no silent 24-hour deletion; visible open/closed shift status, held-sale count, inline validation, customer address autofill and a clean new-sale reset; sale-saved feedback independent of printing; QR output on both print paths; missing-printer warning and test receipt; forced change of the starter administrator password. A single-instance guard reduces accidental concurrent desktop writes. The added tests run as part of `dotnet test MyPos.slnx`.
+## Current implementation status — October 12, 2026 (Asia/Manila)
 
-Still requiring acceptance before a live rollout: exercise the actual barcode scanner and cash drawer; inspect 58 mm, 80 mm, and Epson L3110 paper output (including non-ASCII names, long items, and reprints); check the layout at the target resolution and Windows scaling; perform a restore drill on another Windows profile or computer and confirm the external second copy; have the intended receipt wording and business details reviewed locally. Automated tests and a successful build do not substitute for these checks.
+Core local POS features and the approved operational report additions are implemented. Phase 1 is **not fully rollout-accepted**: reliability/product-finish work and physical-store acceptance remain. Implementation means current source contains the feature; it does not certify hardware, accounting policy, or receipt compliance.
 
-## What is already in place
+Latest verified solution run: **79 passing tests (60 Core, 19 Desktop)**. Coverage includes sales/voids, QRPh noncash recording, historical snapshots, drawer access, configurable denomination validation, controlled appearance presets and resolved screen/output font faces, fixed output sizes, native thermal encoding at both receipt widths, report filtering/CSV, WPF resources/layout, session hiding, receipt rendering, and isolated backup/restore checks. These checks do not constitute a production database audit.
 
-The app has a POS cart, product catalog, daily sales and audit views, users and roles, shift cash control, held sales, senior/PWD discounts, receipt preview, thermal and regular printing, and SQLite migrations. A 30-minute idle lock and an automatic backup check also exist. The current automated tests focus on the core sale service and database seed; they do not exercise the WPF checkout, shift reconciliation, receipt rendering, or restore workflows.
+### Implemented
+
+| Area | Current delivery | Evidence |
+| --- | --- | --- |
+| Checkout and money | Senior/PWD argument correction; shared calculator; stock/price recheck; transaction rollback and sale/void regression coverage | `PosView.xaml.cs`, `SaleService.cs`, `SaleCalculator.cs`, sale tests |
+| Shift accountability | Bounded branch/shift sales; explicit new-sale/refund drawer links; legacy timestamp linkage disclosed; closed expected/count/variance preserved after later voids | `ShiftService.cs`, `ShiftReconciliationReport.cs`, shift/report tests |
+| Drawer policy and voids | Admin-controlled Shared/Assigned policy in Drawer Access Settings, effective next shift; active-admin void approval; restricted drawer visibility | `CashDrawerSettingsView`, core shift/sale services |
+| Shift close/count | Scrollable counting with fixed actions, empty quantities reset to zero, denomination persistence, recorded close operator, fresh-total/shift-ID checks and closing confirmation | `ShiftCloseDialog`, `CashShift.cs`, close-count/shift tests |
+| Cash counting settings | Admin-only submenu with persistent/audited minimum denomination, default ₱0.25; new forms and close validation enforce it without rewriting historical counts or rounding transaction values | `CashCountingSettingsView`, `ShiftService.cs`, counting tests |
+| QRPh recording | Separate QRPh noncash option alongside Cash/Card/GCash/Maya/Bank; payment filters and totals include it, with old stored payment values preserved. No payment-provider integration or online verification is implied | Payment enum, POS/payment/report paths, QRPh regression test |
+| Appearance | Admin-only bundled/approved installed font, readability and table-spacing presets with immediate sample preview, Default (Inter), explicit size defaults, Save/Reset, validation/fallback and audit; matching heights and compact POS adaptation. Printed/PDF reports, regular receipts and preview follow only the saved font family; output sizes/emphasis and native thermal fonts remain fixed. Colors/borders stay fixed | `AppearanceSettingsService`, `AppearanceResources`, `AppearanceSettingsView`, `ReceiptDocument`, glyph/preset/layout tests |
+| Held drafts | Persistent full draft fields, validation/stock-clamping before completing recall, explicit discard, held count; no automatic 24-hour deletion | `HeldSaleService.cs`, `PosView.xaml.cs`, held-sale tests |
+| Cashier feedback | Visible shift status, customer address autofill, clean new-sale reset, field validation, saved-sale feedback independent of printing | `PosView.xaml.cs`, payment/receipt dialogs |
+| UI and shortcuts | Home/top-menu navigation, compact approved styling, 12-DIP on-screen tables, 1-DIP UI borders, close-only regular dialogs, scrollable shortcut hint; Alt underlines/dotted adorners hidden by owner request | Shared styles, `MainWindow`, views/dialogs, Desktop tests |
+| Action notifications | Shared success/warning/error/information/confirmation dialogs for explicit actions; active/native-visible ownership, safe confirmation defaults, fixed buttons and scrollable messages. Ongoing context stays inline; business audit logs are preserved | `ActionDialog`, `NotificationDialog`, [notification audit](notification-audit.md), Desktop tests |
+| Login/session | Compact centered branding and floating fields, starter-password change, Caps Lock warning, press-and-hold password reveal, duplicate-login guard; all app windows hidden during lock and restored only after successful unlock | Login/lock windows, `IdleSessionGuard.cs`, Desktop tests |
+| Backup/recovery | Verified SQLite snapshot, optional verified second copy, status/errors, staged restore with verified pre-restore safety copy; background startup/30-minute schedule checks with a 12-hour due interval | `BackupService.cs`, `App.xaml.cs`, `BackupRestoreView`, isolated restore tests |
+| Printing support | Thermal/regular printer paths, real QR output on both, missing saved-printer warning, test receipt and reprint flow | Settings, `ReceiptPrinter.cs`, `ReceiptPrinting.cs`, receipt dialogs |
+| Operational reports | Daily Sales, Sales Summary daily/monthly grouping, Product/Category Sales, Shift/Cashier Reconciliation, Cash Movements, admin-only Void Events, and Audit Log CSV | Report services/views and report tests |
+| Historical report data | New-sale category/unit/tax/line-money snapshots; old unavailable values remain disclosed rather than reconstructed | `Sale.cs`, calculator/posting services, migrations, snapshot tests |
+| Movement capture | Classification, expense category, destination/reference, recorded user and optional admin approval; classification is not expense-ledger certification | `CashShift.cs`, `ShiftService.cs`, Cash Movements report |
+| Report output | Selected filters only; conditional multi-branch scope; shared headers, top-right page/print date, continuation headers, A4/Short/Long portrait, direct PDF save, editable/reset zoom and paper guide; duplicate report-name footers removed | Print/PDF builders/paginator and Desktop render checks |
+| Report cleanup | Sales Summary/Cash Movements/Void Events totals once below the table; readable movement labels and cash-out-only breakdown; decimal separators in shared print tables | Report presentation builders; CSV remains unchanged |
+| Local safeguards | Single-instance guard, SQLite WAL/timeout, audits, migrations and crash logging; core calculations/services remain separate from WPF | `App.xaml.cs`, core data/services, regression tests |
+
+### Not implemented or only partially complete
+
+| Item | Status | Completion condition |
+| --- | --- | --- |
+| Backup retention/pruning | Not implemented; do not claim backups are limited to 14 files | Agree daily/weekly retention, prune only after verification, protect recovery/safety copies, add tests |
+| Backup free-space warning | Not implemented | Show low-space/failure recovery guidance for local and second-copy destinations |
+| First-run setup checklist | Not implemented; forced starter-password change is already present | Guided store/printer/receipt/opening-stock/verified-backup checklist without changing existing records |
+| Transaction timestamp policy | Partial: transactions generally use machine-local `DateTime.Now`; actor IDs/audits exist | Explicit storage/display time-zone policy and safe handling of existing timestamps; no silent historical conversion |
+| Crash/concurrency qualification | Partial: transactions, single-instance and stale-state guards exist | Fault-injection/unexpected-termination drills during sale, recall, close and backup; no claim of multi-client/server safety |
+| Receipt preview fidelity | Partial: selected-font preview, measured WPF amount columns and real QR exist; native thermal encoding is retained. Paper equivalence is not established | Check wrapping/alignment against physical 58/80 mm and regular printers; preview keeps its existing 12-DIP text versus regular 10/14-DIP and native thermal sizes |
+| Recovery help | Partial: Backup & Restore displays an emergency procedure; no dedicated help page | Owner-approved full recovery guide with locations and an externally exercised drill |
+| Inventory/accounting correctness | Source review complete; posting corrections not implemented | Complete the separately approved items in [accounting-posting review](report-accounting-review.md) before relying on ledger/valuation/profit |
+
+### Still needing live acceptance (not established by automated tests)
+
+- [ ] Barcode scanner Enter/scan flow, quantity editing, dialog focus/tab/Escape behavior, and physical cash drawer operation.
+- [ ] 58 mm, 80 mm, and Epson L3110 print samples: long/non-ASCII names, large amounts, QR scanning and reprints; verify failed printing does not cause duplicate payment.
+- [ ] Store display/scaling checks at 1366×768, 1920×1080, 125% and 150%, including long store names and visible Pay/actions.
+- [ ] Restore into a different Windows profile/computer, verify sales/products/users/settings and prove the external backup is independently usable.
+- [ ] Short cashier usability session and local professional review of actual receipt wording/business registration details.
+
+### Explicitly deferred (not missing approved operational report pages)
+
+A/R/customer collections, checks/clearance, case/piece conversion, split-tender settlement, inventory valuation/multi-branch stock ownership, gross/full net profit, historical journal correction, additional Owner/Auditor roles, cloud/server sync, and searchable/selectable-text PDF require separate scope/policy decisions. Current PDFs use rendered page images.
+
+## Archived original recommendations — October 4, 2026
+
+The P0/P1/P2 recommendations and delivery order below are retained as the **original baseline**, not current defect claims. For example, startup-only backups, missing QR output and unsafe immediate recall describe earlier code. The current status tables above supersede those statements. No historical recommendation authorizes changing accounting policy, production records, or owner-approved UI behavior.
 
 ## P0 — correct transaction and recovery risks first
 
@@ -70,11 +122,13 @@ The app has a POS cart, product catalog, daily sales and audit views, users and 
 | 4 | POS feedback, navigation, keyboard, scaling | A cashier can complete and recover from the main flows on the target display without guessing. |
 | 5 | Receipt hardware and compliance review | Printed samples match preview closely; wording and business details are approved for the intended store. |
 
-## Acceptance checks for Phase 1
+## Acceptance checks for Phase 1 — current sign-off status
 
-- A standard cash sale, noncash sale, senior/PWD sale, void, and stock-limited sale post correctly with balanced entries.
-- Two consecutive shifts reconcile independently; cash in/out and voids affect the expected drawer once.
-- A held sale survives restart; recall restores its draft; stock changes produce a specific warning; a failed recall remains recoverable.
-- A verified backup can be restored on another Windows profile/computer without using the live database.
-- Both printer modes produce readable paper output on the intended hardware; print failure never hides a completed sale.
-- Cashiers can operate the POS and recover from validation errors using keyboard/scanner at the actual screen resolution and scaling.
+- [x] Automated sale/discount/void/stock and balanced-posting scenarios are covered. This does not validate every inventory journal's account direction.
+- [x] Automated bounded/consecutive-shift and cash/void tests cover counting drawer cash effects once and preserving closing snapshots.
+- [x] Held-draft persistence/recall safeguards and stock-change warnings are implemented with regression coverage; real cashier restart/recovery acceptance remains open.
+- [x] Isolated verified-backup/pre-restore-safety-copy checks exist.
+- [ ] Complete a restore drill on another profile/computer and verify the external copy without touching the live database.
+- [ ] Accept physical paper output on both printer modes and the intended hardware.
+- [ ] Accept cashier/scanner/dialog behavior at the actual display resolution/scaling.
+- [ ] Finish outstanding reliability/product work above and obtain receipt/business-detail sign-off before declaring Phase 1 fully rollout-ready.

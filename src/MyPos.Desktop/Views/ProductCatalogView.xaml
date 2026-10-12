@@ -6,17 +6,17 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:app="clr-namespace:MyPos.Desktop"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="MyPos.Desktop.Views.ProductCatalogView"
-             FontSize="12" d:DesignWidth="1070.43">
+             FontSize="{DynamicResource UiFontSize12}" d:DesignWidth="1070.43">
     <UserControl.Resources>
         <converters:StockBrushConverter x:Key="StockBrush"/>
         <Style x:Key="ProductToolbarButton" TargetType="{x:Type Button}"
                BasedOn="{StaticResource ReportChromeButton}">
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="Height" Value="{DynamicResource UiControlHeight28}"/>
             <Setter Property="Margin" Value="0,5,5,5"/>
         </Style>
         <Style x:Key="ProductColumnHeader" TargetType="{x:Type DataGridColumnHeader}"
                BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
             <Setter Property="Background" Value="#EEF0F1"/>
             <Setter Property="BorderBrush" Value="#CDD1D4"/>
@@ -44,7 +44,7 @@
                     </Grid.ColumnDefinitions>
                     <Grid x:Name="SearchPanel" Margin="0,0,10,0">
                         <TextBox x:Name="SearchBox" Style="{StaticResource InputBox}"
-                         Height="28" Margin="0,5,0,5" FontSize="12" Padding="34,0,10,0"
+                         Height="{DynamicResource UiControlHeight28}" Margin="0,5,0,5" FontSize="{DynamicResource UiFontSize12}" Padding="34,0,10,0"
                          Tag="Search barcode, product, or category"
                          materialDesign:HintAssist.Hint="{Binding Tag, RelativeSource={RelativeSource Mode=Self}}"
                          VerticalContentAlignment="Center"
@@ -90,7 +90,7 @@
 
             <Border DockPanel.Dock="Bottom" Background="#EEF0F1" BorderBrush="#CDD1D4"
                 BorderThickness="{StaticResource UiBorderTopThickness}" Padding="8,3">
-                <TextBlock x:Name="CountText" FontSize="11"
+                <TextBlock x:Name="CountText" FontSize="{DynamicResource UiFontSize11}"
                        Foreground="{StaticResource UiMutedBrush}"/>
             </Border>
 
@@ -101,8 +101,8 @@
                   HeadersVisibility="Column" RowHeaderWidth="0"
                   GridLinesVisibility="None"
                   BorderThickness="0" Background="White"
-                  FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12"
-                  RowHeight="28" ColumnHeaderHeight="26"
+                  FontFamily="{DynamicResource ReportInterFontFamily}" FontSize="{DynamicResource UiFontSize12}"
+                  RowHeight="{DynamicResource UiTableRowHeight28}" ColumnHeaderHeight="{DynamicResource UiTableHeaderHeight26}"
                   ColumnHeaderStyle="{StaticResource ProductColumnHeader}"
                   CanUserResizeColumns="True" SelectionChanged="ProductsGrid_SelectionChanged"
                   MouseDoubleClick="ProductsGrid_MouseDoubleClick">
@@ -147,7 +147,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <TextBlock x:Name="EmptyHint" Text="No products yet — add your first product"
-                       Foreground="{StaticResource UiMutedBrush}" FontSize="13" HorizontalAlignment="Center"
+                       Foreground="{StaticResource UiMutedBrush}" FontSize="{DynamicResource UiFontSize13}" HorizontalAlignment="Center"
                        VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed"/>
             </Grid>
         </DockPanel>

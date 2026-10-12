@@ -20,8 +20,9 @@ public partial class ReceiptPreviewDialog : Window
             Title = "Receipt Reprint";
             PrintButton.Content = "Reprint";
         }
-        ReceiptText.Text = ReceiptPrinting.BuildPreviewText(sale, reprint);
-        if (ReceiptPrinting.LoadOptions(sale).ShowQr && sale.SaleNumber != 0)
+        var options = ReceiptPrinting.LoadOptions(sale);
+        ReceiptText.Document = ReceiptDocument.Build(sale, options, reprint, preview: true);
+        if (options.ShowQr && sale.SaleNumber != 0)
         {
             QrImage.Source = ReceiptPrinting.CreateQrImage(sale);
             QrImage.Visibility = Visibility.Visible;
@@ -40,11 +41,14 @@ public partial class ReceiptPreviewDialog : Window
             PrintedSuccessfully = true;
             PrintButton.IsEnabled = false;
             PrintButton.Content = "PRINTED";
+            ActionDialog.Success("Receipt sent to the printer.", "Receipt printing", this);
         }
         else
         {
             WarningText.Text = "PRINTING FAILED - check that the printer is powered on, connected, and selected in Settings. Retry when ready.";
             WarningText.Visibility = Visibility.Visible;
+            ActionDialog.Error("The receipt could not be sent to the printer. Check its power, connection and selection in Settings, then retry." +
+                (_sale.SaleNumber == 0 ? "" : " The sale is still saved; retrying prints only."), "Receipt printing", this);
         }
     }
 }

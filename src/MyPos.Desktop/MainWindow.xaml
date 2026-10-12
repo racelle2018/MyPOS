@@ -6,14 +6,14 @@
         Title="MyPos" Height="680" Width="1120" MinWidth="760" MinHeight="480"
         WindowStartupLocation="CenterScreen" WindowState="Maximized"
         WindowStyle="SingleBorderWindow" ResizeMode="CanResize"
-        FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12" Background="#EEF0F1">
+        FontFamily="{DynamicResource ReportInterFontFamily}" FontSize="{DynamicResource UiFontSize12}" Background="#EEF0F1">
     <Window.Resources>
         <controls:MenuHeaderConverter x:Key="MenuHeaderConverter"/>
         <Style x:Key="MainNavigationMenuItem" TargetType="MenuItem">
             <EventSetter Event="SubmenuOpened" Handler="Menu_SubmenuOpened"/>
             <Setter Property="ItemContainerStyle" Value="{Binding Style, RelativeSource={RelativeSource Self}}"/>
-            <Setter Property="FontFamily" Value="{StaticResource ReportInterFontFamily}"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="{DynamicResource ReportInterFontFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize12}"/>
             <Setter Property="MinHeight" Value="0"/>
             <Setter Property="Padding" Value="8,6"/>
             <Setter Property="Foreground" Value="{StaticResource UiTextBrush}"/>
@@ -99,7 +99,7 @@
             <Menu x:Name="MainMenu" Background="#EEF0F1" Padding="4,0" IsMainMenu="True"
                   FocusVisualStyle="{x:Null}"
                   ItemContainerStyle="{StaticResource MainNavigationMenuItem}"
-                  FontFamily="{StaticResource ReportInterFontFamily}" FontSize="12" MinHeight="0">
+                  FontFamily="{DynamicResource ReportInterFontFamily}" FontSize="{DynamicResource UiFontSize12}" MinHeight="0">
                 <MenuItem x:Name="HomeMenuItem" Header="_Home" Tag="home" Click="MenuRoute_Click"/>
                 <MenuItem Header="_Sales &amp; Inventory">
                     <MenuItem Header="_New Sale" Tag="pos" Click="MenuRoute_Click"/>
@@ -122,6 +122,8 @@
                 <MenuItem x:Name="UtilitiesMenuItem" Header="System _Utilities">
                     <MenuItem Header="_General Settings" Tag="settings" Click="MenuRoute_Click"/>
                     <MenuItem Header="_Drawer Access Settings" Tag="drawer-settings" Click="MenuRoute_Click"/>
+                    <MenuItem Header="Cash _Counting Settings" Tag="counting-settings" Click="MenuRoute_Click"/>
+                    <MenuItem Header="_Appearance" Tag="appearance" Click="MenuRoute_Click"/>
                     <MenuItem Header="_Backup &amp; Restore" Tag="backup" Click="MenuRoute_Click"/>
                     <MenuItem Header="Short_cuts" Tag="shortcuts" Click="MenuRoute_Click"/>
                 </MenuItem>
@@ -146,12 +148,12 @@
                 BorderThickness="{StaticResource UiBorderTopThickness}" Padding="12,4">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <TextBlock x:Name="StatusSectionText" Foreground="{StaticResource UiMutedBrush}" FontSize="11"
+                <TextBlock x:Name="StatusSectionText" Foreground="{StaticResource UiMutedBrush}" FontSize="{DynamicResource UiFontSize11}"
                            TextTrimming="CharacterEllipsis"/>
                 <TextBlock x:Name="DateTimeText" Grid.Column="1" Margin="12,0,16,0"
-                           Foreground="{StaticResource UiMutedBrush}" FontSize="11"/>
-                <TextBlock x:Name="VersionText" Text="MyPos 1.0.0" Grid.Column="2"
-                           Foreground="{StaticResource UiMutedBrush}" FontSize="11"/>
+                           Foreground="{StaticResource UiMutedBrush}" FontSize="{DynamicResource UiFontSize11}"/>
+                <TextBlock x:Name="VersionText" Grid.Column="2"
+                           Foreground="{StaticResource UiMutedBrush}" FontSize="{DynamicResource UiFontSize11}"/>
             </Grid>
         </Border>
         <Grid>

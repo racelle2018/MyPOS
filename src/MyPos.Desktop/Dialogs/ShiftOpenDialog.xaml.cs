@@ -17,7 +17,7 @@ public partial class ShiftOpenDialog : Window
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         if (!decimal.TryParse(FloatBox.Text, out var value) || value < 0)
-        { ErrorText.Text = "Enter a valid amount."; return; }
+        { ErrorText.Text = "Enter a valid amount."; ActionDialog.Warning("Enter a valid amount.", Title, this); return; }
         OpeningFloat = value;
         DialogResult = true;
     }

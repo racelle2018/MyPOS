@@ -19,13 +19,13 @@
 
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button x:Name="DiscardButton" Content="Discard" Width="90" Height="32"
+            <Button x:Name="DiscardButton" Content="Discard" Width="90" Height="{DynamicResource UiControlHeight32}"
                     Foreground="#B91C1C" Margin="0,5,10,5"
                     Click="DiscardButton_Click"/>
-            <Button x:Name="RecallButton" Content="Recall" Width="100" Height="32"
+            <Button x:Name="RecallButton" Content="Recall" Width="100" Height="{DynamicResource UiControlHeight32}"
                     Style="{StaticResource PrimaryButton}" Margin="0,5,10,5"
                     IsDefault="True" Click="RecallButton_Click"/>
-            <Button Content="Cancel" Width="90" Height="32" IsCancel="True"/>
+            <Button Content="Cancel" Width="90" Height="{DynamicResource UiControlHeight32}" IsCancel="True"/>
         </StackPanel>
 
         <Grid>

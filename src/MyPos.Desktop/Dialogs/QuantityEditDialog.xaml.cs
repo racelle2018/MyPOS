@@ -28,7 +28,7 @@ public partial class QuantityEditDialog : Window
         if (!TryValidateQuantity(QuantityBox.Text, _stockAvailable,
                 out var quantity, out var error))
         {
-            ErrorText.Text = error;
+            ErrorText.Text = error; ActionDialog.Warning(error, Title, this);
             QuantityBox.Focus();
             return;
         }

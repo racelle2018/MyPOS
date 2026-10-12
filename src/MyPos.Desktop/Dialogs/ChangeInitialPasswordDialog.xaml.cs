@@ -19,12 +19,12 @@ public partial class ChangeInitialPasswordDialog : Window
         var password = NewPasswordBox.Password;
         if (password.Length < 10 || password == "admin123")
         {
-            ErrorText.Text = "Choose a new password with at least 10 characters.";
+            ErrorText.Text = "Choose a new password with at least 10 characters."; ActionDialog.Warning("Choose a new password with at least 10 characters.", Title, this);
             return;
         }
         if (password != ConfirmPasswordBox.Password)
         {
-            ErrorText.Text = "Passwords do not match.";
+            ErrorText.Text = "Passwords do not match."; ActionDialog.Warning("Passwords do not match.", Title, this);
             return;
         }
 
@@ -38,6 +38,7 @@ public partial class ChangeInitialPasswordDialog : Window
             EntityId = _user.Id
         });
         App.Db.SaveChanges();
+        ActionDialog.Success("Password updated.", Title, this);
         DialogResult = true;
     }
 }

@@ -32,7 +32,7 @@ public class InstallerPolicyTests
     {
         var script = File.ReadAllText(Path.Combine(Root(), "tools", "installer", "RetailForma.iss"));
         Assert.Contains("PrivilegesRequired=admin", script);
-        Assert.Contains("DefaultDirName={autopf}\\RetailForma", script);
+        Assert.Contains("DefaultDirName=C:\\RetailForma", script);
         Assert.Contains("RegKeyExists(HKCU64", script);
         Assert.Contains("Uninstall the earlier per-user RetailForma installation", script);
         Assert.Contains("AppMutex=Local\\RetailFormaDesktop,Local\\MyPosDesktop", script);

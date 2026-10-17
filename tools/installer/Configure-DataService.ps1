@@ -14,9 +14,8 @@ try {
     }
 } finally { $identity.Dispose() }
 $applicationRoot = [IO.Path]::GetFullPath($AppDirectory).TrimEnd('\')
-$programsRoot = [IO.Path]::GetFullPath([Environment]::GetFolderPath('ProgramFiles')).TrimEnd('\') + '\'
-if (!$applicationRoot.StartsWith($programsRoot, [StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($applicationRoot) -ne 'RetailForma') {
-    throw 'Install the service only under the protected Program Files RetailForma directory.'
+if (![string]::Equals($applicationRoot, 'C:\RetailForma', [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Install the service only under C:\RetailForma.'
 }
 function Assert-NoLinks([string]$Path) {
     $entry = [IO.DirectoryInfo]::new($Path)

@@ -22,7 +22,9 @@ Per-profile database and migration details in the older sections below describe 
 
 Local POS output: `D:/MyPos/artifacts/RetailForma/RetailForma.exe`. Routine fixes update this same folder after the app is closed; do not create version/feature-suffixed POS copies. The License Generator and Setup are separate tools, not duplicate POS versions.
 
-Installer: `D:/MyPos/artifacts/RetailFormaSetup.exe`, default application directory `C:\Program Files\RetailForma`, requiring administrator approval. Company data/backups remain in `%APPDATA%\RetailForma`. Install/upgrade/uninstall acceptance and production signing are still developer release gates; customer-facing installer text does not contain test-only commentary.
+Installer: `D:/MyPos/artifacts/RetailFormaSetup.exe`, default application directory `C:\RetailForma`, requiring administrator approval. Company data/backups remain in `%APPDATA%\RetailForma`. Install/upgrade/uninstall acceptance and production signing are still developer release gates; customer-facing installer text does not contain test-only commentary.
+
+For Technician Setup field guidance and first-company provisioning, see [technician-setup-guide.md](technician-setup-guide.md).
 
 Restore failures now distinguish a rejected passphrase, damaged/unreadable ZIP, unsupported backup format, backup from a newer app, invalid contents, insufficient space and file-access problems. Where encrypted authentication cannot distinguish the passphrase from data damage, the message explicitly says the exact cause cannot be determined. No failed verification stages a replacement.
 

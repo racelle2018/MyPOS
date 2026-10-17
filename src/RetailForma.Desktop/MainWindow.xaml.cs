@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Title = RetailForma.Core.ProductBrand.Name;
         VersionText.Text = $"{RetailForma.Core.ProductBrand.Name} {AppVersion.Current}";
         UpdateClock();
         _clock.Tick += (_, _) => UpdateClock();

@@ -15,7 +15,9 @@ public partial class MainWindow : Window
     private RetailForma.ServiceApplication.AccountRecoveryRequest? recoveryRequest;
     public MainWindow()
     {
-        InitializeComponent(); EntitlementBox.Text = Guid.NewGuid().ToString();
+        InitializeComponent();
+        Title = RetailForma.Core.ProductBrand.LicenseGeneratorTitle;
+        EntitlementBox.Text = Guid.NewGuid().ToString();
         MaxHeight = Math.Max(400, SystemParameters.WorkArea.Height);
         Height = Math.Min(Height, MaxHeight);
         Closing += (_, args) => { if (busy) args.Cancel = true; };

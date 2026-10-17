@@ -2,6 +2,8 @@
 
 ## Unreleased — source migration checkpoint (2026-10-17)
 
+- Clarify the ordered workflows and field guidance in Technician Setup and License Generator; document first-time company setup, import and authorized recovery. Set the installer default to `C:\RetailForma` and align its service-path policy, acceptance checklist and setup guides.
+- Resolve VS Code XAML language-service warnings for the shared product-brand title by assigning the centralized title in code-behind while keeping XAML titles designer-friendly. Release builds remain the validation source for these windows.
 - Preserve the RetailForma rebranding, approved Phase 1 decisions, licensing tools, installer workflow and protected database service implementation in one source checkpoint.
 - Keep private credentials, signing material, local workstation records and generated packages outside version control. Record remaining build, test, native dependency and installation acceptance gates without marking Phase 1 rollout complete.
 - This checkpoint does not change the product version (1.2.3), migrate company data or publish a customer installer. A fresh build and full verification are required before release.

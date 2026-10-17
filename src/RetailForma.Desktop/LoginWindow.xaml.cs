@@ -12,6 +12,7 @@ public partial class LoginWindow : Window
     public LoginWindow()
     {
         InitializeComponent();
+        Title = RetailForma.Core.ProductBrand.Name;
         Deactivated += (_, _) => HidePasswordPreview();
         Closed += (_, _) => { _closed = true; HidePasswordPreview(); PasswordBox.Clear(); };
         CompanyLabel.Text = AppSettings.Get("CompanyName", "MY STORE");

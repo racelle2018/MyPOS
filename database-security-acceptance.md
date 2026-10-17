@@ -16,7 +16,7 @@ Use only disposable company data until every applicable check passes. A second W
 ## 1. Fresh installation
 
 1. Snapshot the disposable VM or record the spare-PC test state. Confirm no real company is present.
-2. Install normally into `C:\Program Files\RetailForma` with Windows administrator approval. The installer must not launch the POS, create a company, activate a license or import data.
+2. Install normally into `C:\RetailForma` with Windows administrator approval. The installer must not launch the POS, create a company, activate a license or import data.
 3. Check Windows Services: `RetailFormaData` / RetailForma Protected Data is Running, Automatic, using `NT SERVICE\RetailFormaData`, not LocalSystem or the cashier account.
 4. Run Technician Setup elevated; use Initial setup → Connect. Review the protected destination, enter a dummy company and individual technician credentials (16–256-character password), confirm the company and create it.
 5. Confirm creating a second new company or replacing an existing technical account is refused. Do not create a company if testing import instead.

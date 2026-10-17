@@ -1,0 +1,55 @@
+using Microsoft.EntityFrameworkCore;
+using RetailForma.Core.Data;
+using RetailForma.Core.Entities;
+using RetailForma.Core.Services;
+using Xunit;
+
+namespace RetailForma.Tests;
+
+public class HeldSaleServiceTests
+{
+    [Fact]
+    public void Reading_a_held_cart_keeps_it_until_recall_is_completed()
+    {
+        var options = new DbContextOptionsBuilder<RetailFormaDbContext>()
+            .UseSqlite("Data Source=:memory:").Options;
+        using var db = new RetailFormaDbContext(options);
+        db.Database.OpenConnection();
+        DbInitializer.Initialize(db);
+
+        var branchId = db.Branches.Single().Id;
+        var userId = db.Users.Single().Id;
+        var service = new HeldSaleService(db);
+        var productId = Guid.NewGuid();
+        var held = service.Hold(
+            branchId,
+            userId,
+            new List<HeldCartLine> { new(productId, "Item", null, 112m, 50m, false, 2m, 5m) },
+            "Customer",
+            "or-Ab42",
+            null,
+            customerAddress: "Address",
+            paymentMethod: PaymentMethod.Gcash,
+            orderType: OrderType.Delivery,
+            discountKind: DiscountKind.SeniorPwd,
+            seniorIdNumber: "sc-Ab123");
+
+        var lines = service.ReadCart(held.Id);
+        Assert.Single(lines);
+        Assert.NotNull(db.HeldSales.Find(held.Id));
+        Assert.Equal("ADDRESS", held.CustomerAddress);
+        Assert.Equal("CUSTOMER", held.CustomerName);
+        Assert.Equal("OR-AB42", held.InvoiceNumber);
+        Assert.Equal("SC-AB123", held.SeniorIdNumber);
+        Assert.Equal(PaymentMethod.Gcash, held.PaymentMethod);
+        Assert.Equal(DiscountKind.SeniorPwd, held.DiscountKind);
+
+        held.HeldAt = DateTime.Now.AddDays(-2);
+        db.SaveChanges();
+        Assert.Contains(service.ListActive(branchId), draft => draft.Id == held.Id);
+
+        service.CompleteRecall(held.Id, userId);
+        Assert.Null(db.HeldSales.Find(held.Id));
+        Assert.Contains(db.AuditLogs, entry => entry.Action == "HeldSaleRecall" && entry.UserId == userId);
+    }
+}

@@ -2,12 +2,12 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "MyPos: Build solution",
+      "label": "RetailForma: Build solution",
       "type": "process",
       "command": "dotnet",
       "args": [
         "build",
-        "${workspaceFolder}/MyPos.slnx",
+        "${workspaceFolder}/RetailForma.slnx",
         "--artifacts-path",
         "${workspaceFolder}/artifacts/vscode",
         "--nologo",
@@ -35,7 +35,7 @@
       "runOptions": {
         "instanceLimit": 1
       },
-      "detail": "Build MyPos and refresh build diagnostics; isolated outputs do not replace the running app."
+      "detail": "Build RetailForma and refresh build diagnostics; isolated outputs do not replace the running app."
     }
   ]
 }

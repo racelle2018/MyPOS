@@ -1,0 +1,78 @@
+<Window x:Class="RetailForma.Setup.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Title="RetailForma Technician Setup" Icon="Assets/Branding/retailforma.ico" Width="540" Height="570"
+ ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+ <Window.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries>
+  <ResourceDictionary Source="Styles/DialogChrome.xaml"/>
+ </ResourceDictionary.MergedDictionaries></ResourceDictionary></Window.Resources>
+ <DockPanel Margin="12" Background="#EEF0F1">
+  <Border DockPanel.Dock="Top" Background="#CDD1D4" Padding="10,7" Margin="0,0,0,12">
+   <DockPanel>
+    <Image x:Name="RetailFormaLogo" DockPanel.Dock="Left" Source="Assets/Branding/retailforma-icon.png" Width="24" Height="24" Margin="0,0,8,0" Stretch="Uniform"/>
+    <TextBlock x:Name="VersionText" DockPanel.Dock="Right" Foreground="{StaticResource UiMutedBrush}" VerticalAlignment="Center"/>
+    <TextBlock Text="Technician setup and recovery" FontWeight="SemiBold" VerticalAlignment="Center"/>
+   </DockPanel>
+  </Border>
+  <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+   <Button Content="Close" Width="88" Click="Close_Click" Margin="0,5,8,5"/>
+   <Button x:Name="CreateButton" Content="Create account" Width="132" IsDefault="True" Style="{StaticResource PrimaryButton}" Click="Create_Click"/>
+   <Button x:Name="ResetButton" Content="Reset password" Width="132" Visibility="Collapsed" Style="{StaticResource PrimaryButton}" Click="Reset_Click"/>
+   <Button x:Name="ImportButton" Content="Validate import" Width="132" Visibility="Collapsed" Style="{StaticResource PrimaryButton}" Click="ImportCompany_Click"/>
+  </StackPanel>
+  <TabControl x:Name="ModeTabs" SelectionChanged="Mode_Changed">
+   <TabItem Header="Initial setup">
+  <ScrollViewer x:Name="FormScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+   <StackPanel x:Name="FormFields">
+    <TextBlock Text="Protected company storage"/>
+    <DockPanel Margin="0,4,0,6">
+     <Button x:Name="BrowseButton" DockPanel.Dock="Right" Content="Connect" Margin="8,0,0,0" Width="80" Click="Browse_Click"/>
+     <TextBox x:Name="DatabasePathBox" IsReadOnly="True" Height="32" Tag="Connect to the local data service"/>
+    </DockPanel>
+    <TextBlock x:Name="DatabaseStatusText" Text="Connect to the installed RetailForma data service." TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}" Margin="0,0,0,12"/>
+    <StackPanel x:Name="NewCompanyPanel" Visibility="Collapsed">
+     <TextBlock Text="New company name"/><TextBox x:Name="CompanyBox" Height="32" Margin="0,4,0,10"/>
+    </StackPanel>
+    <TextBlock Text="Username"/><TextBox x:Name="UsernameBox" Height="32" Margin="0,4,0,10"/>
+    <TextBlock Text="Full name"/><TextBox x:Name="FullNameBox" Height="32" Margin="0,4,0,10"/>
+    <TextBlock Text="Password (16–256 characters)"/><PasswordBox x:Name="PasswordBox" Height="32" Margin="0,4,0,10"/>
+    <TextBlock Text="Confirm password"/><PasswordBox x:Name="ConfirmPasswordBox" Height="32" Margin="0,4,0,12"/>
+    <CheckBox x:Name="TargetConfirmedBox" Content="I verified the intended company and installation." Margin="0,4,0,10"/>
+    <TextBlock Text="Initial account only. Existing accounts are never promoted, reset or replaced." TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}"/>
+   </StackPanel>
+  </ScrollViewer>
+   </TabItem>
+   <TabItem Header="Account recovery">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+     <StackPanel x:Name="RecoveryFields" Margin="0,8,0,0">
+      <TextBlock Text="Account username"/><TextBox x:Name="RecoveryUsernameBox" Height="32" Margin="0,4,0,8"/>
+      <Button Content="Export recovery request" HorizontalAlignment="Left" Click="ExportRecovery_Click" Margin="0,5,0,8"/>
+      <TextBlock Text="Have the programmer authorize the request in the License Generator. Authorization expires after five minutes and is valid once." TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}" Margin="0,0,0,12"/>
+      <TextBlock Text="Signed authorization"/>
+      <DockPanel Margin="0,4,0,10">
+       <Button Content="Browse" DockPanel.Dock="Right" Width="80" Margin="8,0,0,0" Click="BrowseAuthorization_Click"/>
+       <TextBox x:Name="AuthorizationPathBox" Height="32" IsReadOnly="True"/>
+      </DockPanel>
+      <TextBlock Text="Temporary password (16–256 characters)"/><PasswordBox x:Name="RecoveryPasswordBox" Height="32" Margin="0,4,0,10"/>
+      <TextBlock Text="Confirm temporary password"/><PasswordBox x:Name="RecoveryConfirmBox" Height="32" Margin="0,4,0,10"/>
+      <TextBlock Text="The service verifies a safety snapshot before resetting the password. Roles remain unchanged. The user must change the temporary password at next sign-in." TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}"/>
+     </StackPanel>
+    </ScrollViewer>
+   </TabItem>
+   <TabItem Header="Import company">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+     <StackPanel Margin="0,8,0,0">
+      <TextBlock Text="Encrypted company backup"/>
+      <DockPanel Margin="0,4,0,12">
+       <Button Content="Browse" DockPanel.Dock="Right" Width="80" Margin="8,0,0,0" Click="BrowseImport_Click"/>
+       <TextBox x:Name="ImportPathBox" IsReadOnly="True" Height="32"/>
+      </DockPanel>
+      <TextBlock Text="Original ZIP passphrase / new recovery passphrase for legacy .db" TextWrapping="Wrap"/><PasswordBox x:Name="ImportPasswordBox" Height="32" Margin="0,4,0,12"/>
+      <TextBlock Text="Close the old POS and create a verified encrypted backup first. Import keeps the original archive and accounts, validates conversion, and creates an encrypted safety copy before publishing protected company storage." TextWrapping="Wrap" Foreground="{StaticResource UiMutedBrush}" Margin="0,0,0,12"/>
+      <CheckBox x:Name="ImportConfirmedBox" Margin="0,4,0,12"><TextBlock Text="The old POS is closed, and I kept an independent copy of the original database and backup." TextWrapping="Wrap"/></CheckBox>
+      <TextBlock x:Name="ImportStatusText" TextWrapping="Wrap"/>
+     </StackPanel>
+    </ScrollViewer>
+   </TabItem>
+  </TabControl>
+ </DockPanel>
+</Window>

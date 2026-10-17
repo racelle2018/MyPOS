@@ -1,4 +1,4 @@
-# MyPos UI/UX improvement plan
+# RetailForma UI/UX improvement plan
 
 Reviewed October 4, 2026 against the current WPF/XAML source. This file records both the UI recommendations and the implementation pass. `phase1.md` tracks the broader product and reliability work; this file focuses on the interface.
 
@@ -8,9 +8,9 @@ The code pass now includes a reflowing POS header and product/cart workspace, wr
 
 The original light-blue color scheme remains in place. The purple reference palette was tried and then removed at the user's request; the earlier layout and usability improvements remain.
 
-Wix Madefor Text is bundled with the desktop app and used for interface text and the daily-sales report. Interface icons now use Material Design in XAML's `PackIcon` rather than Segoe font glyphs; fixed-width receipt previews and print layouts keep Consolas so columns remain aligned. The font's SIL Open Font License is included under `src/MyPos.Desktop/Assets/Fonts/OFL.txt`.
+Wix Madefor Text is bundled with the desktop app and used for interface text and the daily-sales report. Interface icons now use Material Design in XAML's `PackIcon` rather than Segoe font glyphs; fixed-width receipt previews and print layouts keep Consolas so columns remain aligned. The font's SIL Open Font License is included under `src/RetailForma.Desktop/Assets/Fonts/OFL.txt`.
 
-The blue/white palette and Wix Madefor Text typography are shared through `App.xaml` across the main shell, screens, and dialogs. The app now uses Material Design in XAML's light theme and templates for buttons, fields, selectors, dates, and grids; compact MyPos overrides keep cashier workflows dense. The login keeps floating hints in its 280-by-48-pixel fields and the native Windows title bar. Visual checks at 100%/125%/150% scaling are still required.
+The blue/white palette and Wix Madefor Text typography are shared through `App.xaml` across the main shell, screens, and dialogs. The app now uses Material Design in XAML's light theme and templates for buttons, fields, selectors, dates, and grids; compact RetailForma overrides keep cashier workflows dense. The login keeps floating hints in its 280-by-48-pixel fields and the native Windows title bar. Visual checks at 100%/125%/150% scaling are still required.
 
 The Shift screen now uses a wider, wrapping summary-card layout and a clearer current-shift action panel. The POS transaction header has labels above fields and no horizontal field scroller: Invoice, Customer, and Address use a 300-pixel column; Pay Mode and Delivery Type use a 150-pixel column. The 360-pixel blue summary emphasizes Total, Net, and VAT, and moves below the fields below 900 pixels. The product/cart workspace keeps its own 720-pixel reflow breakpoint. The SC/PWD ID appears only for that discount. Shift open, cash movement, and close dialogs have persistent field labels and consistent primary actions. These are layout and input-presentation changes, not changes to the shift or sale calculations.
 
@@ -22,7 +22,7 @@ Material Design migration follow-up: the shared primary-button template now pres
 
 Keep the existing C#/.NET 10 WPF application and its light Material Design styling. Aim for a fast cashier workspace: the active sale, amount due, and next action should be obvious at a glance. Login and session lock should remain compact windows; only the main app opens maximized. Do not switch to WinForms or add another UI package solely to change the appearance. Keep XAML and C# readable—do not minify them.
 
-Use the supplied pre-invoicing image as a *field and workflow reference*, not a pixel-for-pixel theme. Keep MyPos's own VAT, discount, stock, receipt, and audit behavior.
+Use the supplied pre-invoicing image as a *field and workflow reference*, not a pixel-for-pixel theme. Keep RetailForma's own VAT, discount, stock, receipt, and audit behavior.
 
 ## P0 — fix usability and layout risks first
 
@@ -67,7 +67,7 @@ Use the supplied pre-invoicing image as a *field and workflow reference*, not a 
 - Complete a sale using only keyboard + scanner: scan, change quantity, apply discount, enter invoice/ID if required, pay, recover from a print failure, and start the next sale.
 - Tab and Shift+Tab move logically; visible focus is present; icon-only controls have accessible names. Check with Windows Narrator if available.
 - Cashier confirmation, validation failure, backup failure, and print failure each have a distinct, specific message and recovery action.
-- `dotnet build MyPos.slnx` and `dotnet test MyPos.slnx` pass after each screen-sized batch of changes. These checks do **not** replace visual and hardware testing.
+- `dotnet build RetailForma.slnx` and `dotnet test RetailForma.slnx` pass after each screen-sized batch of changes. These checks do **not** replace visual and hardware testing.
 
 ## References
 

@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'RetailForma.Desktop'">
+    <RetailFormaLauncher>RetailForma.exe</RetailFormaLauncher>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'RetailForma.LicenseIssuer.Gui'">
+    <RetailFormaLauncher>RetailForma.LicenseGenerator.exe</RetailFormaLauncher>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'RetailForma.Setup'">
+    <RetailFormaLauncher>RetailForma.TechnicianSetup.exe</RetailFormaLauncher>
+  </PropertyGroup>
+  <!-- The apphost keeps its embedded DLL identity; only its public launch filename changes. -->
+  <Target Name="PublishRetailFormaLauncher" AfterTargets="Publish"
+          Condition="'$(RetailFormaLauncher)' != '' And Exists('$(PublishDir)$(AssemblyName).exe')">
+    <Copy SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFiles="$(PublishDir)$(RetailFormaLauncher)" />
+    <Delete Files="$(PublishDir)$(AssemblyName).exe" />
+  </Target>
+</Project>

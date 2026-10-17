@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RetailForma.Core/RetailForma.Core.csproj" />
+    <Project Path="src/RetailForma.Security/RetailForma.Security.csproj" />
+    <Project Path="src/RetailForma.Application/RetailForma.Application.csproj" />
+    <Project Path="src/RetailForma.LocalTransport/RetailForma.LocalTransport.csproj" />
+    <Project Path="src/RetailForma.DataService/RetailForma.DataService.csproj" />
+    <Project Path="src/RetailForma.EncryptedStorage/RetailForma.EncryptedStorage.csproj" />
+    <Project Path="src/RetailForma.Desktop/RetailForma.Desktop.csproj" />
+    <Project Path="src/RetailForma.Setup/RetailForma.Setup.csproj" />
+    <Project Path="src/RetailForma.LicenseIssuer.Gui/RetailForma.LicenseIssuer.Gui.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RetailForma.Desktop.Tests/RetailForma.Desktop.Tests.csproj" />
+    <Project Path="tests/RetailForma.Tests/RetailForma.Tests.csproj" />
+    <Project Path="tests/RetailForma.EncryptedStorage.Tests/RetailForma.EncryptedStorage.Tests.csproj" />
+    <Project Path="tests/RetailForma.LicenseIssuer.Gui.Tests/RetailForma.LicenseIssuer.Gui.Tests.csproj" />
+    <Project Path="tests/RetailForma.Setup.Tests/RetailForma.Setup.Tests.csproj" />
+  </Folder>
+</Solution>

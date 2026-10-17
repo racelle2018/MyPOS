@@ -1,0 +1,11 @@
+RetailForma installation and updates
+
+Close RetailForma and verify a backup before updating.
+
+Administrator permission is required to install in Program Files.
+
+The protected data service stores company data in %PROGRAMDATA%\RetailForma\Data.
+Local encrypted backup ZIPs remain in %APPDATA%\RetailForma\backups.
+
+Updates and uninstall retain company data, recovery material and backups.
+Use Technician Setup to create a new company or explicitly import a verified encrypted backup.

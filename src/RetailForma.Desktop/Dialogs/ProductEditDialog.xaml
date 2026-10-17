@@ -1,0 +1,68 @@
+<Window x:Class="RetailForma.Desktop.Dialogs.ProductEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Product" Width="440" SizeToContent="Height" MaxHeight="700"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Style="{DynamicResource DialogWindow}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/DialogChrome.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="16">
+        <TextBlock x:Name="TitleText" FontSize="{DynamicResource UiFontSize14}" FontWeight="SemiBold" Margin="0,0,0,16"/>
+
+        <TextBlock Text="Barcode (optional — must be unique)"/>
+        <TextBox x:Name="BarcodeBox" Style="{StaticResource InputBox}" Height="{DynamicResource UiControlHeight34}" CharacterCasing="Upper"
+                 Tag="Scan or type barcode" Margin="0,4,0,12"/>
+
+        <TextBlock Text="Product Description *"/>
+        <TextBox x:Name="NameBox" Style="{StaticResource InputBox}" Height="{DynamicResource UiControlHeight34}" CharacterCasing="Upper"
+                 Tag="Product name" Margin="0,4,0,12"/>
+
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                <TextBlock Text="Category"/>
+                <ComboBox x:Name="CategoryBox" Height="{DynamicResource UiControlHeight34}" Margin="0,4,0,0"
+                          IsEditable="True" IsTextSearchEnabled="False" VerticalContentAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                <TextBlock Text="Unit"/>
+                <ComboBox x:Name="UnitBox" Height="{DynamicResource UiControlHeight34}" Margin="0,4,0,0"
+                          IsEditable="True" IsTextSearchEnabled="False" VerticalContentAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                <TextBlock Text="Cost price (₱)"/>
+                <TextBox x:Name="CostBox" Height="{DynamicResource UiControlHeight34}" Margin="0,4,0,0" Tag="0.00"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                <TextBlock Text="Selling price (₱) *"/>
+                <TextBox x:Name="PriceBox" Height="{DynamicResource UiControlHeight34}" Margin="0,4,0,0" Tag="0.00"/>
+            </StackPanel>
+        </Grid>
+
+        <CheckBox x:Name="VatExemptBox" Content="VAT-exempt item" Margin="0,0,0,16"/>
+
+        <TextBlock x:Name="ErrorText" Foreground="#DC2626" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Width="90" Height="{DynamicResource UiControlHeight32}" Margin="0,5,8,5" IsCancel="True"/>
+            <Button Content="Save" Width="90" Height="{DynamicResource UiControlHeight32}" Style="{StaticResource PrimaryButton}"
+                    IsDefault="True" Click="SaveButton_Click"/>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+</Window>

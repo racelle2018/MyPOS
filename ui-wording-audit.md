@@ -1,4 +1,4 @@
-# MyPos UI wording audit
+# RetailForma UI wording audit
 
 Reviewed: October 11, 2026 (Asia/Manila).
 

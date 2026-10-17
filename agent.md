@@ -1,8 +1,22 @@
-# MyPos — System Concept & Development Handoff
+# RetailForma — System Concept & Development Handoff
 
-## 1. What MyPos Is
+Public-facing product name approved October 13, 2026: **RetailForma**. See [branding decisions](branding-decisions.md). Visible rebranding, public launcher names and approved RF logo for the POS/License Generator are implemented; installer implementation remains pending. Solution/projects/namespaces/resources and new data/licensing identities use RetailForma. Copy-only migration preserves original data and archives test activations; live cutover must pass the checks in [migration plan](retailforma-migration-plan.md). No customer licenses were issued before this identity change.
 
-**MyPos** is a commercial, offline-first Point of Sale + accounting system for small Philippine retail stores (sari-sari stores, mini-marts, single-branch shops). It is being built as a product to sell, not an internal tool. Its differentiators:
+## Latest implementation override — October 13, 2026
+
+Build-output rule approved October 14, 2026: keep one active POS package at `artifacts/RetailForma`. Routine fixes update that same folder in place; do not create feature/version-suffixed POS folders or bump the product version for every small adjustment. If RetailForma is running, ask the user to close it normally before replacing binaries; never force-close it or publish another copy as a workaround. Separate License Generator and Setup outputs remain separate tools. Temporary build/test outputs are not customer packages. Never remove live data, backups or signing keys during generated-build cleanup.
+
+Older inventories below are historical context. Current status is in [Phase 1 implementation](phase1-implementation.md); do not treat obsolete missing-feature statements as current.
+
+- Owner approved the sourced accounting mappings: prospective opening balances, carrying-cost adjustments and classified cash transfers/expenses/proprietor drawings are implemented with legal-form/ownership/known-cost guards. Historical journals remain untouched; input VAT, supplier credit, financial certification and multi-branch valuation remain deferred.
+- Basic backups use AES-256 ZIP, DPAPI automation secrets, local managed 30-daily/8-weekly retention and independent verified Google Drive/Dropbox synced-folder copies. Provider cloud completion and off-machine recovery still require acceptance.
+- Offline paid issuer and replacement ledger are separate programmer tools. Paid lifetime has no expiry or periodic internet validation. Seven-day trial requires fresh signed server UTC; paid/trial trust keys are separate. Client public trust, encrypted token storage, technical-only activation UI and protected Release business-write authorization are implemented.
+- Trial API/Vercel/PostgreSQL source is implemented, not deployed. No actual keys, cloud accounts, production license or data operations were provisioned. Debug development bypass must never be distributed to stores. Report/login/recovery remains available if business posting is denied.
+- Core/WPF automated checks are not hardware, cloud restore, live endpoint or accountant acceptance. Phase 1 is not rollout-complete until those checks pass. Portal and LAN/multi-branch remain Phase 2.
+
+## 1. What RetailForma Is
+
+**RetailForma** is a commercial, offline-first Point of Sale + accounting system for small Philippine retail stores (sari-sari stores, mini-marts, single-branch shops). It is being built as a product to sell, not an internal tool. Its differentiators:
 
 1. **A real double-entry accounting engine** under a simple POS — every sale auto-posts balanced journal entries (revenue, VAT, COGS, inventory), so the owner gets a true P&L, not just "total sales"
 2. **Offline-first** — local selling works without internet; cloud sync is planned for Phase 2, not implemented yet
@@ -38,28 +52,28 @@ This is a code-and-test inventory, not a claim that every screen, printer, or co
 
 ### Test suite — 20 tests passing (checked 2026-10-04)
 
-`dotnet test MyPos.slnx --configuration Release --no-restore` passed: 17 Core tests and 3 Desktop tests. Coverage includes sale/accounting invariants, discounts, held sales, shift behavior, and desktop checks. Treat these tests as a regression contract; add tests for new behavior.
+`dotnet test RetailForma.slnx --configuration Release --no-restore` passed: 17 Core tests and 3 Desktop tests. Coverage includes sale/accounting invariants, discounts, held sales, shift behavior, and desktop checks. Treat these tests as a regression contract; add tests for new behavior.
 
 ## 3. Architecture
 
 ```
-MyPos.slnx
-├── src/MyPos.Core/          ← NO UI dependencies, ever
+RetailForma.slnx
+├── src/RetailForma.Core/          ← NO UI dependencies, ever
 │   ├── Entities/            ← User, Branch, Product, Sale/SaleItem/Payment,
 │   │                          InventoryMovement, Account, JournalEntry/Line,
 │   │                          AuditLog, Setting, Customer, CashShift/CashMovement,
 │   │                          HeldSale
-│   ├── Data/                ← MyPosDbContext, DbInitializer (Migrate + seed), migrations
+│   ├── Data/                ← RetailFormaDbContext, DbInitializer (Migrate + seed), migrations
 │   └── Services/            ← SaleCalculator, SaleService, ReportService,
 │                              ShiftService, HeldSaleService
-├── src/MyPos.Desktop/       ← WPF: views, dialogs, controls, converters, printing
-├── tests/MyPos.Tests/       ← xUnit Core tests (17 passing)
-└── tests/MyPos.Desktop.Tests/ ← xUnit Desktop tests (3 passing)
+├── src/RetailForma.Desktop/       ← WPF: views, dialogs, controls, converters, printing
+├── tests/RetailForma.Tests/       ← xUnit Core tests (17 passing)
+└── tests/RetailForma.Desktop.Tests/ ← xUnit Desktop tests (3 passing)
 ```
 
 **The Core/Desktop split is sacred.** Core = entities + engine + all business rules. Desktop = UI + hardware only. Phase 2's API references the _same_ Core — this is why the split exists.
 
-**Planned additions (Phase 2):** `src/MyPos.Api` (ASP.NET Core), `src/MyPos.Web` or separate repo (Next.js dashboard). Cloud DB: PostgreSQL (Npgsql). Hosting: a Linux VPS (DigitalOcean/Azure) for API; Vercel for dashboard.
+**Planned additions (Phase 2):** `src/RetailForma.Api` (ASP.NET Core), `src/RetailForma.Web` or separate repo (Next.js dashboard). Cloud DB: PostgreSQL (Npgsql). Hosting: a Linux VPS (DigitalOcean/Azure) for API; Vercel for dashboard.
 
 ## 4. The Accounting Engine — Rules That Must Never Break
 
@@ -78,13 +92,13 @@ MyPos.slnx
 
 ## 5. UI/UX Design System
 
-- **Direction:** keep MyPos light and task-focused. The VS Code reference informs navigation density and hierarchy, not a dark-theme requirement. The current WPF app uses Material Design in XAML's light theme with local, readable styling.
+- **Direction:** keep RetailForma light and task-focused. The VS Code reference informs navigation density and hierarchy, not a dark-theme requirement. The current WPF app uses Material Design in XAML's light theme with local, readable styling.
 - **Palette:** window background `#F4F7FB`, light surfaces, blue accent `#2878BD`, muted blue-gray borders, and restrained status colors. Receipt-mode yellow remains a distinct signal.
-- **Global styles in `App.xaml`:** `MyPosButton`/`PrimaryButton`/`HeaderButton`, TextBox and PasswordBox, ComboBox, DatePicker/Calendar, and DataGrid. Controls use compact sizing and 6px corners; TextBox hints come from `Tag` through Material Design's `HintAssist.Hint`. DataGrid selection is pale blue, with a subtler unfocused state and no black focus box.
+- **Global styles in `App.xaml`:** `RetailFormaButton`/`PrimaryButton`/`HeaderButton`, TextBox and PasswordBox, ComboBox, DatePicker/Calendar, and DataGrid. Controls use compact sizing and 6px corners; TextBox hints come from `Tag` through Material Design's `HintAssist.Hint`. DataGrid selection is pale blue, with a subtler unfocused state and no black focus box.
 - **Style/converter keys:** `RightCell` (right-align money columns), `InputBox` (case-preserving entry), `StockBrushConverter` (threshold-aware). All drawn UI outlines use shared `UiBorderThickness`/`UiBorderWidth` at 1 DIP, with directional tokens for separators and Material active outline overrides.
 - **Icons:** Segoe Fluent Icons / Segoe MDL2 Assets (built into Win10/11, zero packages)
 - **Attached behaviors:** `DataGridBehaviors.DeselectOnOutsideClick` handles click-away selection clearing where enabled.
-- **Dialogs:** the current project still uses WPF `MessageBox` in multiple flows. There is no custom `MyPos.Desktop.MessageBox` class; any future shared dialog treatment must be implemented and checked across screens.
+- **Dialogs:** the current project still uses WPF `MessageBox` in multiple flows. There is no custom `RetailForma.Desktop.MessageBox` class; any future shared dialog treatment must be implemented and checked across screens.
 - **Selection spec:** hidden affordance → silent no-op; visible/attempted action → loud warning + audit log. Permission checks live at the **action layer** (`Permissions.RequireAdmin`), never only at hidden buttons.
 - **Casing policy:** POS invoice/OR, customer name/address and SC/PWD ID are uppercase while typing and in posted/held sale storage. Add/Edit Product forces uppercase for description, barcode, category, and unit. Other entries (searches, notes, reasons, business settings, usernames) preserve case; searches remain case-insensitive. Short system statuses, roles, payment labels, and abbreviations remain uppercase. Passwords are case-sensitive and never transformed. Do not rewrite existing records or historical snapshots to change casing.
 - **UI acceptance target:** meaningful empty states, keyboard/focus behavior, accessible labels, no clipped fields or buttons, and usable layouts at common Windows scaling settings. **Color = signal, not decoration** (gray normal, red investigate). These need screen-by-screen QA rather than an unverified blanket claim.
@@ -115,7 +129,9 @@ MyPos.slnx
 
 **Build order: sync contract document first, then API skeleton, then sync, then dashboard.**
 
-1. `MyPos.Api` — ASP.NET Core (.NET 10), PostgreSQL, JWT auth (owner accounts + device registration)
+**Approved deployment clarification — October 12, 2026:** terminal count and owner-portal access are separate choices. One POS computer may operate with or without the optional owner portal. With the portal, internet is required to upload sales and receive owner changes (prices and other approved master data), not to renew or keep the lifetime POS license valid. During an internet outage, this single-PC deployment continues selling with the last synchronized data; pending sales and owner changes synchronize after reconnection. Synchronization must preserve historical sale snapshots and prevent duplicate postings. This clarification does not authorize independent offline posting by future LAN clients when their branch server is unreachable. Portal/synchronization functionality remains planned, not implemented.
+
+1. `RetailForma.Api` — ASP.NET Core (.NET 10), PostgreSQL, JWT auth (owner accounts + device registration)
 2. **Sync contract (the boundary both sides build against):**
    - **Catalog flows DOWN** (cloud = master): products, prices, users, settings, licenses
    - **Transactions flow UP** (POS = master): sales, journal entries, movements, shifts, audit logs — all append-only, GUID-keyed, **idempotent** (safe to retry)
@@ -128,11 +144,12 @@ MyPos.slnx
 
 ### Phase 3 — Licensing (commercial protection)
 
-- PC fingerprint = hash(motherboard serial + CPU ID + Windows Machine GUID)
-- Activation: license key + fingerprint → server binds and returns RSA-signed token (expiry, features) stored locally (AES-256)
-- **Grace period 7–14 days offline** before hard-lock (phone-home-every-boot generates support tickets)
-- License transfer via owner portal (deactivate old fingerprint → activate new) — motherboards die; make it self-serve
-- Remote deactivation for non-payment
+- Planned device binding: hash(motherboard serial + CPU ID + Windows Machine GUID); normalize identifiers and handle unavailable hardware values before implementation.
+- Only the programmer/license issuer may generate paid lifetime licenses. Planned activation binds the license key to the device and returns an RSA-signed feature token stored locally with AES-256 protection; the signing private key must remain outside the client/repository.
+- Approved trial: 7-day trial duration requiring internet license validation; expiry locks the trial until a paid license is activated. This is not a 7-day or 30-day offline grace period. Detailed trial activation/time and lock-screen behavior still need implementation.
+- Approved single-PC Basic: one purchase for a lifetime license per device, with no subscription, expiry, periodic internet validation or offline hard-lock after activation. The optional owner portal belongs to Phase 2, not a prerequisite for this tier. Deployments/features may be selected for company requirements; later LAN/branch/portal behavior follows its separately approved architecture.
+- Approved hardware-replacement transfer: a failed motherboard/computer does not require another lifetime-license purchase. The client supplies their existing license key and replacement fingerprint; the programmer verifies ownership, authorizes the transfer and issues a replacement signed token under the same entitlement, retiring the old fingerprint. The dead device need not connect or deactivate first. Basic clients request this directly from the programmer; a later portal may handle requests, but only the programmer/license issuer may issue the replacement license.
+- One active device entitlement per purchased license: clients must stop using the replaced device. An old permanently offline device cannot be disabled remotely immediately; retiring its entitlement is not proof that its local token has stopped working. Do not promise immediate offline revocation. The earlier blanket non-payment/expiry policy does not apply to offline lifetime Basic. These are approved requirements, not implemented licensing.
 
 ### Phase 4/5 — Growth
 
@@ -147,10 +164,10 @@ MyPos.slnx
 3. **Always `ToList()` before in-memory filtering** of EF queries with decimals (SQLite TEXT storage).
 4. **New UI screens:** follow the light Material Design-based `App.xaml` styles, use `RightCell` on money columns, provide empty states and clear focus behavior, and check layouts at different window sizes and display scaling. Keep XAML and C# readable; do not minify.
 5. **Permission checks at the action, not just hidden buttons.** Cashier-visible features: selling, receive stock, held sales, shift. Admin-only: products CRUD, voids, users, settings, audit log, reports.
-6. **New schema changes = EF migrations** (`dotnet ef migrations add X --project src/MyPos.Core --startup-project src/MyPos.Desktop`), commit the Migrations folder, and let the app apply them. Preserve the existing one-time legacy-database baseline path; do not add ad hoc ALTER statements for new changes.
+6. **New schema changes = EF migrations** (`dotnet ef migrations add X --project src/RetailForma.Core --startup-project src/RetailForma.Desktop`), commit the Migrations folder, and let the app apply them. Preserve the existing one-time legacy-database baseline path; do not add ad hoc ALTER statements for new changes.
 7. **Money display:** `₱{0:N2}`, right-aligned. Uppercase for product/sale data.
 8. **Commits after every screen/feature.** Small checkpoints beat big bangs — this project has survived lost-work incidents because of this rule.
-9. **Dev workflow:** use `dotnet build MyPos.slnx` and `dotnet test MyPos.slnx` to verify changes even when IDE diagnostics are stale. Preserve uncommitted work and prefer small patches over whole-file replacement. Do not run the app and DB Browser against the same SQLite database simultaneously; save and close DB Browser first.
-10. **Visual Studio Community setup:** install **.NET desktop development** for the current WPF application. Install **ASP.NET and web development** for the planned Phase 2 API; it is not needed just to run Phase 1. Open `MyPos.slnx` and use the `MyPos.Desktop` startup project. VS Code plus the .NET SDK remains a supported alternative.
+9. **Dev workflow:** use `dotnet build RetailForma.slnx` and `dotnet test RetailForma.slnx` to verify changes even when IDE diagnostics are stale. Preserve uncommitted work and prefer small patches over whole-file replacement. Do not run the app and DB Browser against the same SQLite database simultaneously; save and close DB Browser first.
+10. **Visual Studio Community setup:** install **.NET desktop development** for the current WPF application. Install **ASP.NET and web development** for the planned Phase 2 API; it is not needed just to run Phase 1. Open `RetailForma.slnx` and use the `RetailForma.Desktop` startup project. VS Code plus the .NET SDK remains a supported alternative.
 
 ---

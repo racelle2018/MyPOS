@@ -1,4 +1,4 @@
-# MyPos report reference audit
+# RetailForma report reference audit
 
 Reviewed: October 10, 2026 (Asia/Manila)
 
@@ -47,7 +47,7 @@ Sections below document the **original audit baseline** and recommendations. Sta
 
 ## 1. Recommendation in brief
 
-Keep the existing **Daily Sales** and **Audit Log**. Do not replace them with the older POS forms. Borrow the references' reconciliation, grouping, totals, and sign-off structure while retaining the approved MyPos typography and compact layout.
+Keep the existing **Daily Sales** and **Audit Log**. Do not replace them with the older POS forms. Borrow the references' reconciliation, grouping, totals, and sign-off structure while retaining the approved RetailForma typography and compact layout.
 
 Recommended additions, in order:
 
@@ -82,9 +82,9 @@ Images 4–5 appear to be consecutive pages of the same product-sales report: ma
 - Image 1: `267,505.00` counted bills/coins plus `32,860.00` bank deposits equals `300,365.00`, explaining its displayed zero variance under that example's assumptions.
 - Image 2: `30.00 + 32,860.00 = 32,890.00`. This is a combined list total, **not an expense total**: depositing money is not the same event as spending it.
 
-Use these cross-report checks as a design pattern. Do not copy the example's amounts, categories, cashier, bank, or identifiers into MyPos defaults. The example does not establish rules for opening float, electronic payments, refunds, or unsettled card collections.
+Use these cross-report checks as a design pattern. Do not copy the example's amounts, categories, cashier, bank, or identifiers into RetailForma defaults. The example does not establish rules for opening float, electronic payments, refunds, or unsettled card collections.
 
-## 3. What MyPos currently supports
+## 3. What RetailForma currently supports
 
 | Capability | Evidence in current code | What is missing |
 | --- | --- | --- |
@@ -148,7 +148,7 @@ Do not copy the reference's combined disbursement-plus-deposit amount into a met
 
 ### Reference 3 — Invoice Register: retain Daily Sales, do not duplicate
 
-MyPos Daily Sales already includes these fields and more. Keep the approved printed order:
+RetailForma Daily Sales already includes these fields and more. Keep the approved printed order:
 
 `INVOICE → TIME → CUSTOMER → PAYMENT → GROSS → DISC → TOTAL → VAT → NET → VOID`
 
@@ -183,9 +183,9 @@ Keep product identity based on ProductId, not just name/barcode. Names and barco
 - Existing sale-level money snapshots remain the authoritative invoice totals. Do not recompute historical invoices from today's prices, costs, VAT flags, or category values.
 - Sum quantities only within compatible units. “10 pcs + 3 kg = 13 items” is not a meaningful stock quantity total.
 
-Do not add **In Cases / Loose Pcs / Total In Pcs** yet: MyPos has one product unit and no historical case-conversion factor. Use Unit + Qty. Add case/piece columns only if the business sells in both units and the conversion workflow is implemented.
+Do not add **In Cases / Loose Pcs / Total In Pcs** yet: RetailForma has one product unit and no historical case-conversion factor. Use Unit + Qty. Add case/piece columns only if the business sells in both units and the conversion workflow is implemented.
 
-Category codes and department codes in the references are source-system conventions, not required MyPos fields. Start with the category model already in use; a department hierarchy can be added later if it answers a real business need.
+Category codes and department codes in the references are source-system conventions, not required RetailForma fields. Start with the category model already in use; a department hierarchy can be added later if it answers a real business need.
 
 ## 5. Fixes to impose before expanding reports
 
@@ -319,17 +319,17 @@ Suggested first implementation batch: **export correctness, report-date metadata
 
 Local evidence inspected:
 
-- [ReportService.cs](src/MyPos.Core/Services/ReportService.cs): daily range/branch query, totals and void exclusion.
-- [Sale.cs](src/MyPos.Core/Entities/Sale.cs): invoice, cashier, customer, payment, void, and line snapshots.
-- [Product.cs](src/MyPos.Core/Entities/Product.cs): current category/unit/cost/stock.
-- [CashShift.cs](src/MyPos.Core/Entities/CashShift.cs): persisted shift and movement fields.
-- [ShiftService.cs](src/MyPos.Core/Services/ShiftService.cs): open-shift scope, timestamp association, cash totals, closing variance, generic cash postings.
-- [SaleService.cs](src/MyPos.Core/Services/SaleService.cs) and [SaleCalculator.cs](src/MyPos.Core/Services/SaleCalculator.cs): sale snapshots, discounts, VAT, cost, void reversal, receipts and adjustments.
-- [InventoryMovement.cs](src/MyPos.Core/Entities/InventoryMovement.cs), [JournalEntry.cs](src/MyPos.Core/Entities/JournalEntry.cs), and [MyPosDbContext.cs](src/MyPos.Core/Data/MyPosDbContext.cs): available history/model.
-- [DailySalesView.xaml.cs](src/MyPos.Desktop/Views/DailySalesView.xaml.cs): actions, CSV, printed header/body/footer.
-- [AuditLogView.xaml.cs](src/MyPos.Desktop/Views/AuditLogView.xaml.cs): audit scope and export.
-- [ShiftView.xaml.cs](src/MyPos.Desktop/Views/ShiftView.xaml.cs), [ShiftCloseDialog.xaml.cs](src/MyPos.Desktop/Dialogs/ShiftCloseDialog.xaml.cs), [CashMovementDialog.xaml.cs](src/MyPos.Desktop/Dialogs/CashMovementDialog.xaml.cs): operational entry and recent history.
-- [ReportsView.xaml.cs](src/MyPos.Desktop/Views/ReportsView.xaml.cs), [MainWindow.xaml](src/MyPos.Desktop/MainWindow.xaml), [Permissions.cs](src/MyPos.Desktop/Permissions.cs), and [User.cs](src/MyPos.Core/Entities/User.cs): navigation/access.
-- [ReportPrintPreviewWindow.xaml.cs](src/MyPos.Desktop/Dialogs/ReportPrintPreviewWindow.xaml.cs) and [ReportPdfExporter.cs](src/MyPos.Desktop/Dialogs/ReportPdfExporter.cs): paper/print/save behavior and image-based PDF generation.
+- [ReportService.cs](src/RetailForma.Core/Services/ReportService.cs): daily range/branch query, totals and void exclusion.
+- [Sale.cs](src/RetailForma.Core/Entities/Sale.cs): invoice, cashier, customer, payment, void, and line snapshots.
+- [Product.cs](src/RetailForma.Core/Entities/Product.cs): current category/unit/cost/stock.
+- [CashShift.cs](src/RetailForma.Core/Entities/CashShift.cs): persisted shift and movement fields.
+- [ShiftService.cs](src/RetailForma.Core/Services/ShiftService.cs): open-shift scope, timestamp association, cash totals, closing variance, generic cash postings.
+- [SaleService.cs](src/RetailForma.Core/Services/SaleService.cs) and [SaleCalculator.cs](src/RetailForma.Core/Services/SaleCalculator.cs): sale snapshots, discounts, VAT, cost, void reversal, receipts and adjustments.
+- [InventoryMovement.cs](src/RetailForma.Core/Entities/InventoryMovement.cs), [JournalEntry.cs](src/RetailForma.Core/Entities/JournalEntry.cs), and [RetailFormaDbContext.cs](src/RetailForma.Core/Data/RetailFormaDbContext.cs): available history/model.
+- [DailySalesView.xaml.cs](src/RetailForma.Desktop/Views/DailySalesView.xaml.cs): actions, CSV, printed header/body/footer.
+- [AuditLogView.xaml.cs](src/RetailForma.Desktop/Views/AuditLogView.xaml.cs): audit scope and export.
+- [ShiftView.xaml.cs](src/RetailForma.Desktop/Views/ShiftView.xaml.cs), [ShiftCloseDialog.xaml.cs](src/RetailForma.Desktop/Dialogs/ShiftCloseDialog.xaml.cs), [CashMovementDialog.xaml.cs](src/RetailForma.Desktop/Dialogs/CashMovementDialog.xaml.cs): operational entry and recent history.
+- [ReportsView.xaml.cs](src/RetailForma.Desktop/Views/ReportsView.xaml.cs), [MainWindow.xaml](src/RetailForma.Desktop/MainWindow.xaml), [Permissions.cs](src/RetailForma.Desktop/Permissions.cs), and [User.cs](src/RetailForma.Core/Entities/User.cs): navigation/access.
+- [ReportPrintPreviewWindow.xaml.cs](src/RetailForma.Desktop/Dialogs/ReportPrintPreviewWindow.xaml.cs) and [ReportPdfExporter.cs](src/RetailForma.Desktop/Dialogs/ReportPdfExporter.cs): paper/print/save behavior and image-based PDF generation.
 
 At the original audit checkpoint, only this document was added. The approved first implementation batch is recorded at the top; source reference images and original transaction amounts were not changed.

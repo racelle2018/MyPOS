@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Title>RetailForma License Generator</Title>
+    <AssemblyTitle>RetailForma License Generator</AssemblyTitle>
+    <ApplicationIcon>../RetailForma.Desktop/Assets/Branding/retailforma.ico</ApplicationIcon>
+    <Description>RetailForma programmer-controlled license generator</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RetailForma.Core/RetailForma.Core.csproj" />
+    <ProjectReference Include="../RetailForma.Security/RetailForma.Security.csproj" />
+    <ProjectReference Include="../RetailForma.Application/RetailForma.Application.csproj" />
+    <ProjectReference Include="../RetailForma.EncryptedStorage/RetailForma.EncryptedStorage.csproj" />
+    <None Include="../../artifacts/native-security/output/sqlcipher.dll" Link="sqlcipher.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="Exists('../../artifacts/native-security/output/sqlcipher.dll')" />
+    <None Include="../../artifacts/native-security/output/*-LICENSE.*" Link="Licenses/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <!-- Reuse chrome/notifications without referencing the customer App or DB startup. -->
+    <Page Include="../RetailForma.Desktop/Styles/DialogChrome.xaml" Link="Styles/DialogChrome.xaml" />
+    <Page Include="../RetailForma.Desktop/Styles/UtilitySettingsChrome.xaml" Link="Styles/UtilitySettingsChrome.xaml" />
+    <Page Include="../RetailForma.Desktop/Dialogs/NotificationDialog.xaml" Link="Dialogs/NotificationDialog.xaml" />
+    <Compile Include="../RetailForma.Desktop/Dialogs/NotificationDialog.xaml.cs" Link="Dialogs/NotificationDialog.xaml.cs" />
+    <Compile Include="../RetailForma.Desktop/Dialogs/ActionDialog.cs" Link="Dialogs/ActionDialog.cs" />
+    <Compile Include="../RetailForma.Desktop/Controls/DataGridBehaviors.cs" Link="Controls/DataGridBehaviors.cs" />
+    <Resource Include="../RetailForma.Desktop/Assets/Fonts/*.ttf" Link="Assets/Fonts/%(Filename)%(Extension)" />
+    <Resource Include="../RetailForma.Desktop/Assets/Branding/*.png" Link="Assets/Branding/%(Filename)%(Extension)" />
+    <Resource Include="../RetailForma.Desktop/Assets/Branding/*.ico" Link="Assets/Branding/%(Filename)%(Extension)" />
+    <None Include="../RetailForma.Desktop/Assets/Fonts/INTER-LICENSE.txt" Link="Assets/Fonts/INTER-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../RetailForma.Desktop/Assets/Fonts/OFL.txt" Link="Assets/Fonts/OFL.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+{
+  "name": "retailforma-brand-export",
+  "private": true,
+  "type": "module",
+  "scripts": { "export": "node export.mjs" },
+  "devDependencies": { "@resvg/resvg-js": "2.6.2" }
+}

@@ -1,0 +1,54 @@
+using System.Windows;
+using RetailForma.Core.Entities;
+using RetailForma.Desktop.Printing;
+
+namespace RetailForma.Desktop.Dialogs;
+
+public partial class ReceiptPreviewDialog : Window
+{
+    private readonly Sale _sale;
+    private readonly bool _reprint;
+    public bool PrintedSuccessfully { get; private set; }
+
+    public ReceiptPreviewDialog(Sale sale, bool reprint = false, string? warning = null)
+    {
+        InitializeComponent();
+        _sale = sale;
+        _reprint = reprint;
+        if (reprint)
+        {
+            Title = "Receipt Reprint";
+            PrintButton.Content = "Reprint";
+        }
+        var options = ReceiptPrinting.LoadOptions(sale);
+        ReceiptText.Document = ReceiptDocument.Build(sale, options, reprint, preview: true);
+        if (options.ShowQr && sale.SaleNumber != 0)
+        {
+            QrImage.Source = ReceiptPrinting.CreateQrImage(sale);
+            QrImage.Visibility = Visibility.Visible;
+        }
+        if (warning != null)
+        {
+            WarningText.Text = warning;
+            WarningText.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void PrintButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ReceiptPrinting.TryPrint(_sale, _reprint))
+        {
+            PrintedSuccessfully = true;
+            PrintButton.IsEnabled = false;
+            PrintButton.Content = "PRINTED";
+            ActionDialog.Success("Receipt sent to the printer.", "Receipt printing", this);
+        }
+        else
+        {
+            WarningText.Text = "PRINTING FAILED - check that the printer is powered on, connected, and selected in Settings. Retry when ready.";
+            WarningText.Visibility = Visibility.Visible;
+            ActionDialog.Error("The receipt could not be sent to the printer. Check its power, connection and selection in Settings, then retry." +
+                (_sale.SaleNumber == 0 ? "" : " The sale is still saved; retrying prints only."), "Receipt printing", this);
+        }
+    }
+}

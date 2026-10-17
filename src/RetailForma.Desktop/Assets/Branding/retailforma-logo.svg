@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="2048" height="400" viewBox="0 0 2048 400" role="img" aria-labelledby="title desc">
+  <title id="title">RetailForma RF logo</title>
+  <desc id="desc">Clean vector reconstruction of the approved RF monogram with editable RetailForma text. Transparent background.</desc>
+  <g id="rf-monogram" fill="#2878BD" transform="translate(40 60)" inkscape:label="RF monogram">
+    <path id="letter-r" d="M0 0H128C200 0 232 43 232 95C232 137 208 163 156 181L236 280H145L18 120H131C154 120 166 110 166 93C166 75 154 64 131 64H0Z"/>
+    <path id="letter-f-top" d="M208 0H438V64H250C243 36 231 15 208 0Z"/>
+    <path id="letter-f-stem" d="M250 110H399V174H307V280H250Z"/>
+  </g>
+  <g id="wordmark" fill="#1F2937" inkscape:label="Editable wordmark">
+    <text x="520" y="294" font-family="Inter, Arial, sans-serif" font-size="208" font-weight="700" letter-spacing="-7">RetailForma</text>
+  </g>
+</svg>

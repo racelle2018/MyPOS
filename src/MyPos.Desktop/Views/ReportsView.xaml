@@ -1,9 +1,0 @@
-<UserControl x:Class="MyPos.Desktop.Views.ReportsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FontFamily="{DynamicResource ReportInterFontFamily}">
-    <Border Background="White" BorderBrush="#CDD1D4" BorderThickness="{StaticResource UiBorderThickness}"
-            Margin="8,6,8,8">
-        <ContentControl x:Name="ReportHost"/>
-    </Border>
-</UserControl>

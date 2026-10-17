@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><Version>1.2.3</Version></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RetailForma.EncryptedStorage/RetailForma.EncryptedStorage.csproj" />
+    <ProjectReference Include="../RetailForma.LocalTransport/RetailForma.LocalTransport.csproj" />
+    <None Include="../../artifacts/native-security/output/sqlcipher.dll" Link="sqlcipher.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="Exists('../../artifacts/native-security/output/sqlcipher.dll')" />
+    <None Include="../../artifacts/native-security/output/*-LICENSE.*" Link="Licenses/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+    <Compile Include="../RetailForma.Desktop/Licensing/LicenseClient.cs" Link="Licensing/LicenseClient.cs" />
+    <Compile Include="../RetailForma.Desktop/Licensing/LicenseCache.cs" Link="Licensing/LicenseCache.cs" />
+    <Compile Include="../RetailForma.Desktop/Licensing/DeviceIdentity.cs" Link="Licensing/DeviceIdentity.cs" />
+    <EmbeddedResource Include="$(DeveloperRecoveryPublicKey)" LogicalName="Trust.recovery.pem" Condition="'$(DeveloperRecoveryPublicKey)' != '' And Exists('$(DeveloperRecoveryPublicKey)')" />
+    <EmbeddedResource Include="$(PaidLicensePublicKey)" LogicalName="Trust.paid.pem" Condition="'$(PaidLicensePublicKey)' != '' And Exists('$(PaidLicensePublicKey)')" />
+    <EmbeddedResource Include="$(TrialLicensePublicKey)" LogicalName="Trust.trial.pem" Condition="'$(TrialLicensePublicKey)' != '' And Exists('$(TrialLicensePublicKey)')" />
+    <AssemblyMetadata Include="RetailFormaTrialEndpoint" Value="$(TrialLicenseServerUrl)" />
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo"><_Parameter1>RetailForma.EncryptedStorage.Tests</_Parameter1></AssemblyAttribute>
+  </ItemGroup>
+  <Target Name="RejectPrivateTrustInputs" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(DeveloperRecoveryPublicKey)' != '' And !Exists('$(DeveloperRecoveryPublicKey)')" Text="Recovery public key is missing." />
+    <Error Condition="'$(DeveloperRecoveryPublicKey)' != '' And Exists('$(DeveloperRecoveryPublicKey)') And $([System.IO.File]::ReadAllText('$(DeveloperRecoveryPublicKey)').Contains('PRIVATE KEY'))" Text="Never embed a private developer recovery key." />
+    <Error Condition="'$(PaidLicensePublicKey)' != '' And Exists('$(PaidLicensePublicKey)') And $([System.IO.File]::ReadAllText('$(PaidLicensePublicKey)').Contains('PRIVATE KEY'))" Text="Never embed a private license key." />
+    <Error Condition="'$(TrialLicensePublicKey)' != '' And Exists('$(TrialLicensePublicKey)') And $([System.IO.File]::ReadAllText('$(TrialLicensePublicKey)').Contains('PRIVATE KEY'))" Text="Never embed a private trial key." />
+  </Target>
+  <Target Name="RequireServicePublishInputs" BeforeTargets="ComputeFilesToPublish">
+    <Error Condition="'$(DeveloperRecoveryPublicKey)' == '' Or !Exists('$(DeveloperRecoveryPublicKey)')" Text="Service publishing requires the separate developer recovery PUBLIC key." />
+    <Error Condition="'$(PaidLicensePublicKey)' == '' Or !Exists('$(PaidLicensePublicKey)')" Text="Service publishing requires the paid licensing PUBLIC key." />
+    <Error Condition="!Exists('../../artifacts/native-security/output/sqlcipher.dll')" Text="Build and verify SQLCipher Community before publishing the service." />
+    <Error Condition="('$(TrialLicensePublicKey)' == '' And '$(TrialLicenseServerUrl)' != '') Or ('$(TrialLicensePublicKey)' != '' And '$(TrialLicenseServerUrl)' == '')" Text="Trial public key and HTTPS endpoint must be supplied together." />
+  </Target>
+</Project>

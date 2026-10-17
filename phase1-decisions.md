@@ -1,5 +1,26 @@
 # Phase 1 decisions and open questions
 
+## Database security storage approval — October 15, 2026
+
+- Owner approved service-owned `%PROGRAMDATA%\RetailForma\Data` for the working database, with restricted access. Local encrypted backup ZIPs remain in AppData.
+- Owner also approved SQLCipher Community, built from maintained upstream source.
+- Owner approved developer-assisted recovery: unique per-installation database keys, a recovery copy encrypted to a separate developer public key, authorized account-password resets, and developer recovery for future backups when the owner forgets the backup passphrase. The recovery private key stays outside the POS/installer/repository and is separate from licensing keys. Existing backups cannot gain this capability without being opened and recreated. Use controlled repairs, safety backups and audit records, not a shared master password.
+- This is a planned storage/security migration, not a completed deployment. Existing data and permissions have not been changed. See [database security migration](database-security-migration.md) for approved policy and implementation/acceptance gates.
+
+## Latest approval and implementation — October 13, 2026
+
+- RetailForma rename sequence: owner approved internal code/project rename first, then data/licensing identity cutover. Owner explicitly chose **migrate existing data**, not discard it, and confirmed **no customer-issued licenses yet**. Copy-only migration with encrypted Safety backup is implemented/tested; live cutover and recovery acceptance remain pending. Old test licenses must be reissued with the existing key pair. See [migration plan](retailforma-migration-plan.md).
+
+This section supersedes earlier checkpoints saying mappings/activation are unapproved or entirely unimplemented; history remains below.
+
+- Owner explicitly approved the sourced [accounting mapping proposal](accounting-mapping-proposal.md). Prospective opening stock, carrying-cost adjustment and classified cash mappings are implemented with conditional safeguards. Independent accountant certification, historical repair, supplier credit and multi-branch valuation are not implied.
+- Paid licenses are programmer-issued offline lifetime per device, with no internet renewal. Seven-day trials require online, signed server UTC; no local-clock/offline-grace extension. Owner portal remains separate Phase 2.
+- Offline issuer/replacement ledger, distinct signing trust, encrypted activation/cache and Release business-write gate are implemented. Vercel trial API source is ready for deployment testing, not deployed. System Administrator access does not confer paid signing authority.
+- Actual keys, authorized hosting/database and end-to-end acceptance remain required. Reports/recovery remain available when posting is denied. Old permanently offline replacement tokens cannot instantly be remotely revoked.
+- Basic backup uses verified copies into Google Drive/Dropbox synced folders. Actual provider cloud completion and independent recovery must be verified externally.
+
+See [implementation and acceptance](phase1-implementation.md). No live deployment, license transfer or production-data operation was performed.
+
 Created: October 12, 2026 (Asia/Manila).
 
 Latest status: owner answers and subsequent chat clarifications have been incorporated. Earlier answers are preserved below; the current decision summary and explicit clarification/status lines take precedence over the original recommendations.
@@ -91,7 +112,7 @@ Direct upload versus a synchronized folder can be proposed after the provider is
 
 ### Q04 — Which encrypted format and recovery responsibility?
 
-Does the owner prefer an AES-256 encrypted ZIP, another encrypted archive, or a MyPos-managed encrypted backup package? Who will hold the recovery password/key and an independent safe copy?
+Does the owner prefer an AES-256 encrypted ZIP, another encrypted archive, or a RetailForma-managed encrypted backup package? Who will hold the recovery password/key and an independent safe copy?
 
 **Recommendation — not approved:** prefer an AES-256 encrypted ZIP to match the requested archive workflow, using a strong, unique recovery password and integrity checking, not legacy ZIP password protection. Choose a maintained implementation and test creation/restoration compatibility before adopting the format. Let the owner keep the recovery credentials in a secure password manager plus an independent safe recovery copy; protect any locally stored automation secret separately. Restore must work on another computer/profile, so do not rely solely on a machine-bound secret. Password/key rotation must preserve the ability to restore older backups. Missing recovery credentials may make backups unusable, and someone who can decrypt a backup can still edit its contents. See [WinZip's encryption guidance](https://kb.winzip.com/en/130831).
 
@@ -167,13 +188,44 @@ Should there initially be one base currency per company, with a default timezone
 
 ## Remaining implementation-policy details
 
+### Hosting/accounting clarification — October 12, 2026
+
+- **Latest hosting choice:** Vercel for testing first, with a later upgrade for commercial rollout. No account/project/endpoint is provisioned and no paid subscription is authorized yet. Testing must use isolated data/test keys, and Hobby eligibility must be checked against Vercel's commercial-use restrictions. See [licensing implementation](licensing-implementation.md). This supersedes InfinityFree as the intended test host without marking licensing or the Phase 2 portal implemented.
+
+- Owner can create a free InfinityFree domain, rather than providing an existing deployed license API. Provider research found free hosting blocks desktop/API access; actual API-capable hosting/endpoint is still needed. See [licensing implementation](licensing-implementation.md).
+- Owner requested trustworthy online accounting references instead of supplying signed-off mappings. See [accounting proposal](accounting-mapping-proposal.md). Research/proposed codes are not approval; remaining accounting corrections stay pending review.
+
+### Hardware-replacement license transfer — approved October 12, 2026
+
+- A motherboard/computer failure permits transfer of the existing lifetime entitlement, without purchasing another license. This is replacement, not permission to use two devices simultaneously.
+- The client supplies the existing license key and new device fingerprint. The programmer verifies ownership, authorizes replacement and issues a new signed token under the same license, retiring the old fingerprint/entitlement.
+- The failed device does not have to connect or successfully deactivate. Single-PC Basic clients may contact the programmer directly; a future owner portal may accept requests, without granting clients license-signing authority.
+- One active device per license remains the contractual restriction. A permanently offline old computer cannot be remotely disabled immediately; clients must cease using the replaced device. Retirement records must not be described as guaranteed offline token revocation.
+- Policy approved; issuance, transfer records/auditing and enforcement have not been implemented. No actual license/device was transferred by this documentation update.
+
+### Single-PC owner portal — confirmed October 12, 2026
+
+- One POS computer may be configured **with or without** the optional Phase 2 owner portal; portal access is independent of terminal count.
+- The portal lets the owner check uploaded sales and update approved master data, including prices, remotely. Internet is required for synchronization, not lifetime-license renewal.
+- During an internet outage, the single-PC POS continues selling with its last synchronized data. Pending sales and owner updates synchronize when connectivity returns; historical invoice snapshots must remain unchanged and retries must not duplicate transactions.
+- This does not broaden the future LAN-client offline policy: a client still requires its branch server for normal transactions. Detailed portal permissions, synchronization/conflict rules and commercial portal terms remain separate work.
+- This is an approved requirement, not a claim that the owner portal or synchronization has been implemented.
+
+### Latest implementation answers — October 12, 2026
+
+- **Initial System Administrator:** approved separate local setup tool with individual credentials, no shared/default technical password and no automatic Owner promotion. See [implementation checkpoint](phase1-implementation.md). Additional-account/recovery policy is not implied.
+- **License model:** programmer-issued, single-purchase lifetime license per device, with the approved hardware-replacement transfer above. Single-PC Basic works offline permanently after activation, with no renewal validation/expiry; the optional portal needs connectivity only for synchronization. Trial lasts 7 days and requires internet license validation; expired trials lock until paid activation. The earlier offline-grace/non-payment proposals do not apply to offline lifetime Basic. Activation infrastructure, signing-key custody and transfer workflow still need implementation.
+- **Accounting mappings:** owner will provide accountant/bookkeeper mappings. Opening-inventory, adjustment and cash-movement mappings remain pending. The identified future paid-purchase reversal is corrected with existing accounts, without historical repair.
+
+These latest answers supersede earlier bullets/history describing initial provisioning and license-model selection as unanswered. Phase 1 is not marked complete by recording them.
+
 The eight original scope questions now have owner answers. The following details must not be silently assumed:
 
 - **Granular technical controls:** the settings-category split above is approved. Define individual protected installation/maintenance actions and their safeguards before exposing controls; do not move additional business settings away from Owner without a new decision.
-- **System Administrator provisioning/recovery:** decide how the initial account is created, who can grant this role and how credentials are recovered. Recommendation, not yet approved: individual authenticated accounts, logged technical changes, no hidden/shared master password and no ordinary Owner self-promotion to System Administrator.
-- **Licensing:** managing licenses is a confirmed System Administrator responsibility, but pricing, perpetual/subscription terms, activation, offline behavior and expiry handling are not specified. Do not infer a license-enforcement implementation from naming the role.
+- **System Administrator provisioning/recovery:** initial separate local setup tool with individual credentials is approved and implemented; no ordinary Owner self-promotion or hidden/default password. Additional technical accounts and recovery policy remain undecided.
+- **Licensing:** trial/lifetime and hardware-replacement policy are confirmed above. Only the programmer issues paid/replacement licenses; an application System Administrator role does not itself confer signing/issuance authority. Activation, trial timing/lock behavior and audited transfer implementation remain outstanding. No license enforcement has been implemented.
 - **Accounting mappings:** specify/review the actual approved accounts and adjustment valuation rules before changing postings. Scope approval is not proof the current postings are correct.
-- **Cloud onboarding:** developer app registrations and company account authorization must be arranged; no credentials should be embedded in source or this reference.
+- **Cloud backup:** latest owner choice is a dedicated encrypted-backup folder synchronized by Google Drive or Dropbox desktop software, rather than direct RetailForma API uploads for Basic. RetailForma may confirm a verified folder copy, not remote sync completion. Developer registrations/OAuth are not required for this chosen folder workflow; company sign-in/provider sync and an independent restore drill remain necessary. Direct integration is optional later work.
 - **Hardware acceptance:** select/verify the exact 80-mm printer and drawer specifications. Cashier/Owner will perform acceptance, but the separate test computer/profile and responsible tester for the restore drill still need identification.
 
 ## Later hardware and acceptance details
@@ -192,7 +244,7 @@ These can be answered when hardware is selected, but must be verified before the
 
 ### What “restore on another computer/profile” means
 
-Install MyPos on another computer, or under a separate Windows user account, using an isolated test data location. Retrieve the cloud backup, decrypt it with the recovery credentials, restore it and compare products, sales, users, settings and reports with the expected test dataset. Do not overwrite the live installation.
+Install RetailForma on another computer, or under a separate Windows user account, using an isolated test data location. Retrieve the cloud backup, decrypt it with the recovery credentials, restore it and compare products, sales, users, settings and reports with the expected test dataset. Do not overwrite the live installation.
 
 This proves the backup can recover the business without relying on the original computer/profile. Downloading a file or passing a local integrity check alone does not complete this acceptance test. In a future server deployment, the restore drill must also cover the server database and required configuration.
 

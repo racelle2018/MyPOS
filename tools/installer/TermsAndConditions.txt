@@ -1,0 +1,27 @@
+RetailForma - Terms and Conditions
+Effective: October 15, 2026
+
+Company: RetailForma Ltd.
+Support: ellecarpacquiaban@gmail.com
+
+By selecting "I accept", you confirm that you are authorized to install RetailForma for the licensed business and agree to these terms. If you do not agree, cancel installation.
+
+1. Licensed use
+A paid lifetime license permits use on one authorized device without expiry or periodic internet renewal. Device replacement requires an authorized license transfer; it does not grant simultaneous use on another device. Do not bypass activation or share a device-bound license for unauthorized use.
+
+2. Trial use
+A trial lasts seven days from its first server-recorded activation and requires internet validation. Expiry or unavailable validation prevents protected business posting; reports and recovery remain available. Reinstallation does not restart the trial.
+
+3. Features and customization
+Included modules, customization, connected services, maintenance and support are those agreed with RetailForma Ltd. Installation does not automatically include an owner portal, additional devices, or future modules. Software use does not replace independent review of accounting records or receipt requirements.
+
+4. Accounts and backups
+Protect user accounts, licensing credentials and backup passphrases. Maintain independent verified backups and check that enabled cloud copies synchronize. Keep each archive's original passphrase securely outside the POS computer. New-format backups also support authorized developer recovery using a separately held private recovery key; older archives still require their original passphrase. Loss of that private key removes its recovery route, and theft may expose data protected by it.
+
+5. Data and connected services
+Business records are encrypted under the local RetailForma data service in ProgramData; final local backup ZIPs remain in the Windows user's AppData folder. The desktop does not receive the working database key. Local Windows administrators can control the computer; this does not protect against a compromised administrator. Online trial licensing sends device/license identifiers and activation or validation requests to the licensing service. Optional cloud backup copies use your selected provider's desktop sync application and account. Applicable privacy notices and provider terms govern those services separately; accepting these installation terms is not blanket consent for unrelated data processing.
+
+6. Updates and removal
+Close RetailForma and verify a backup before updating. Uninstall removes program files and shortcuts but retains company data and backups. Installation alone does not activate a license or transfer data between Windows profiles.
+
+These installation terms do not create additional fees, support commitments or restrictions beyond your agreed license and applicable law. Pricing, service commitments and any separately agreed commercial terms remain in your agreement with RetailForma Ltd.

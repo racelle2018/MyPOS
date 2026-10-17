@@ -480,3 +480,18 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# License server dependencies/secrets; issuer private keys must live outside this repository.
+node_modules/
+.vercel/
+.env
+.env.*
+!.env.example
+*.encrypted.pem
+*-private.pem
+issuer-journal.jsonl
+*.license.json
+
+# Local migration backups and generated source archives
+/_local-migration/
+/RetailForma-source-backup-*.zip

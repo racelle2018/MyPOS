@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Public product metadata; project/assembly identities are now RetailForma. -->
+    <Product>RetailForma</Product>
+  </PropertyGroup>
+</Project>

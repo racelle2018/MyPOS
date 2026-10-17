@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\RetailForma.Core\RetailForma.Core.csproj" />
+    <ProjectReference Include="..\RetailForma.LocalTransport\RetailForma.LocalTransport.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Fonts\*.ttf" />
+    <Resource Include="Assets\Branding\*.png" />
+    <Resource Include="Assets\Branding\*.ico" />
+    <None Update="Assets\Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="Assets\Fonts\INTER-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
+    <PackageReference Include="QRCoder" Version="1.8.0" />
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <Version>1.2.3</Version>
+    <Title>RetailForma</Title>
+    <AssemblyTitle>RetailForma</AssemblyTitle>
+    <ApplicationIcon>Assets\Branding\retailforma.ico</ApplicationIcon>
+    <Description>RetailForma retail management application</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="$(PaidLicensePublicKey)" Link="Licensing/paid-public.pem" Condition="'$(PaidLicensePublicKey)' != '' And Exists('$(PaidLicensePublicKey)')" />
+    <Resource Include="$(TrialLicensePublicKey)" Link="Licensing/trial-public.pem" Condition="'$(TrialLicensePublicKey)' != '' And Exists('$(TrialLicensePublicKey)')" />
+    <AssemblyMetadata Include="RetailFormaTrialEndpoint" Value="$(TrialLicenseServerUrl)" />
+  </ItemGroup>
+  <Target Name="ValidateLicenseKeyInputs" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(PaidLicensePublicKey)' != '' And !Exists('$(PaidLicensePublicKey)')" Text="Paid-license public key file does not exist." />
+    <Error Condition="'$(TrialLicensePublicKey)' != '' And !Exists('$(TrialLicensePublicKey)')" Text="Trial-license public key file does not exist." />
+    <Error Condition="'$(PaidLicensePublicKey)' != '' And Exists('$(PaidLicensePublicKey)') And $([System.IO.File]::ReadAllText('$(PaidLicensePublicKey)').Contains('PRIVATE KEY'))" Text="Never embed a private license key in the client." />
+    <Error Condition="'$(TrialLicensePublicKey)' != '' And Exists('$(TrialLicensePublicKey)') And $([System.IO.File]::ReadAllText('$(TrialLicensePublicKey)').Contains('PRIVATE KEY'))" Text="Never embed a private trial key in the client." />
+    <Error Condition="'$(PaidLicensePublicKey)' != '' And Exists('$(PaidLicensePublicKey)') And !$([System.IO.File]::ReadAllText('$(PaidLicensePublicKey)').Contains('-----BEGIN PUBLIC KEY-----'))" Text="Use an SPKI public PEM, never a raw/private key file." />
+    <Error Condition="'$(TrialLicensePublicKey)' != '' And Exists('$(TrialLicensePublicKey)') And !$([System.IO.File]::ReadAllText('$(TrialLicensePublicKey)').Contains('-----BEGIN PUBLIC KEY-----'))" Text="Use an SPKI public PEM for the trial verification key." />
+  </Target>
+
+</Project>

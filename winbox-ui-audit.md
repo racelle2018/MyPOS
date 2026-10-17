@@ -1,10 +1,10 @@
-# WinBox reference audit and MyPos density review
+# WinBox reference audit and RetailForma density review
 
 Date: 8 October 2026 (Asia/Manila). Scope: audit and documentation only.
 
 ## Outcome and evidence
 
-**The supplied screenshot now supports a static WinBox design audit at 1366×768.** Its strongest transferable traits are short controls, closely aligned form rows, a small toolbar/header stack, thin separators, and minimal decoration around the table. MyPos should adopt these density principles while keeping its readable 13-DIP body text and larger cashier actions.
+**The supplied screenshot now supports a static WinBox design audit at 1366×768.** Its strongest transferable traits are short controls, closely aligned form rows, a small toolbar/header stack, thin separators, and minimal decoration around the table. RetailForma should adopt these density principles while keeping its readable 13-DIP body text and larger cashier actions.
 
 The screenshot shows the disconnected **WinBox 4.4** connection/address-list window, not a connected router workspace. The table is empty. It does not establish how populated router tables, configuration dialogs, or collapsible sections behave. The visible error banner is pre-existing screenshot content; no connection attempt was made by this audit.
 
@@ -15,12 +15,12 @@ Evidence labels:
 - **Confirmed—image:** directly visible structure/state, or decoded image dimensions. Does not confirm implementation settings.
 - **Sampled—image:** exact RGB at stated screenshot coordinates, measured from the supplied PNG; not a confirmed application theme token.
 - **Estimate—image:** approximate dimensions, padding, radius, font appearance or weight; normally ±1–2 px for edges and ±2–3 px for internal spacing.
-- **Confirmed—source:** local MyPos XAML/C# declarations, not runtime screenshots.
+- **Confirmed—source:** local RetailForma XAML/C# declarations, not runtime screenshots.
 - **Estimate—source model:** arithmetic or layout inference; not a measured improvement.
-- **Proposal:** recommended MyPos values, not WinBox settings.
+- **Proposal:** recommended RetailForma values, not WinBox settings.
 - **Unverified:** unavailable evidence, especially appearance settings, hover/selection and resizing transitions.
 
-No WinBox appearance settings were read. No credentials, connections, router configuration changes or MyPos application edits were made. Automated capture repeatedly timed out; text-only accessibility exposed only the title bar and system buttons. The screenshot supplies the visual evidence that those attempts could not retrieve.
+No WinBox appearance settings were read. No credentials, connections, router configuration changes or RetailForma application edits were made. Automated capture repeatedly timed out; text-only accessibility exposed only the title bar and system buttons. The screenshot supplies the visual evidence that those attempts could not retrieve.
 
 ## WinBox typography
 
@@ -79,7 +79,7 @@ The form's major section break is much larger than its row spacing. WinBox is se
 | Secondary button fill | **#D9DCDD** | (250,480) |
 | Visible error banner | **#CB010D** | (60,290) |
 
-**Text colors—visual estimates:** primary labels and values appear black/near-black; primary-button and error text appear white; unavailable commands are pale gray. Exact foreground tokens were not extracted from antialiased text. The screenshot's bright blue is useful for understanding hierarchy, but MyPos can keep its existing darker #2878BD accent for white-text contrast; copying WinBox's blue is not necessary to gain space.
+**Text colors—visual estimates:** primary labels and values appear black/near-black; primary-button and error text appear white; unavailable commands are pale gray. Exact foreground tokens were not extracted from antialiased text. The screenshot's bright blue is useful for understanding hierarchy, but RetailForma can keep its existing darker #2878BD accent for white-text contrast; copying WinBox's blue is not necessary to gain space.
 
 **Confirmed—image:** Connect to has a blue outline and visible caret, supporting a focused-input interpretation. The Saved tab is active-looking with a blue top rule. Remove, Comment and RoMON Neighbors appear disabled/unavailable through gray text. These are visible appearances; programmatic enabled flags were not obtained.
 
@@ -87,17 +87,17 @@ The form's major section break is much larger than its row spacing. WinBox is se
 
 ## Toolbar, search, dropdowns and resizing
 
-Find is presented as a compact icon/text toolbar command, not a permanently expanded search field. Filter and the `all` dropdown share the right side. Remove and Comment occupy the left. MyPos Products/POS should retain an immediately available search/scan field because entry is frequent; the compact command approach is more suitable for secondary report tools.
+Find is presented as a compact icon/text toolbar command, not a permanently expanded search field. Filter and the `all` dropdown share the right side. Remove and Comment occupy the left. RetailForma Products/POS should retain an immediately available search/scan field because entry is frequent; the compact command approach is more suitable for secondary report tools.
 
 Saved, Neighbors and RoMON Neighbors are integrated with the table panel. The Actions sidebar uses a small bold heading and simple text rows. No expanded dropdown or collapsible section is shown. A gear icon is visible at the upper right, but its menu and appearance settings remain unverified.
 
 At **1366×768**, the visible disconnected window fits its form, tab strip, toolbar, column headers, actions and status without obvious clipping. The roughly 558-px table body is about 84% of the 665-px panel height. That favorable ratio is partly due to an empty, simple list and must not be compared directly with a populated financial report. The panel also dedicates 134 px of width to its action sidebar.
 
-No before/after screenshots establish resizing behavior, minimum dimensions, adaptive breakpoints, column expansion or DPI handling. The image confirms one layout at this resolution only. MyPos's scaling risks and pending resize checks are documented below.
+No before/after screenshots establish resizing behavior, minimum dimensions, adaptive breakpoints, column expansion or DPI handling. The image confirms one layout at this resolution only. RetailForma's scaling risks and pending resize checks are documented below.
 
-## Practical comparison with MyPos
+## Practical comparison with RetailForma
 
-| WinBox screenshot evidence | MyPos source evidence | Recommended transfer |
+| WinBox screenshot evidence | RetailForma source evidence | Recommended transfer |
 |---|---|---|
 | About 22-px controls, 3-px row gaps | 34–38-DIP general controls; 42-DIP customer fields | Use 30–32 DIP in Reports/Products; retain 40-DIP cashier actions. Do not equate screenshot px with DIP |
 | Shallow tabs/toolbar/header | Reports adds padded tab/date/metric/reconciliation/table panels | Flatten stacked containers before reducing font sizes |
@@ -106,19 +106,19 @@ No before/after screenshots establish resizing behavior, minimum dimensions, ada
 | Label alignment and context-sized fields | POS has three rows of transaction detail | Align persistent fields and disclose optional details with visible summaries |
 | Visible focus and unavailable commands | Focused selection is explicit; inactive selection lacks explicit shared trigger | Preserve clear focus; add a deliberate inactive-selection state after approval |
 
-The detailed MyPos source review and proposed WPF token table below remain recommendations, not exact copies of WinBox. The most valuable changes are flattening Reports chrome, reducing Products toolbar gaps, and reclaiming POS optional-detail/status space. No source changes have been made.
+The detailed RetailForma source review and proposed WPF token table below remain recommendations, not exact copies of WinBox. The most valuable changes are flattening Reports chrome, reducing Products toolbar gaps, and reclaiming POS optional-detail/status space. No source changes have been made.
 
-## Confirmed MyPos implementation
+## Confirmed RetailForma implementation
 
 Sources are relative to `D:\MyPos`; named resources and controls provide stable lookup anchors.
 
 | Area | Confirmed—source | Implication |
 |---|---|---|
-| Framework | `src/MyPos.Desktop/MyPos.Desktop.csproj`: WPF, net10.0-windows, MaterialDesignThemes **5.3.2** | Retain installed Material templates and add scoped compact styles |
+| Framework | `src/RetailForma.Desktop/RetailForma.Desktop.csproj`: WPF, net10.0-windows, MaterialDesignThemes **5.3.2** | Retain installed Material templates and add scoped compact styles |
 | Theme | `App.xaml`: Light BundledTheme, MaterialDesign2.Defaults | Audit against Material Design 2 resources actually used |
 | Typeface | `App.xaml`, `UiFontFamily`: bundled **Wix Madefor Text** | Family is explicit; successful runtime font resolution was not observed |
 | Base type | Window/UserControl 13; buttons 13; page title 20 SemiBold; section heading 12 SemiBold; field hint 12 | Most body type is already suitably compact |
-| Buttons | `MyPosButton`: MinHeight 34, MinWidth 70, padding 10,0, border 1, radius 8 | Icon and small navigation buttons need explicit smaller minimum widths |
+| Buttons | `RetailFormaButton`: MinHeight 34, MinWidth 70, padding 10,0, border 1, radius 8 | Icon and small navigation buttons need explicit smaller minimum widths |
 | Inputs | TextBox padding 10,4; radius 6; border 1; nonfloating hint globally | No global TextBox height is declared; local sizes matter |
 | Dropdown/date | ComboBox MinHeight 32, padding 10,0; DatePicker MinHeight 34 | A smaller Height alone does not overcome MinHeight |
 | Tables | RowHeight 30, header 32; header padding 7,5; cell template padding 6,0,6,0 | Dense base already exists; table padding is hard-coded in the template |
@@ -134,7 +134,7 @@ Sources are relative to `D:\MyPos`; named resources and controls provide stable 
 
 Focused selected rows/cells explicitly use accent blue and white text through `IsSelected` plus `IsKeyboardFocusWithin` triggers. `GridCellText` supports white selected text. There is **no explicit inactive-selection brush trigger in the inspected shared row/cell styles**. Retained selection can therefore lose its custom blue treatment when focus leaves. The final inherited/runtime appearance needs verification. This differs from the older `agent.md` description of pale-blue selection and a muted inactive state; current source takes precedence.
 
-`MyPosFocusVisual` draws a 2-DIP accent border with radius 6. Buttons have radius 8, so corner treatment is not uniform. Hover and disabled rendering largely come from the inherited Material templates; exact rendered colors were not inspected. Do not replace these templates just to obtain density.
+`RetailFormaFocusVisual` draws a 2-DIP accent border with radius 6. Buttons have radius 8, so corner treatment is not uniform. Hover and disabled rendering largely come from the inherited Material templates; exact rendered colors were not inspected. Do not replace these templates just to obtain density.
 
 `Controls/DataGridBehaviors.cs` clears selection on outside clicks/focus changes, except button targets and focus moving into other windows. This means a toolbar action may retain a selected row whose custom focused highlight has disappeared. Selection state and appearance should be designed together.
 
@@ -142,7 +142,7 @@ Focused selected rows/cells explicitly use accent blue and white text through `I
 
 ## Recommended WPF density tokens — proposals
 
-All dimensions and FontSize values below are **WPF device-independent pixels (DIP)**, not typography points or physical screen pixels. 13 DIP corresponds to 9.75 pt. At 125% scaling, 32 DIP occupies about 40 physical pixels. These are proposed values for MyPos, not inferred WinBox defaults.
+All dimensions and FontSize values below are **WPF device-independent pixels (DIP)**, not typography points or physical screen pixels. 13 DIP corresponds to 9.75 pt. At 125% scaling, 32 DIP occupies about 40 physical pixels. These are proposed values for RetailForma, not inferred WinBox defaults.
 
 | Token / use | Recommended value | Treatment |
 |---|---|---|
@@ -188,7 +188,7 @@ Use named compact styles for Reports and Products before changing global default
 
 **Estimate—source model:** roughly **100–120 DIP**, or about **3–4 extra 30-DIP rows**, with ordinary one-line content. This is not a measured rendered improvement; wrapping and validation can consume the gain.
 
-Specific issue: previous/next date buttons request Width=36 but inherit MinWidth=70 from `MyPosButton`. A scoped icon-button style with MinWidth=0 would reclaim **34 DIP each** under normal WPF sizing behavior. Check other narrow buttons, including Audit Log's Width=60 “All.”
+Specific issue: previous/next date buttons request Width=36 but inherit MinWidth=70 from `RetailFormaButton`. A scoped icon-button style with MinWidth=0 would reclaim **34 DIP each** under normal WPF sizing behavior. Check other narrow buttons, including Audit Log's Width=60 “All.”
 
 The sales columns total **1055 DIP minimum** before scrollbar/border allowance. `SizeToCells` monetary columns can expand further for large amounts. At narrow widths, choose visible columns with a user-controlled column picker or retain horizontal scrolling; do not silently truncate money. Customer can become a star column with a minimum. Preserve access to gross, discount, VAT, net and void data.
 
@@ -230,7 +230,7 @@ Subtract actual taskbar, title bar, shell header/footer, 58-DIP rail and page in
 
 The supplied screenshot now supports the static WinBox comparison above. Complete the remaining appearance-settings and interaction-state inspection when capture works, without connecting or submitting credentials. Record appearance settings verbatim and note theme, scale, client size and safe surface inspected. Any connected-only control that cannot be inspected within scope stays unverified.
 
-For a later MyPos implementation, compare baseline/proposal at 1366×768 with 100%, 125% and 150% scaling, and at the minimum supported window size. Record fully visible table rows and minimum description widths. Exercise long product names, large peso values, empty and populated tables, keyboard focus, hover, active/inactive selection, disabled actions, opened dropdowns, required invoice errors, discounts, closed shifts and print failures. Check toolbar wrapping and that payment remains reachable. These are pending checks, not tests run in this audit.
+For a later RetailForma implementation, compare baseline/proposal at 1366×768 with 100%, 125% and 150% scaling, and at the minimum supported window size. Record fully visible table rows and minimum description widths. Exercise long product names, large peso values, empty and populated tables, keyboard focus, hover, active/inactive selection, disabled actions, opened dropdowns, required invoice errors, discounts, closed shifts and print failures. Check toolbar wrapping and that payment remains reachable. These are pending checks, not tests run in this audit.
 
 No application edits are authorized by this document. Wait for the user's implementation decision.
 

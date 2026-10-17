@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">RetailForma RF application icon</title>
+  <desc id="desc">Editable vector RF monogram on a blue rounded square. Transparent outside the corners.</desc>
+  <rect id="blue-tile" x="16" y="16" width="480" height="480" rx="88" fill="#2878BD"/>
+  <g id="rf-monogram" fill="#FFFFFF" transform="translate(71 135) scale(.845)">
+    <path id="letter-r" d="M0 0H128C200 0 232 43 232 95C232 137 208 163 156 181L236 280H145L18 120H131C154 120 166 110 166 93C166 75 154 64 131 64H0Z"/>
+    <path id="letter-f-top" d="M208 0H438V64H250C243 36 231 15 208 0Z"/>
+    <path id="letter-f-stem" d="M250 110H399V174H307V280H250Z"/>
+  </g>
+</svg>

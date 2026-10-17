@@ -1,0 +1,30 @@
+using System.Windows;
+using System.Windows.Media;
+using RetailForma.Core.Entities;
+namespace RetailForma.Desktop.Dialogs;
+public partial class SaleCompleteDialog : Window
+{
+    private readonly Sale _sale;
+    public bool ReceiptPrinted { get; private set; }
+    public SaleCompleteDialog(Sale sale, bool receiptsExpected, bool printed)
+    {
+        InitializeComponent(); _sale = sale;
+        ReceiptPrinted = receiptsExpected && printed;
+        SaleNumberText.Text = $"SALE #{sale.SaleNumber} - ₱{sale.TotalAmount:N2}" + (sale.ReceiptNumber == null ? "" : $" - {sale.ReceiptNumber}");
+        ChangeLabel.Text = sale.ChangeAmount > 0 ? "CHANGE" : "FULLY PAID";
+        ChangeText.Text = sale.ChangeAmount > 0 ? $"₱{sale.ChangeAmount:N2}" : $"₱{sale.TotalAmount:N2}";
+        if (!receiptsExpected) PrintStatusText.Text = "MANUAL RECEIPT MODE - WRITE THE OR BY HAND";
+        else if (printed) { PrintStatusText.Text = "RECEIPT SENT TO PRINTER"; PrintStatusText.Foreground = Brushes.Green; }
+        else { PrintStatusText.Text = "RECEIPT NOT PRINTED - PRESS VIEW RECEIPT TO SEE AND RETRY"; PrintStatusText.Foreground = Brushes.Red; }
+    }
+    private void ReceiptButton_Click(object sender, RoutedEventArgs e)
+    {
+        var preview = new ReceiptPreviewDialog(_sale, reprint: ReceiptPrinted);
+        preview.ShowDialog();
+        if (!preview.PrintedSuccessfully) return;
+        ReceiptPrinted = true;
+        PrintStatusText.Text = "RECEIPT SENT TO PRINTER";
+        PrintStatusText.Foreground = Brushes.Green;
+    }
+    private void Done_Click(object sender, RoutedEventArgs e) => DialogResult = true;
+}

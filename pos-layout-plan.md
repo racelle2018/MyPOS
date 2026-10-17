@@ -4,7 +4,7 @@ Reference: `C:\Users\User\Pictures\Screenshots\Screenshot (37) copy.jpg` (provid
 
 ## 1. Layout to build
 
-At normal desktop width, use a two-column work area under the existing MyPos shell header. The left column is the primary sale area (about two thirds); the right column is the product picker (about one third). Avoid copying the screenshot's large blank areas or any clipped/overlapping controls.
+At normal desktop width, use a two-column work area under the existing RetailForma shell header. The left column is the primary sale area (about two thirds); the right column is the product picker (about one third). Avoid copying the screenshot's large blank areas or any clipped/overlapping controls.
 
 | Area | Intended content | Existing implementation to reuse |
 | --- | --- | --- |
@@ -15,7 +15,7 @@ At normal desktop width, use a two-column work area under the existing MyPos she
 | Bottom of sale column | Search/scan box plus Hold, Recall, Clear, Pay actions | `SearchBox`, `HoldButton`, `RecallButton`, `ClearButton`, `PayButton` |
 | Bottom of window | Transaction message and live clock above the existing shell status strip | `StatusText`, `DateTimeText` in `PosView`; shell strip in `MainWindow` |
 
-Keep the invoice field as a **separately labeled, non-floating** field, as requested in the previous change. Name and Address keep their floating hints. Preserve the current light blue MyPos/Material Design theme and the shell's left navigation rail; the reference does not require replacing the app-wide navigation.
+Keep the invoice field as a **separately labeled, non-floating** field, as requested in the previous change. Name and Address keep their floating hints. Preserve the current light blue RetailForma/Material Design theme and the shell's left navigation rail; the reference does not require replacing the app-wide navigation.
 
 ## 2. Implementation sequence
 
@@ -25,11 +25,11 @@ Keep the invoice field as a **separately labeled, non-floating** field, as reque
 4. **Handle narrower windows deliberately.** At reduced width, stack or reposition the total card and product list; allow vertical scrolling where necessary. The search and Pay controls must remain reachable at the current window minimum (`760 × 560`) and at common display scaling. At normal width, keep the product list alongside the cart. Avoid nested scrollbars that trap keyboard or mouse-wheel navigation.
 5. **Preserve cashier flow when relocating search.** After adding a product, focus returns to `SearchBox`; a scanner still enters a barcode followed by Enter. Enter on the product list, double-click, quantity edits, Hold/Recall/Clear/Pay and their shortcuts must work unchanged. Do not let a layout move accidentally intercept Enter or F-keys.
 6. **Verify totals and accessibility.** The prominent total card must continue to display values computed by `SaleCalculator`, not duplicate arithmetic in XAML/code-behind. Keep money right-aligned, product names readable (trimming/tooltip if needed), meaningful automation names, and visible focus/validation states. The invoice error must stay adjacent to the invoice field.
-7. **Test and visually review.** Update `ThemeResourceTests` to assert the new regions/control placement and visibility at normal and compact sizes while preserving the invoice non-floating check and Name/Address floating checks. Run `dotnet test MyPos.slnx -c Release --no-restore`. Then manually inspect the running app with an empty cart, populated cart, discount variants, receipt modes, open/closed shift, long product names, and 100%/125%/150% Windows scaling. Tests alone do not prove the visual layout is good.
+7. **Test and visually review.** Update `ThemeResourceTests` to assert the new regions/control placement and visibility at normal and compact sizes while preserving the invoice non-floating check and Name/Address floating checks. Run `dotnet test RetailForma.slnx -c Release --no-restore`. Then manually inspect the running app with an empty cart, populated cart, discount variants, receipt modes, open/closed shift, long product names, and 100%/125%/150% Windows scaling. Tests alone do not prove the visual layout is good.
 
 ## 3. Functions and behavior to review before changing layout
 
-These are current code paths in `src/MyPos.Desktop/Views/PosView.xaml.cs`; the proposed redesign should normally **retain** their behavior.
+These are current code paths in `src/RetailForma.Desktop/Views/PosView.xaml.cs`; the proposed redesign should normally **retain** their behavior.
 
 | Current function / flow | Why it matters for the layout review |
 | --- | --- |
@@ -44,7 +44,7 @@ These are current code paths in `src/MyPos.Desktop/Views/PosView.xaml.cs`; the p
 | `UserControl_PreviewKeyDown` | F2 Pay, F3 Hold, F4 Clear, F6 Recall, Escape clear search, and Delete cart row. Test after relocating controls. |
 | `UpdateClock`, `Status` | Keep live time and transaction messages in the lower status area; don't duplicate the shell's app/version strip. |
 
-Also inspect `src/MyPos.Desktop/MainWindow.xaml`/`.cs` before modifying the POS view: the shell already owns the blue page header, navigation rail and bottom version/status strip, and keeps one `PosView` instance alive across navigation.
+Also inspect `src/RetailForma.Desktop/MainWindow.xaml`/`.cs` before modifying the POS view: the shell already owns the blue page header, navigation rail and bottom version/status strip, and keeps one `PosView` instance alive across navigation.
 
 ## 4. Decisions for you to review
 

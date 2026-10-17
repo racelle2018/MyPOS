@@ -1,0 +1,18 @@
+<UserControl x:Class="RetailForma.Desktop.Views.LicensingView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ FontFamily="{DynamicResource ReportInterFontFamily}" FontSize="{DynamicResource UiFontSize12}">
+ <UserControl.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="../Styles/UtilitySettingsChrome.xaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary></UserControl.Resources>
+ <Border Margin="8,6,8,8" BorderThickness="{StaticResource UiBorderThickness}" BorderBrush="#CDD1D4" Background="White">
+ <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="12">
+  <TextBlock Text="Licensing — System Administrator" Style="{StaticResource SettingsSectionHeading}"/>
+  <TextBlock x:Name="StatusText" Text="Request/import an issuer-signed license. Lifetime has no expiry or internet requirement; trials require fresh signed server time." TextWrapping="Wrap" Margin="0,10,0,10"/>
+  <Button Content="Export device request" Style="{StaticResource SettingsButton}" HorizontalAlignment="Left" Click="Export_Click"/>
+  <Button Content="Import signed license" Style="{StaticResource SettingsButton}" HorizontalAlignment="Left" Click="Import_Click"/>
+  <TextBlock Text="Online trial invitation (supplied by programmer)" Margin="0,10,0,4"/>
+  <TextBox x:Name="TrialIdBox" Tag="Trial license ID"/>
+  <TextBlock Text="Activation key" Margin="0,6,0,4"/>
+  <PasswordBox x:Name="TrialKeyBox"/>
+  <Button Content="Activate seven-day trial online" Style="{StaticResource SettingsButton}" HorizontalAlignment="Left" Click="StartTrial_Click"/>
+  <TextBlock Text="Only the programmer holds the paid signing key. Importing cannot create a license, change its expiry, or enable the Phase 2 portal by itself. Hardware replacements require the programmer's approved reissue." Style="{StaticResource SettingsHelp}" Margin="0,10,0,0"/>
+ </StackPanel></ScrollViewer></Border>
+</UserControl>

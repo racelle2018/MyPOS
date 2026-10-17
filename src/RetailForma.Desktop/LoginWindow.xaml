@@ -1,0 +1,72 @@
+<Window x:Class="RetailForma.Desktop.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:branding="clr-namespace:RetailForma.Core;assembly=RetailForma.Core"
+        Title="{x:Static branding:ProductBrand.Name}" Width="350" Height="450"
+        Icon="Assets/Branding/retailforma.ico"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        WindowStyle="SingleBorderWindow" Background="White"
+        FontFamily="{DynamicResource ReportInterFontFamily}" FontSize="{DynamicResource UiFontSize12}" Foreground="{StaticResource UiTextBrush}">
+    <Window.Resources>
+        <ResourceDictionary Source="pack://application:,,,/RetailForma.Desktop;component/Styles/LoginMaterial.xaml"/>
+    </Window.Resources>
+
+    <ScrollViewer x:Name="LoginScroller" Background="White" VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="18" Height="356">
+            <Border x:Name="LoginLogo" Width="72" Height="72"
+                    Background="Transparent" HorizontalAlignment="Center" Margin="0,0,0,8">
+                <Image x:Name="RetailFormaLogo" Source="Assets/Branding/retailforma-icon.png" Stretch="Uniform"
+                       RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="RetailForma logo"/>
+            </Border>
+            <TextBlock x:Name="WelcomeLabel" Text="Welcome back!" FontSize="20" FontWeight="Bold"
+                       HorizontalAlignment="Center" TextAlignment="Center"/>
+            <TextBlock x:Name="CompanyLabel" Text="MY STORE"
+                       Foreground="{StaticResource UiMutedBrush}" TextWrapping="Wrap"
+                       FontSize="{DynamicResource UiFontSize12}" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,4,0,0"/>
+            <TextBox x:Name="UsernameBox" Margin="0,24,0,0"
+                     Style="{StaticResource LoginMaterialTextBox}"
+                     materialDesign:HintAssist.Hint="Username"
+                     CharacterCasing="Normal"
+                     AutomationProperties.Name="Username"/>
+            <Grid Width="280" HorizontalAlignment="Center" Margin="0,12,0,0">
+            <PasswordBox x:Name="PasswordBox" Margin="0" Padding="12,8,40,8"
+                         Style="{StaticResource LoginMaterialPasswordBox}"
+                         materialDesign:HintAssist.Hint="Password"
+                         AutomationProperties.Name="Password"
+                         PreviewKeyDown="PasswordBox_PreviewKeyDown"/>
+            <TextBox x:Name="VisiblePasswordBox" Margin="1,8,40,8" Style="{x:Null}"
+                     Padding="11,0,0,0" Background="White" BorderThickness="0" FontSize="{DynamicResource UiFontSize12}"
+                     VerticalContentAlignment="Center" HorizontalScrollBarVisibility="Hidden"
+                     Visibility="Collapsed" IsReadOnly="True" Focusable="False" IsTabStop="False"
+                     IsHitTestVisible="False" AutomationProperties.Name="Password preview">
+                <TextBox.Template>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"
+                                          HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"/>
+                        </Border>
+                    </ControlTemplate>
+                </TextBox.Template>
+            </TextBox>
+            <Button x:Name="RevealPasswordButton" Width="28" Height="{DynamicResource UiControlHeight28}" HorizontalAlignment="Right" Margin="0,0,6,0"
+                    Style="{StaticResource ReportChromeButton}" Padding="0" Background="Transparent" BorderThickness="0"
+                    ToolTip="Hold to show password" AutomationProperties.Name="Hold to show password"
+                    PreviewMouseLeftButtonDown="RevealPassword_MouseDown" PreviewMouseLeftButtonUp="RevealPassword_MouseUp"
+                    MouseLeave="RevealPassword_End" LostMouseCapture="RevealPassword_End" LostKeyboardFocus="RevealPassword_End"
+                    PreviewKeyDown="RevealPassword_KeyDown" PreviewKeyUp="RevealPassword_KeyUp">
+                <materialDesign:PackIcon Kind="Eye" Width="16" Height="16"/>
+            </Button>
+            </Grid>
+            <TextBlock x:Name="CapsLockHint" Text="Caps Lock is on"
+                       Width="280" HorizontalAlignment="Center"
+                       Foreground="{StaticResource UiWarningBrush}" FontSize="{DynamicResource UiFontSize12}"
+                       Margin="0,4,0,0" Height="{DynamicResource UiControlHeight16}" Visibility="Hidden"/>
+            <Button x:Name="LoginButton" Content="Login" Style="{StaticResource LoginMaterialButton}"
+                    Margin="0,0" Click="LoginButton_Click" IsDefault="True" Height="{DynamicResource UiControlHeight40}"/>
+            <TextBlock x:Name="VersionText" Foreground="{StaticResource UiMutedBrush}"
+                       FontSize="{DynamicResource UiFontSize11}" HorizontalAlignment="Center" Margin="0,20,0,0"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>
